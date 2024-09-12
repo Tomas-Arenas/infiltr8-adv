@@ -2,6 +2,12 @@
     // No script needed for this example
 </script>
 
+<div class="container">
+    <h1>Welcome to SvelteKit</h1>
+    <p>Visit <a href="https://kit.svelte.dev">kit.svelte.dev</a> to read the documentation</p>
+    <a href="/report" class="button">Go to Report</a>
+</div>
+
 <style>
     .container {
         display: flex;
@@ -28,9 +34,3 @@
         background-color: #0056b3;
     }
 </style>
-
-<div class="container">
-    <h1>Welcome to SvelteKit</h1>
-    <p>Visit <a href="https://kit.svelte.dev">kit.svelte.dev</a> to read the documentation</p>
-    <a href="/report" class="button">Go to Report</a>
-</div>
