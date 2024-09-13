@@ -25,6 +25,8 @@
         { id: 7, name: 'Example 7', size: '1.6 GB', items: 109 }
     ];
 
+    let selectedProject = null;
+
     function moveUp(list, index) {
         if (index > 0) {
             const temp = list[index];
@@ -42,6 +44,7 @@
     }
 
     function loadProject(project) {
+        selectedProject = project;
         console.log(`Project ${project.name} loaded.`);
     }
 </script>
@@ -70,6 +73,11 @@
         display: flex;
         gap: 5px;
     }
+    .menu-icon {
+        font-size: 16px;
+        cursor: pointer;
+        margin-left: 10px;
+    }
     button {
         background-color: white;
         border: none;
@@ -82,11 +90,16 @@
     .start-button {
         background-color: blue;
         color: white;
-        padding: 15px;
+        padding: 20px 40px;
         border: none;
         border-radius: 8px;
         cursor: pointer;
-        font-size: 16px;
+        font-size: 20px;
+        margin-top: 20px;
+        display: block;
+        width: fit-content;
+        margin-left: auto;
+        margin-right: auto;
     }
     .start-button:hover {
         background-color: #0056b3;
@@ -107,6 +120,15 @@
     .project-item:hover {
         background-color: #e6e6e6;
     }
+    .project-info {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-grow: 1;
+    }
+    .project-icon {
+        font-size: 24px;
+    }
     .project-name {
         display: flex;
         flex-direction: column;
@@ -115,11 +137,40 @@
         color: gray;
         font-size: 12px;
     }
+    .project-dots {
+        text-align: right;
+    }
+    .selected-project {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background-color: #ffffff;
+        padding: 15px;
+        margin-top: 10px;
+        border-radius: 10px;
+        box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+    }
 </style>
 
 <div class="container">
     <div class="section">
         <h2>Current project folder</h2>
+            <!-- Selected Project Box -->
+            {#if selectedProject}
+            <div class="selected-project">
+                <div class="project-info">
+                    <!-- Font Awesome folder icon -->
+                    <i class="fas fa-folder project-icon"></i>
+                    <div class="project-name">
+                        <span>{selectedProject.name}</span>
+                        <span class="project-size">{selectedProject.items} items • {selectedProject.size}</span>
+                    </div>
+                </div>
+                <div class="project-dots">
+                    <span>⋮</span>
+                </div>
+            </div>
+            {/if}
         <div>
             <h3>Scope IP List</h3>
             {#each scopeIPs as ip, index}
@@ -131,6 +182,7 @@
                     <div class="arrows">
                         <button on:click={() => moveUp(scopeIPs, index)}>⬆</button>
                         <button on:click={() => moveDown(scopeIPs, index)}>⬇</button>
+                        <i class="fas fa-bars menu-icon"></i>
                     </div>
                 </div>
             {/each}
@@ -146,11 +198,11 @@
                     <div class="arrows">
                         <button on:click={() => moveUp(exploitsAllowed, index)}>⬆</button>
                         <button on:click={() => moveDown(exploitsAllowed, index)}>⬇</button>
+                        <i class="fas fa-bars menu-icon"></i>
                     </div>
                 </div>
             {/each}
         </div>
-        <button class="start-button" on:click={() => console.log("Start Testing")}>Start Testing</button>
     </div>
 
     <!-- Load Project Section -->
@@ -158,14 +210,21 @@
         <h3>Load Project</h3>
         {#each projects as project}
             <div class="project-item" on:click={() => loadProject(project)}>
-                <div class="project-name">
-                    <span>{project.name}</span>
-                    <span class="project-size">{project.items} items • {project.size}</span>
+                <div class="project-info">
+                    <!-- Font Awesome folder icon -->
+                    <i class="fas fa-folder project-icon"></i>
+                    <div class="project-name">
+                        <span>{project.name}</span>
+                        <span class="project-size">{project.items} items • {project.size}</span>
+                    </div>
                 </div>
-                <div>
+                <div class="project-dots">
                     <span>⋮</span>
                 </div>
             </div>
         {/each}
     </div>
 </div>
+
+<!-- Start Testing button placed outside and below the layout -->
+<button class="start-button" on:click={() => console.log("Start Testing")}>Start Testing</button>
