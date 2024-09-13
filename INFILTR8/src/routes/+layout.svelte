@@ -16,7 +16,7 @@
 
 <div class="app flex h-screen bg-gray-50 dark:bg-gray-600">
 	<Navbar />
-	<div class={`p-4 flex-1 bg-gray-50 dark:bg-gray-600 ${$menuOpen ? 'ml-64' : ''}`}>
+	<div class={`p-4 flex-1 bg-gray-50 dark:bg-gray-600 ${$menuOpen ? 'ml-64' : ''} mt-10`}>
 		<main class="">
 			<slot />
 		</main>
