@@ -92,7 +92,7 @@
 
 <!-- whole page -->
 <main>
-    <h1 class="font-bold text-xl">Running Analysis</h1>
+    <h1 class="font-bold text-xl">Analysis</h1>
 
     <div>
         <!-- start of the left column -->    
@@ -110,7 +110,7 @@
                     <TableBodyRow class="bg-gray-100">
                         <TableBodyCell>9/13/2024 - 10:00:00 AM</TableBodyCell>
                         <TableBodyCell>John Doe</TableBodyCell>
-                        <TableBodyCell>3.2 mb</TableBodyCell>
+                        <TableBodyCell>--</TableBodyCell>
                         <TableBodyCell><button class="border-2 shadow-gray-400 py-2 px-2 shadow-lg rounded-2xl self-center">Scheduled</button></TableBodyCell>
                     </TableBodyRow>
                     <TableBodyRow>
@@ -123,19 +123,19 @@
                         <TableBodyCell>9/10/2024 - 10:43:21 AM</TableBodyCell>
                         <TableBodyCell>John Doe</TableBodyCell>
                         <TableBodyCell>3.2 mb</TableBodyCell>
-                        <TableBodyCell><button class="border-2 py-2 px-2 shadow-lg rounded-2xl self-center">Results</button></TableBodyCell>
+                        <TableBodyCell><button class="border-2 py-2 px-2 shadow-lg rounded-2xl self-center">Reports</button></TableBodyCell>
                     </TableBodyRow>
                     <TableBodyRow>
                         <TableBodyCell>9/09/2024 - 10:05:21 AM</TableBodyCell>
                         <TableBodyCell>John Doe</TableBodyCell>
                         <TableBodyCell>3.2 mb</TableBodyCell>
-                        <TableBodyCell><button class="border-2 py-2 px-2 shadow-lg rounded-2xl self-center">Results</button></TableBodyCell>
+                        <TableBodyCell><button class="border-2 py-2 px-2 shadow-lg rounded-2xl self-center">Reports</button></TableBodyCell>
                     </TableBodyRow>
                     <TableBodyRow>
                         <TableBodyCell>9/07/2024 - 9:43:21 AM</TableBodyCell>
                         <TableBodyCell>John Doe</TableBodyCell>
                         <TableBodyCell>3.2 mb</TableBodyCell>
-                        <TableBodyCell><button class="border-2 py-2 px-2 shadow-lg rounded-2xl self-center">Results</button></TableBodyCell>
+                        <TableBodyCell><button class="border-2 py-2 px-2 shadow-lg rounded-2xl self-center">Reports</button></TableBodyCell>
                     </TableBodyRow>
                     </TableBody>
                 </Table>
@@ -165,7 +165,7 @@
                   </Card>
             </div>
             <div id="bottomSettings" class="py-8 rounded-md shadow-2xl">
-                <h2 class="text-center font-bold">Settings</h2>
+                <h2 class="text-center font-bold">Current Test</h2>
                 <div class="px-2">
                     <p>Project Name: Test Run</p>
                     <p>Analyst: John Doe</p>
