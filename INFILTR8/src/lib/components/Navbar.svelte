@@ -30,7 +30,7 @@
 			href: '/report',
 			icon: Icon.NewspaperSolid
 		},
-		{ text: 'POC Test Library', href: '/library', icon: Icon.BookSolid },
+		{ text: 'Analysis', href: '/analysis', icon: Icon.BookSolid },
 		{
 			text: 'Test case search',
 			href: '/testcasesearch',

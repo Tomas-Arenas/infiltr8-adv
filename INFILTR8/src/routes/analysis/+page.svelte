@@ -172,7 +172,7 @@
                     <p>File Location: /Path/goes/here/</p>
                     <p>Scheduled?: Yes</p>
                     <p>IPs Excluded?: Yes</p>
-                    <p>Time Started: 10:23 AM - 9/12/2024</p>
+                    <p>Time Started: 10:00:00 AM - 9/12/2024</p>
                     <p>Time Completed: </p>
                 </div>
             </div>
