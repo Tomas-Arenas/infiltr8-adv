@@ -34,13 +34,3 @@
         background-color: #0056b3;
     }
 </style>
-<<<<<<< HEAD
-
-<div class="container">
-    <h1>Welcome to SvelteKit</h1>
-    <p>Visit <a href="https://kit.svelte.dev">kit.svelte.dev</a> to read the documentation</p>
-    <a href="/report" class="button">Go to Report</a>
-    <a href="/analysis" class="button">Testing page</a>
-</div>
-=======
->>>>>>> 7280b073be8cfd68589db6495dcc147ab6bb794e
