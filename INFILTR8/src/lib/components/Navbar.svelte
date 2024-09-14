@@ -24,7 +24,7 @@
 
 	// Sidebar item data: each item has text, href (link), and an icon key
 	const sidebarItems = [
-		{ text: 'Dashboard', href: '/', icon: Icon.GlobeSolid },
+		{ text: 'Dashboard', href: '/dashboard', icon: Icon.GlobeSolid },
 		{
 			text: 'Report',
 			href: '/report',
