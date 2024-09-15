@@ -4,6 +4,10 @@
     import { Heading, P, Span } from 'flowbite-svelte';
     import { GradientButton } from 'flowbite-svelte';
     import { Progressbar } from 'flowbite-svelte';
+    import { Listgroup } from 'flowbite-svelte';
+    import { Alert } from 'flowbite-svelte';
+    import { InfoCircleSolid } from 'flowbite-svelte-icons';
+  let simpleList = ['Test1'];
 
     
     // Initialize the array to hold file names
@@ -63,7 +67,10 @@
       return concat;
     };
     </script>
-  <div class="flex flex-col items-center justify-center min-h-screen max-w-fit">
+    <div class="flex flex-row items-start justify-between min-h-screen w-full">
+    <div class="flex-grow">
+
+  <div class="flex flex-col items-center justify-center w-full">
     <Heading tag="h1" class="mb-4" customSize="text-3xl text-center font-extrabold  md:text-5xl lg:text-6xl">
       <Span gradient>WELCOME TO INFILTR8</Span>
     </Heading>
@@ -72,7 +79,7 @@
     <!-- Dropzone component for file uploads -->
     <Dropzone
       id="dropzone"
-      class='w-96'
+      class='w-96 mb-2'
       on:drop={dropHandle}
       on:dragover={(event) => {
         event.preventDefault();
@@ -88,45 +95,65 @@
         <p>{showFiles(value)}</p>
       {/if}
     </Dropzone>
-    <div class="flex flex-col mr-80">
+        <div class="flex flex-row justify-between w-full mt-4">
+            <div class="flex flex-col mr-8">
 
-    <GradientButton class = "mb-2" color="green">Discard All</GradientButton>
-    <GradientButton color="purple">Create Project</GradientButton>
+                <GradientButton class = "mb-2" color="green">Discard All</GradientButton>
+                <GradientButton color="purple">Create Project</GradientButton>
+            </div>
+            <div class="flex flex-col justify-between w-full">
+            <Listgroup items={simpleList} let:item class="flex-grow w-full">
+                <div class="mb-1 text-base font-medium text-blue-700 dark:text-blue-500">TEST 1</div>
+                <Progressbar progress="5" color="blue" />
+                <div class="mb-1 text-base font-medium text-red-700 dark:text-red-500">TEST 2</div>
+                <Progressbar progress="10" color="red" />
+                <div class="mb-1 text-base font-medium text-green-700 dark:text-green-500">TEST 3</div>
+                <Progressbar progress="50" color="green" />
+                <div class="mb-1 text-base font-medium text-yellow-700 dark:text-yellow-500">TEST 4</div>
+                <Progressbar progress="30" color="yellow" />  
+                <div class="mb-1 text-base font-medium text-purple-700 dark:text-purple-400">TEST 5</div>
+                <Progressbar progress="70" color="purple" />
+            </Listgroup> 
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="mb-1 text-base font-medium dark:text-white">Gray</div>
-    <Progressbar progress="50" color="gray" />
-</div>
-<div class="my-4">
-    <div class="mb-1 text-base font-medium text-blue-700 dark:text-blue-500">Blue</div>
-    <Progressbar progress="50" color="blue" />
-  </div>
-  
-  <div class="my-4">
-    <div class="mb-1 text-base font-medium text-red-700 dark:text-red-500">Red</div>
-    <Progressbar progress="50" color="red" />
-  </div>
-  
-  <div class="my-4">
-    <div class="mb-1 text-base font-medium text-green-700 dark:text-green-500">Green</div>
-    <Progressbar progress="50" color="green" />
-  </div>
-  
-  <div class="mb-1 text-base font-medium text-yellow-700 dark:text-yellow-500">Yellow</div>
-  <div class="my-4">
-    <Progressbar progress="50" color="yellow" />
-  </div>
-  
-  <div class="mb-1 text-base font-medium text-indigo-700 dark:text-indigo-400">Indigo</div>
-  <div class="my-4">
-    <Progressbar progress="50" color="indigo" />
-  </div>
-  
-  <div class="mb-1 text-base font-medium text-purple-700 dark:text-purple-400">Purple</div>
-  <div class="my-4">
-    <Progressbar progress="50" color="purple" />
-  </div>
-    <div>
-
+    <div class="relative w-90 ml-8">
+        <h2 class="text-xl font-bold text-gray-700 dark:text-gray-300 my-4">Notification Center</h2>
+        <!-- Notifications -->
+        <div class="space-y-4">
+            <Alert>
+                <InfoCircleSolid slot="icon" class="w-5 h-5" />
+                <span class="font-medium">Default alert!</span>
+                Change a few things up and try submitting again.
+            </Alert>
+            <Alert color="blue">
+                <InfoCircleSolid slot="icon" class="w-5 h-5" />
+                <span class="font-medium">Info alert!</span>
+                Change a few things up and try submitting again.
+            </Alert>
+            <Alert color="red">
+                <InfoCircleSolid slot="icon" class="w-5 h-5" />
+                <span class="font-medium">Danger alert!</span>
+                Change a few things up and try submitting again.
+            </Alert>
+            <Alert color="green">
+                <InfoCircleSolid slot="icon" class="w-5 h-5" />
+                <span class="font-medium">Success alert!</span>
+                Change a few things up and try submitting again.
+            </Alert>
+            <Alert color="yellow">
+                <InfoCircleSolid slot="icon" class="w-5 h-5" />
+                <span class="font-medium">Warning alert!</span>
+                Change a few things up and try submitting again.
+            </Alert>
+            <Alert color="dark">
+                <InfoCircleSolid slot="icon" class="w-5 h-5" />
+                <span class="font-medium">Dark alert!</span>
+                Change a few things up and try submitting again.
+            </Alert>
+        </div>
+    </div>
   </div>
 
     
