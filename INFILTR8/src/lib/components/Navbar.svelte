@@ -10,7 +10,7 @@
 	import { fade } from 'svelte/transition';
 	import { menuOpen } from '$lib/stores.js';
 
-	export let open = true;
+	export let open = false;
 	let slideMenu = false;
 
 	export let userInitials = 'U';
