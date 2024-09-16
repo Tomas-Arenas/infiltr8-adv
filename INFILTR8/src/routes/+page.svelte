@@ -1,11 +1,4 @@
 <script>
-<<<<<<< HEAD
-    // No script needed for this example
-    
-</script>
-
-<!-- Welcome -->
-=======
 	// No script needed for this example
 </script>
 
@@ -14,7 +7,6 @@
 	<p>Visit <a href="https://kit.svelte.dev">kit.svelte.dev</a> to read the documentation</p>
 	<a href="/report" class="button">Go to Report</a>
 </div>
->>>>>>> 9974c814dd270fa7ed7d0c16f4c07a44c668b54f
 
 <style>
 	.container {
