@@ -4,6 +4,7 @@
     import { Chart, Card, A, Button, Dropdown, DropdownItem, Popover, Tooltip } from 'flowbite-svelte';
     import { InfoCircleSolid, ArrowDownToBracketOutline, ChevronDownOutline, ChevronRightOutline, PenSolid, DownloadSolid, ShareNodesSolid } from 'flowbite-svelte-icons';
 
+    // pie chart
     const options = {
         series: [1, 1, 3],
         colors: ['#1C64F2', '#16BDCA', '#FDBA8C'],
@@ -107,7 +108,7 @@
                     <TableHeadCell>Progress</TableHeadCell>
                     </TableHead>
                     <TableBody>
-                    <TableBodyRow class="bg-gray-100">
+                    <TableBodyRow class="bg-gray-100" on:click>
                         <TableBodyCell>9/13/2024 - 10:00:00 AM</TableBodyCell>
                         <TableBodyCell>John Doe</TableBodyCell>
                         <TableBodyCell>--</TableBodyCell>
@@ -164,6 +165,7 @@
                     <Chart {options} class="py-6" />
                   </Card>
             </div>
+            <!-- start of current project settings -->
             <div id="bottomSettings" class="py-8 rounded-md shadow-2xl">
                 <h2 class="text-center font-bold">Current Test</h2>
                 <div class="px-2">
