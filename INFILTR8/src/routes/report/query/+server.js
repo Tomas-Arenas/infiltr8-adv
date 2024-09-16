@@ -13,7 +13,7 @@ async function processQuery(query, params) {
 
 // Will only do one thing currently
 export async function GET({ request }) {
-    const query = 'MATCH (n:Person) RETURN n';
+    const query = 'MATCH p=()-[r:IN]->() RETURN p LIMIT 25';
     const params = {};
 
     try {

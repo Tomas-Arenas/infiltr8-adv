@@ -18,7 +18,14 @@
             // Parses the json
             data = await response.json();
             console.log(data)
-            alert(data[0]["n"]["labels"]+" "+data[0]["n"]["properties"]["name"]+" "+String(data[0]["n"]["properties"]["age"]["low"]))
+            let output = ""
+            let temp
+            for (let i=0;i<data.length;i++) {
+                temp = data[i]["p"]["start"]["properties"]["name"]+"\n"
+                output = output + temp
+            }
+            output = output + ""
+            alert(output)
         } catch (err) {
             console.log(err)
         }
