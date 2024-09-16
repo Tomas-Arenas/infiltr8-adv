@@ -6,6 +6,27 @@
 
 
 <script>
+    let data = [];
+    async function testGet() {
+        try {
+            // Fetch data from database
+            const response = await fetch('report/query/', {method: 'GET'});
+            // Checks if a 200 is given
+            if (!response.ok) {
+                throw new Error('Failed to fetch data');
+            }
+            // Parses the json
+            data = await response.json();
+            alert(data[0]["n"]["labels"]+" "+data[0]["n"]["properties"]["name"]+" "+String(data[0]["n"]["properties"]["age"]["low"]))
+        } catch (err) {
+            console.log(err)
+        }
+    }
+
+    function handleDataBaseTest() {
+        testGet()
+    }
+
     //figure out where we are getting our report data from, this is good placeholder for this deliverable
     let rows = [
         { id: 1, ipAddress: '38.241.13.107', device: 'Device 1', vulnerability: 'CVE-2024-0101 (SQL Injection in User Authentication)', status: 'Exploited', selected: false },
@@ -88,6 +109,15 @@
         border: none; 
         border-radius: 4px; 
     }
+    .test-button {
+        padding: 10px 20px;
+        font-size: 16px;
+        cursor: pointer;
+        background-color: rgb(255, 4, 4);
+        color: white; 
+        border: none; 
+        border-radius: 4px; 
+    }
 </style>
 
 <div class="report-container">
@@ -131,6 +161,13 @@
     <div class="export-button-container">
         <button class="export-button" on:click={handleExport}>
             Export
+        </button>
+    </div>
+
+    <!-- Database test button -->
+    <div class="database-container">
+        <button class="test-button" on:click={handleDataBaseTest}>
+            Database Test
         </button>
     </div>
 </div>
