@@ -6,6 +6,7 @@
 
 
 <script>
+    import {Checkbox, Button, Dropdown, DropdownItem} from 'flowbite-svelte';
     let data = [];
     async function testGet() {
         try {
@@ -42,18 +43,19 @@
         row.selected = !row.selected;
     }
 
-    function handleExportFormatChange(event) {
-        exportFormat = event.target.value;
+    function handleExportFormatChange(format) {
+        exportFormat = format;
     }
 
     function handleExport() {
         if (exportFormat === "Format to export") {
             alert("Please select a format to export.");
-            return;
+        } else {
+            // Navigate to export logic
+            window.location.href = `/export?format=${exportFormat}`;
         }
-        //navigate to route after export???
-        window.location.href = `/export?format=${exportFormat}`;
     }
+
 </script>
 
 <style>
@@ -65,25 +67,14 @@
         min-height: 100vh;
         text-align: center;
     }
-    h1 {
-        margin-bottom: 20px;
-    }
-    table {
-        width: 80%;
-        border-collapse: collapse;
-    }
-    th, td {
-        padding: 8px;
-        text-align: center;
-    }
-    th {
-        background-color: #f2f2f2;
-    }
-    table, th, td {
-        border: none;
-    }
-    td {
-        padding: 12px 8px;
+    .test-button {
+        padding: 10px 20px;
+        font-size: 16px;
+        cursor: pointer;
+        background-color: rgb(255, 4, 4);
+        color: white; 
+        border: none; 
+        border-radius: 4px; 
     }
     .dropdown-container {
         display: flex;
@@ -95,61 +86,36 @@
         padding: 10px;
         font-size: 16px;
     }
-    .export-button-container {
-        display: flex;
-        justify-content: flex-end;
-        margin-top: 20px;
-        width: 80%;
-    }
-    .export-button {
-        padding: 10px 20px;
-        font-size: 16px;
-        cursor: pointer;
-        background-color: Blue;
-        color: white; 
-        border: none; 
-        border-radius: 4px; 
-    }
-    .test-button {
-        padding: 10px 20px;
-        font-size: 16px;
-        cursor: pointer;
-        background-color: rgb(255, 4, 4);
-        color: white; 
-        border: none; 
-        border-radius: 4px; 
-    }
 </style>
 
 <div class="report-container">
-    <h1>Report</h1>
+    <h1 class="text-2xl font-bold mb-4">Report</h1>
     
-    <table>
-        <thead>
+    <table class="w-full text-sm text-left">
+        <thead class="text-xs text-gray-700 uppercase bg-gray-50">
             <tr>
-                <th></th>
-                <th>IP Address</th>
-                <th>Device</th>
-                <th>Vulnerability</th>
-                <th>Status</th>
+                <th scope="col" class="px-6 py-3"></th>
+                <th scope="col" class="px-6 py-3">IP Address</th>
+                <th scope="col" class="px-6 py-3">Device</th>
+                <th scope="col" class="px-6 py-3">Vulnerability</th>
+                <th scope="col" class="px-6 py-3">Status</th>
             </tr>
         </thead>
         <tbody>
             {#each rows as row}
-                <tr>
-                    <td>
-                        <input type="checkbox" bind:checked={row.selected} on:change={() => toggleSelect(row)}>
+                <tr class="bg-white border-b">
+                    <td class="px-6 py-4">
+                        <Checkbox bind:checked={row.selected} on:change={() => toggleSelect(row)} />
                     </td>
-                    <td>{row.ipAddress}</td>
-                    <td>{row.device}</td>
-                    <td>{row.vulnerability}</td>
-                    <td>{row.status}</td>
+                    <td class="px-6 py-4">{row.ipAddress}</td>
+                    <td class="px-6 py-4">{row.device}</td>
+                    <td class="px-6 py-4">{row.vulnerability}</td>
+                    <td class="px-6 py-4">{row.status}</td>
                 </tr>
             {/each}
         </tbody>
     </table>
 
-    <!-- Dropdown menu for export format -->
     <div class="dropdown-container">
         <select class="dropdown" on:change={handleExportFormatChange}>
             <option disabled selected value="Format to export">Format to export</option>
@@ -159,10 +125,10 @@
     </div>
 
     <!-- Export button -->
-    <div class="export-button-container">
-        <button class="export-button" on:click={handleExport}>
+    <div class="mt-4">
+        <Button color="blue" on:click={handleExport}>
             Export
-        </button>
+        </Button>
     </div>
 
     <!-- Database test button -->
