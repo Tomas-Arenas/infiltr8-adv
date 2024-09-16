@@ -25,7 +25,6 @@
 	> docker run --name neo4j-test-data --publish=7474:7474 --publish=7687:7687 --env NEO4J_AUTH=none el68/neo4j:latest
 - If everything worked you should be able to access the database at this url.
 	> http://localhost:7474/browser/
-- You'll be asked for a password but this is not needed just hit connect. Run this command in the top command line to add some data.
-	> CREATE (p:Person {name: 'John Doe', age: 30})
+- You'll be asked for a password but this is not needed just hit connect. Click on the star icon on the left side of the screen and run Team Make Script. This will put information about our team in the database and is used to make sure everything is working.
 - With the website running click and report and then click the test database. If everything works a alert should popup and have some information.
 - I will be making the process better and setting some kind of persistence storage up.
