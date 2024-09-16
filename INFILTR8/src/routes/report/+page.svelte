@@ -1,7 +1,7 @@
 
-<!--TODO: Add current project file?? -->
+<!--TODO: Add current project file?? figure out where to get this data from-->
 <!--TODO: Add ability to select multiple rows -->
-<!--TODO: Visual improvements-->
+<!--TODO: Visual improvements/fix darkmode bug -->
 <!--TODO: add Logging of Export request to the User Actions -->
 
 
@@ -29,7 +29,6 @@
         testGet()
     }
 
-    //figure out where we are getting our report data from, this is good placeholder for this deliverable
     let rows = [
         { id: 1, ipAddress: '38.241.13.107', device: 'Device 1', vulnerability: 'CVE-2024-0101 (SQL Injection in User Authentication)', status: 'Exploited', selected: false },
         { id: 2, ipAddress: '49.6.148.87', device: 'Device 2', vulnerability: 'CVE-2024-3033 (Buffer Overflow in File Upload Handler)', status: 'Exploited', selected: false },
@@ -119,7 +118,7 @@
     <div class="dropdown-container">
         <select class="dropdown" on:change={handleExportFormatChange}>
             <option disabled selected value="Format to export">Format to export</option>
-            <option value="word">Word Document (.docx)</option>
+            <option value="word">XML Document (.xml)</option>
             <option value="pdf">PDF Document (.pdf)</option>
         </select>
     </div>
