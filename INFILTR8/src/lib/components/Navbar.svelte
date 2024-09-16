@@ -32,19 +32,14 @@
 		},
 		{ text: 'Analysis', href: '/analysis', icon: Icon.BookSolid },
 		{
-			text: 'Test case search',
-			href: '/testcasesearch',
+			text: 'Project',
+			href: '/project',
 			icon: Icon.DatabaseSolid
 		},
 		{
-			text: 'Test Cases',
-			href: '/testcases',
+			text: 'Login',
+			href: '/login',
 			icon: Icon.BriefcaseSolid
-		},
-		{
-			text: 'Cart',
-			href: '/cart',
-			icon: Icon.CartOutline
 		}
 		//    { text: 'Cart', href: '/cart', icon: 'CartOutline' }
 	];
