@@ -17,6 +17,7 @@
             }
             // Parses the json
             data = await response.json();
+            console.log(data)
             alert(data[0]["n"]["labels"]+" "+data[0]["n"]["properties"]["name"]+" "+String(data[0]["n"]["properties"]["age"]["low"]))
         } catch (err) {
             console.log(err)

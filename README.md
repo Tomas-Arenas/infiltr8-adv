@@ -22,10 +22,12 @@
 - Enter the following command into WSL
 	> docker pull el68/neo4j:latest
 - Then enter the following command
-	> docker run -it --name neo4j-test-data el68/neo4j:latest
+	> docker run --name neo4j-test-data --publish=7474:7474 --publish=7687:7687 --env NEO4J_AUTH=none el68/neo4j:latest
 - If everything worked you should be able to access the database at this url.
 	> http://localhost:7474/browser/
-- You'll be asked for a password but this is not needed just hit connect. You should see a single node in the database.
+- You'll be asked for a password but this is not needed just hit connect. Run this command in the top command line to add some data.
+	> CREATE (p:Person {name: 'John Doe', age: 30})
 - With the database container working the next step is install the needed npm packages that handle the connection to the database. Run the following commands inside of the INFILTR8 directory.
 	> npm install and then npm run dev
-- With the website running click and report and then click the test database. If everything works a alert should popup and have some information about Erik.
+- With the website running click and report and then click the test database. If everything works a alert should popup and have some information.
+- I will be making the process better and setting some kind of persistence storage up.
