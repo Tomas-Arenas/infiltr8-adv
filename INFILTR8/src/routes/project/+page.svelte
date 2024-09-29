@@ -1,15 +1,11 @@
 <script>
 
     import IP from '$lib/IP.js';
-    import { SystemInfo } from '../../lib/SystemInfo.js'
-    import { LogManager } from '../../lib/LogManager.js'
+    import { LogManager } from '../../lib/LogManager.js';
     import { ButtonGroup} from 'flowbite-svelte';
-
-
-    const sysInfo = new SystemInfo
     
+    const logger = new LogManager();
     let scopeIPsAllowed = [];
-    
     let scopeIPsDisallowed= [];
 
     let exploitsAllowed = [
@@ -41,7 +37,7 @@
     function handleDelete(list, index, updateList) {
         const newList = list.filter((_, i) => i !== index);
         updateList(newList);
-        console.log(`Deleted item at index ${index}. New list:`, newList);
+        logger.logUserAction(testuser,"Deleted item", `at index ${index}. New list:`, newList );
     }
 
     function addIP(updateList) {
@@ -50,7 +46,7 @@
             if (isValidIPv4(ipAddress)) {
                 let newIP = new IP(ipAddress); 
                 updateList(newIP); // Call the callback to update the list
-                console.log(newIP.getDescription()); 
+                logger.logUserAction(testuser,"Created IP", newIP.getDescription()); 
             } else {
                 alert("Please enter a valid IPv4 address.");
             }
