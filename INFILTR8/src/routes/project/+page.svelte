@@ -3,9 +3,11 @@
     import IP from '$lib/IP.js';
     import { SystemInfo } from '../../lib/SystemInfo.js'
     import { LogManager } from '../../lib/LogManager.js'
+    import { Alert } from 'flowbite-svelte';
     const sysInfo = new SystemInfo
     
     let scopeIPsAllowed = [];
+    
     let scopeIPsDisallowed= [];
 
     let exploitsAllowed = [
@@ -35,13 +37,13 @@
     }
 
     
-    function addIP() {
-         ipAddress = prompt("Enter the IPv4 address:"); 
-        if (ip) {
+    function addIP(updateList) {
+        let ipAddress = prompt("Enter the IPv4 address:"); 
+        if (ipAddress) {
             if (isValidIPv4(ipAddress)) {
-                let newIP = IP(ipAddress); 
-                scopeIPsAllowed.push(newIP)
-                console.log(myIP.getDescription()); 
+                let newIP = new IP(ipAddress); 
+                updateList(newIP); // Call the callback to update the list
+                console.log(newIP.getDescription()); 
             } else {
                 alert("Please enter a valid IPv4 address.");
             }
@@ -195,17 +197,38 @@
             </div>
             {/if}
         <div>
-            <h3>Scope IP List</h3>
-            {#each scopeIPs as ip, index}
-            <button on:click={addIP}>Add IP</button>
+            <h3>Scope allowed IP List</h3>
+            <button on:click={() => addIP((newIP) => scopeIPsAllowed = [...scopeIPsAllowed, newIP])}>
+                Add allowed IP
+            </button>
+            {#each scopeIPsAllowed as ip, index}
                 <div class="item">
                     <div>
                         <input type="checkbox" bind:checked={ip.selected} />
                         <span>{ip.ip}</span>
                     </div>
                     <div class="arrows">
-                        <button on:click={() => moveUp(scopeIPs, index)}>⬆</button>
-                        <button on:click={() => moveDown(scopeIPs, index)}>⬇</button>
+                        <button on:click={() => moveUp(scopeIPsAllowed, index)}>⬆</button>
+                        <button on:click={() => moveDown(scopeIPsAllowed, index)}>⬇</button>
+                        <i class="fas fa-bars menu-icon"></i>
+                    </div>
+                </div>
+            {/each}
+        </div>
+        <div>
+            <h3>Scope disallowed IP List</h3>
+            <button on:click={() => addIP((newIP) => scopeIPsDisallowed = [...scopeIPsDisallowed, newIP])}>
+                Add Disallowed IP
+            </button>
+            {#each scopeIPsDisallowed as ip, index}
+                <div class="item">
+                    <div>
+                        <input type="checkbox" bind:checked={ip.selected} />
+                        <span>{ip.ip}</span>
+                    </div>
+                    <div class="arrows">
+                        <button on:click={() => moveUp(scopeIPsDisallowed, index)}>⬆</button>
+                        <button on:click={() => moveDown(scopeIPsDisallowed, index)}>⬇</button>
                         <i class="fas fa-bars menu-icon"></i>
                     </div>
                 </div>
