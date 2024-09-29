@@ -3,7 +3,9 @@
     import IP from '$lib/IP.js';
     import { SystemInfo } from '../../lib/SystemInfo.js'
     import { LogManager } from '../../lib/LogManager.js'
-    import { Alert } from 'flowbite-svelte';
+    import { ButtonGroup} from 'flowbite-svelte';
+
+
     const sysInfo = new SystemInfo
     
     let scopeIPsAllowed = [];
@@ -36,7 +38,12 @@
         return ipv4Regex.test(ip);
     }
 
-    
+    function handleDelete(list, index, updateList) {
+        const newList = list.filter((_, i) => i !== index);
+        updateList(newList);
+        console.log(`Deleted item at index ${index}. New list:`, newList);
+    }
+
     function addIP(updateList) {
         let ipAddress = prompt("Enter the IPv4 address:"); 
         if (ipAddress) {
@@ -52,29 +59,52 @@
         }
     }
 
-    function moveUp(list, index) {
-        if (index > 0) {
-            const temp = list[index];
-            list[index] = list[index - 1];
-            list[index - 1] = temp;
-        }
+    function moveUp(list, index, updateList) {
+    if (index > 0) {
+        const updatedList = [...list]; // Create a new copy
+        const temp = updatedList[index];
+        updatedList[index] = updatedList[index - 1];
+        updatedList[index - 1] = temp;
+        updateList(updatedList); // Update using the callback
     }
+}
 
-    function moveDown(list, index) {
-        if (index < list.length - 1) {
-            const temp = list[index];
-            list[index] = list[index + 1];
-            list[index + 1] = temp;
-        }
+function moveDown(list, index, updateList) {
+    if (index < list.length - 1) {
+        const updatedList = [...list]; // Create a new copy
+        const temp = updatedList[index];
+        updatedList[index] = updatedList[index + 1];
+        updatedList[index + 1] = temp;
+        updateList(updatedList); // Update using the callback
     }
+}
 
     function loadProject(project) {
         selectedProject = project;
         console.log(`Project ${project.name} loaded.`);
     }
+
 </script>
 
 <style>
+     .header {
+        font-weight: bold;
+        color: #2c3e50;
+        margin-bottom: 10px;
+        text-align: left;
+    }
+
+    .header h1 {
+        font-size: 24px; /* For h1 */
+    }
+
+    .header h2 {
+        font-size: 20px; /* For h2 */
+    }
+
+    .header h3 {
+        font-size: 18px; /* For h3 */
+    }
     .container {
         display: flex;
         justify-content: space-between;
@@ -93,10 +123,6 @@
         align-items: center;
         justify-content: space-between;
         margin-bottom: 10px;
-    }
-    .arrows {
-        display: flex;
-        gap: 5px;
     }
     .menu-icon {
         font-size: 16px;
@@ -175,11 +201,51 @@
         border-radius: 10px;
         box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
     }
+    .custom-button {
+        background-color: #003366; /* Dark blue */
+        color: white;
+        border: none;
+        padding: 5px 10px; /* Reduced padding */
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+        font-size: 0.8rem; /* Smaller font size */
+    }
+
+    .custom-button:hover {
+        background-color: #002244; /* Darker blue on hover */
+    }
+
+    .custom-button:focus {
+        outline: none;
+        box-shadow: 0 0 5px rgba(0, 51, 102, 0.5);
+    }
+    .trash-button {
+        background-color: #ff4d4d; /* Red color */
+        color: white;
+        border: none;
+        padding: 8px;
+        border-radius: 5px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        transition: background-color 0.3s;
+    }
+
+    .trash-button:hover {
+        background-color: #cc0000; /* Darker red on hover */
+    }
+
+    .trash-icon {
+        margin-right: 5px; /* Space between icon and text */
+    }
 </style>
 
 <div class="container">
     <div class="section">
-        <h2>Current project folder</h2>
+        <div class="header">
+            <h2>Current project folder</h2>
+        </div>
             <!-- Selected Project Box -->
             {#if selectedProject}
             <div class="selected-project">
@@ -197,56 +263,75 @@
             </div>
             {/if}
         <div>
-            <h3>Scope allowed IP List</h3>
-            <button on:click={() => addIP((newIP) => scopeIPsAllowed = [...scopeIPsAllowed, newIP])}>
-                Add allowed IP
-            </button>
+            <div class="header">
+                <h3>Scope allowed IP List</h3>
+            </div>
             {#each scopeIPsAllowed as ip, index}
                 <div class="item">
                     <div>
                         <input type="checkbox" bind:checked={ip.selected} />
                         <span>{ip.ip}</span>
                     </div>
-                    <div class="arrows">
-                        <button on:click={() => moveUp(scopeIPsAllowed, index)}>⬆</button>
-                        <button on:click={() => moveDown(scopeIPsAllowed, index)}>⬇</button>
+                    <ButtonGroup class="*:!ring-primary-700">
+                        <button on:click={() => moveUp(scopeIPsAllowed, index, (newList) => scopeIPsAllowed = newList)}>⬆</button>
+                        <button on:click={() => moveDown(scopeIPsAllowed, index, (newList) => scopeIPsAllowed = newList)}>⬇</button>
                         <i class="fas fa-bars menu-icon"></i>
-                    </div>
+                        <button class="trash-button" on:click={() => handleDelete(scopeIPsAllowed, index, (newList) => scopeIPsAllowed = newList)}>
+                            <i class="fas fa-trash trash-icon"></i>
+                        </button>
+                    </ButtonGroup>
                 </div>
             {/each}
+            <ButtonGroup class="*:!ring-primary-700">
+                <button class="custom-button" on:click={() => addIP((newIP) => scopeIPsAllowed = [...scopeIPsAllowed, newIP])}>
+                    Add allowed IP
+                </button>
+                <button class ="custom-button">Import IPs</button>
+            </ButtonGroup>
         </div>
         <div>
+            <div class='header'>
             <h3>Scope disallowed IP List</h3>
-            <button on:click={() => addIP((newIP) => scopeIPsDisallowed = [...scopeIPsDisallowed, newIP])}>
-                Add Disallowed IP
-            </button>
+            </div>
+            
             {#each scopeIPsDisallowed as ip, index}
                 <div class="item">
                     <div>
                         <input type="checkbox" bind:checked={ip.selected} />
                         <span>{ip.ip}</span>
                     </div>
-                    <div class="arrows">
-                        <button on:click={() => moveUp(scopeIPsDisallowed, index)}>⬆</button>
-                        <button on:click={() => moveDown(scopeIPsDisallowed, index)}>⬇</button>
+                    <ButtonGroup class="*:!ring-primary-700">
+                        <button on:click={() => moveUp(scopeIPsDisallowed, index, (newList) => scopeIPsDisallowed = newList)}>⬆</button>
+                        <button on:click={() => moveDown(scopeIPsDisallowed, index, (newList) => scopeIPsDisallowed = newList)}>⬇</button>
                         <i class="fas fa-bars menu-icon"></i>
-                    </div>
+                        <button class="trash-button" on:click={handleDelete}>
+                            <i class="fas fa-trash trash-icon"></i>
+                        </button>
+                    </ButtonGroup>
                 </div>
             {/each}
+            <ButtonGroup class="*:!ring-primary-700">
+                <button class="custom-button" on:click={() => addIP((newIP) => scopeIPsDisallowed = [...scopeIPsDisallowed, newIP])}>
+                    Add Disallowed IP
+                </button>
+                <button class ="custom-button">Import IPs</button>
+            </ButtonGroup>
         </div>
         <div>
-            <h3>Exploits Allowed</h3>
+            <div class='header'>
+                <h3>Exploits Allowed</h3>
+            </div>
             {#each exploitsAllowed as exploit, index}
                 <div class="item">
                     <div>
                         <input type="checkbox" bind:checked={exploit.selected} />
                         <span>{exploit.name}</span>
                     </div>
-                    <div class="arrows">
-                        <button on:click={() => moveUp(exploitsAllowed, index)}>⬆</button>
-                        <button on:click={() => moveDown(exploitsAllowed, index)}>⬇</button>
+                    <ButtonGroup class="*:!ring-primary-700">
+                        <button on:click={() => moveUp(exploitsAllowed, index, (newList) => exploitsAllowed = newList)}>⬆</button>
+                        <button on:click={() => moveDown(exploitsAllowed, index, (newList) => exploitsAllowed = newList)}>⬇</button>
                         <i class="fas fa-bars menu-icon"></i>
-                    </div>
+                    </ButtonGroup>
                 </div>
             {/each}
         </div>
