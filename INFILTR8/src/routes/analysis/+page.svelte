@@ -75,10 +75,10 @@
 
     const sysInfo = new SystemInfo()
     var timestamp = sysInfo.getCurrentTimestamp()
+    var date =  sysInfo.getFormattedDate()
 
     const logger = new LogManager()
-    
-
+   
 </script>
 
 
