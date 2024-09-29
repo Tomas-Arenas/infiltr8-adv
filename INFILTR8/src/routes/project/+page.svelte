@@ -1,10 +1,12 @@
 <script>
-    let scopeIPs = [
-        { id: 1, ip: '192.168.2.15', selected: false },
-        { id: 2, ip: '192.168.2.15', selected: false },
-        { id: 3, ip: '192.168.8.43', selected: false },
-        { id: 4, ip: '192.168.5.5', selected: false }
-    ];
+
+    import IP from '$lib/IP.js';
+    import { SystemInfo } from '../../lib/SystemInfo.js'
+    import { LogManager } from '../../lib/LogManager.js'
+    const sysInfo = new SystemInfo
+    
+    let scopeIPsAllowed = [];
+    let scopeIPsDisallowed= [];
 
     let exploitsAllowed = [
         { id: 1, name: 'SQL Injection', selected: false },
@@ -26,6 +28,27 @@
     ];
 
     let selectedProject = null;
+
+   function isValidIPv4(ip) {
+        const ipv4Regex = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+        return ipv4Regex.test(ip);
+    }
+
+    
+    function addIP() {
+         ipAddress = prompt("Enter the IPv4 address:"); 
+        if (ip) {
+            if (isValidIPv4(ipAddress)) {
+                let newIP = IP(ipAddress); 
+                scopeIPsAllowed.push(newIP)
+                console.log(myIP.getDescription()); 
+            } else {
+                alert("Please enter a valid IPv4 address.");
+            }
+        } else {
+            alert("IP address cannot be empty.");
+        }
+    }
 
     function moveUp(list, index) {
         if (index > 0) {
@@ -174,6 +197,7 @@
         <div>
             <h3>Scope IP List</h3>
             {#each scopeIPs as ip, index}
+            <button on:click={addIP}>Add IP</button>
                 <div class="item">
                     <div>
                         <input type="checkbox" bind:checked={ip.selected} />
