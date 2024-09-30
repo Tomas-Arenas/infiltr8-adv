@@ -189,7 +189,7 @@
 </style>
  
 <div class='login-container'>
-  <Card><h1>SUP BRUH</h1></Card>
+  <Card><h1>Hello!</h1></Card>
 <h1 class="brand">INFILTR8</h1>
 <div class="login-form">
 <h2>Login</h2>
