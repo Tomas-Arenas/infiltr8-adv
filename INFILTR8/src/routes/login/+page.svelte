@@ -1,11 +1,10 @@
 <script>
   import { ThumbsUpSolid, ThumbsDownSolid } from 'flowbite-svelte-icons';
-  import { DarkMode } from 'flowbite-svelte';
+  import { Card } from 'flowbite-svelte'
  
   let username = '';
   let password = '';
   let errorMessage = '';
-  let darkMode = false;
  
   function handleSubmit() {
     if (!username || !password) {
@@ -21,9 +20,7 @@
     errorMessage = '';
   }
  
-  function toggleDarkMode() {
-    darkMode = !darkMode;
-  }
+
 </script>
  
  
@@ -169,16 +166,9 @@
   }
 </style>
  
-<div class={darkMode ? 'login-container dark-mode' : 'login-container'}>
-<div class="dark-mode-toggle" on:click={toggleDarkMode}>
-    {#if darkMode}
-<DarkMode />
-    {:else}
-<DarkMode />
-    {/if}
-</div>
- 
-  <h1 class="brand">INFILTR8</h1>
+<div class='login-container'>
+  <Card><h1>SUP BRUH</h1></Card>
+<h1 class="brand">INFILTR8</h1>
 <div class="login-form">
 <h2>Login</h2>
     {#if errorMessage}
