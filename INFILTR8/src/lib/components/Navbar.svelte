@@ -32,9 +32,7 @@
 		},
 		{ text: 'Analysis', href: '/analysis', icon: Icon.BookSolid },
 		{
-			text: 'Project',
-			href: '/project',
-			icon: Icon.DatabaseSolid
+			text: 'Project', href: '/project', icon: Icon.DatabaseSolid
 		},
 		{
 			text: 'Login',
