@@ -8,6 +8,15 @@ export class LogManager {
         this.driver = neo4j.driver('bolt://localhost:7687');
     }
 
+    async logEntryPoints(username, entryPoints) {
+        for (const entryPoint of entryPoints) {
+            const logEntry = this._createLogEntry('Entry Point', 'Validated Entry Point', entryPoint);
+            await this._writeLog(username, logEntry);
+        }
+    }  
+
+
+
     async logUserAction(username, action, details) {
         const logEntry = this._createLogEntry('User Action', action, details);
         await this._writeLog(username, logEntry);
@@ -47,7 +56,7 @@ export class LogManager {
                         date: logEntry.date,
                         type: logEntry.type,
                         message: logEntry.message,
-                        details: logEntry.details,
+                        details: JSON.stringify(logEntry.details),  // Ensure details are saved as JSON string
                         timestamp: logEntry.timestamp
                     }
                 )
@@ -57,6 +66,31 @@ export class LogManager {
             console.error('Error writing log entry:', error);
         } finally {
             await session.close();
+        }
+    }
+
+    async getLogsForDate(date) {
+        try {
+            const result = await this.session.readTransaction(tx =>
+                tx.run(
+                    `MATCH (d:Date {date: $date})-[:HAS_ENTRY]->(l:Log)
+                     RETURN l.type AS type, l.message AS message, l.details AS details, l.timestamp AS timestamp, l.user AS user`,
+                    { date }
+                )
+            );
+
+            const logs = result.records.map(record => ({
+                type: record.get('type'),
+                message: record.get('message'),
+                details: record.get('details'),
+                timestamp: record.get('timestamp'),
+                user: record.get('user')
+            }));
+
+            return logs;
+        } catch (error) {
+            console.error('Error retrieving logs for date:', error);
+            return [];
         }
     }
 
