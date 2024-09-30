@@ -8,6 +8,15 @@ export class LogManager {
         this.driver = neo4j.driver('bolt://localhost:7687');
     }
 
+    async logEntryPoints(username, entryPoints) {
+        for (const entryPoint of entryPoints) {
+            const logEntry = this._createLogEntry('Entry Point', 'Validated Entry Point', entryPoint);
+            await this._writeLog(username, logEntry);
+        }
+    }  
+
+
+
     async logUserAction(username, action, details) {
         const logEntry = this._createLogEntry('User Action', action, details);
         await this._writeLog(username, logEntry);
@@ -47,7 +56,7 @@ export class LogManager {
                         date: logEntry.date,
                         type: logEntry.type,
                         message: logEntry.message,
-                        details: logEntry.details,
+                        details: JSON.stringify(logEntry.details),  // Ensure details are saved as JSON string
                         timestamp: logEntry.timestamp
                     }
                 )

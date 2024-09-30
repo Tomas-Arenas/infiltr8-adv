@@ -77,14 +77,21 @@
       });
     }
 
-    function submit() {
+    async function submit() {
       validateEntryPoints();
+
       const requestData = {
-        folderName,
-        validEntryPoints
+          folderName,
+          validEntryPoints
       };
+
+      // Log the validated entry points using LogManager
+      const logManager = new LogManager();
+      await logManager.logEntryPoints('YourUsername', requestData.validEntryPoints);
+
       console.log('Request Data:', requestData);
     }
+
     
     // Handle input change for file uploads
     const handleChange = (event) => {
