@@ -69,6 +69,31 @@ export class LogManager {
         }
     }
 
+    async getLogsForDate(date) {
+        try {
+            const result = await this.session.readTransaction(tx =>
+                tx.run(
+                    `MATCH (d:Date {date: $date})-[:HAS_ENTRY]->(l:Log)
+                     RETURN l.type AS type, l.message AS message, l.details AS details, l.timestamp AS timestamp, l.user AS user`,
+                    { date }
+                )
+            );
+
+            const logs = result.records.map(record => ({
+                type: record.get('type'),
+                message: record.get('message'),
+                details: record.get('details'),
+                timestamp: record.get('timestamp'),
+                user: record.get('user')
+            }));
+
+            return logs;
+        } catch (error) {
+            console.error('Error retrieving logs for date:', error);
+            return [];
+        }
+    }
+
     async close() {
         await this.driver.close();
     }

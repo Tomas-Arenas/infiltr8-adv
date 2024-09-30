@@ -173,6 +173,7 @@
                     <p>Time Started: 10:00:00 AM - 9/12/2024</p>
                     <p>Time Completed: </p>
                     <button type="button" on:click={logger.logUserAction("Ashley Rivas","button click", "user clicked button")}> click this</button>
+                    <button type="button" on:click={logger.getLogsForDate("Ashley Rivas","button click", "user clicked button")}> click this</button>
                     <p> {timestamp}</p>
                 </div>
             </div>
