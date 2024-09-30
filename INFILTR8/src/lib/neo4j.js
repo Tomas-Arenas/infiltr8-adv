@@ -1,7 +1,7 @@
 import neo4j from 'neo4j-driver';
 
 // starts the driver and a session
-const driver = neo4j.driver('neo4j://localhost:7687');
+const driver = neo4j.driver('neo4j+s://815ececb.databases.neo4j.io',neo4j.auth.basic("neo4j", "B_bZrryeGChT2mXJO3TBhzJ4sfrSuqUhvM_zRcDukkw"));
 const session = driver.session();
 
 // runs a givne query and retuns the output as a map
