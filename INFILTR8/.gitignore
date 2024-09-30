@@ -21,10 +21,10 @@ node_modules/.cache/@babel/register/.babel.7.5.5.development.json
 Thumbs.db
 
 # Env
-.env
-.env.*
-!.env.example
-!.env.test
+# .env
+# .env.*
+# !.env.example
+# !.env.test
 
 # Vite
 vite.config.js.timestamp-*
