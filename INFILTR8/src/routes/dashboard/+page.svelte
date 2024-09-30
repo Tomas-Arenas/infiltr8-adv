@@ -7,8 +7,13 @@
     import { Listgroup } from 'flowbite-svelte';
     import { Alert } from 'flowbite-svelte';
     import { InfoCircleSolid } from 'flowbite-svelte-icons';
-  let simpleList = ['Test1'];
-
+    import { onMount } from 'svelte';
+    let simpleList = ['Test1'];
+    let folderName = '';
+    let nessusFile;
+    let possibleEntryPoints = [];
+    let validEntryPoints = [];
+    let nessusContent = '';
     
     // Initialize the array to hold file names
     let value = [];
@@ -17,12 +22,11 @@
     const dropHandle = (event) => {
       value = [];
       event.preventDefault();
-    
       if (event.dataTransfer && event.dataTransfer.items) {
         [...event.dataTransfer.items].forEach((item) => {
           if (item.kind === 'file') {
             const file = item.getAsFile();
-            if (file) {
+            if (file) {      
               value.push(file.name);
             }
           }
@@ -34,6 +38,60 @@
       }
       value = [...value]; // Ensure reactivity
     };
+
+    // Function to parse Nessus XML content
+    function parseNessusFile(content) {
+      const parser = new DOMParser();
+      const xmlDoc = parser.parseFromString(content, "application/xml");
+
+      // Example of extracting IP and port info
+      const hosts = xmlDoc.getElementsByTagName("ReportHost");
+      possibleEntryPoints = [];
+      for (let host of hosts) {
+        const ip = host.getAttribute("name");
+        const reportItems = host.getElementsByTagName("ReportItem");
+        for (let item of reportItems) {
+          const port = item.getAttribute("port");
+          const severity = item.getAttribute("severity"); // Example attribute, might need adjustment based on your Nessus file
+          const pluginID = item.getAttribute("pluginID");
+          const service = item.getAttribute("svc_name");
+
+          // Collect only relevant data, e.g., open ports and severity levels
+          possibleEntryPoints.push({ ip, port, severity, pluginID, service });
+        }
+      }
+    }
+
+    // Function to validate entry points based on open ports or severity levels
+    function validateEntryPoints() {
+      validEntryPoints = possibleEntryPoints.filter(point => {
+        // Logic: Only include entries with high severity (severity level 3 or more)
+        const severityThreshold = 3; // Example threshold: 3 = medium, 4 = high, 5 = critical
+        const isHighSeverity = parseInt(point.severity) >= severityThreshold;
+
+        // Logic: Only include open ports (you might need to adjust based on Nessus data for open/closed port status)
+        const isValidPort = point.port > 0;
+
+        // Combine both conditions
+        return isHighSeverity && isValidPort;
+      });
+    }
+
+    async function submit() {
+      validateEntryPoints();
+
+      const requestData = {
+          folderName,
+          validEntryPoints
+      };
+
+      // Log the validated entry points using LogManager
+      const logManager = new LogManager();
+      await logManager.logEntryPoints('YourUsername', requestData.validEntryPoints);
+
+      console.log('Request Data:', requestData);
+    }
+
     
     // Handle input change for file uploads
     const handleChange = (event) => {
@@ -48,6 +106,12 @@
           // If the file is a .nessus file, add its name to the value array
           value.push(file.name);
           value = [...value]; // Ensure reactivity in Svelte
+          const reader = new FileReader();
+              reader.onload = (e) => {
+                nessusContent = e.target.result;
+                parseNessusFile(nessusContent);
+               };
+          reader.readAsText(file);
         } else {
           console.error('Invalid file type. Please upload a .nessus file.');
         }
@@ -74,7 +138,7 @@
     <Heading tag="h1" class="mb-4" customSize="text-3xl text-center font-extrabold  md:text-5xl lg:text-6xl">
       <Span gradient>WELCOME TO INFILTR8</Span>
     </Heading>
-    <P>Please select from the follwing to get started on your project.</P>
+    <P>Please select from the following to get started on your project.</P>
   
     <!-- Dropzone component for file uploads -->
     <Dropzone
@@ -99,7 +163,9 @@
             <div class="flex flex-col mr-8">
 
                 <GradientButton class = "mb-2" color="green">Discard All</GradientButton>
-                <GradientButton color="purple">Create Project</GradientButton>
+                <form on:submit|preventDefault={submit}>
+                  <GradientButton color="purple" type="submit">Create Project</GradientButton>
+                </form>
             </div>
             <div class="flex flex-col justify-between w-full">
             <Listgroup items={simpleList} let:item class="flex-grow w-full">

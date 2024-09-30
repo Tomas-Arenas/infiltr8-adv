@@ -1,10 +1,12 @@
 <script>
-    let scopeIPs = [
-        { id: 1, ip: '192.168.2.15', selected: false },
-        { id: 2, ip: '192.168.2.15', selected: false },
-        { id: 3, ip: '192.168.8.43', selected: false },
-        { id: 4, ip: '192.168.5.5', selected: false }
-    ];
+
+    import IP from '$lib/IP.js';
+    import { LogManager } from '../../lib/LogManager.js';
+    import { ButtonGroup} from 'flowbite-svelte';
+    
+    const logger = new LogManager();
+    let scopeIPsAllowed = [];
+    let scopeIPsDisallowed= [];
 
     let exploitsAllowed = [
         { id: 1, name: 'SQL Injection', selected: false },
@@ -27,29 +29,78 @@
 
     let selectedProject = null;
 
-    function moveUp(list, index) {
-        if (index > 0) {
-            const temp = list[index];
-            list[index] = list[index - 1];
-            list[index - 1] = temp;
+   function isValidIPv4(ip) {
+        const ipv4Regex = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+        return ipv4Regex.test(ip);
+    }
+
+    function handleDelete(list, index, updateList) {
+        const newList = list.filter((_, i) => i !== index);
+        updateList(newList);
+        logger.logUserAction(testuser,"Deleted item", `at index ${index}. New list:`, newList );
+    }
+
+    function addIP(updateList) {
+        let ipAddress = prompt("Enter the IPv4 address:"); 
+        if (ipAddress) {
+            if (isValidIPv4(ipAddress)) {
+                let newIP = new IP(ipAddress); 
+                updateList(newIP); // Call the callback to update the list
+                logger.logUserAction(testuser,"Created IP", newIP.getDescription()); 
+            } else {
+                alert("Please enter a valid IPv4 address.");
+            }
+        } else {
+            alert("IP address cannot be empty.");
         }
     }
 
-    function moveDown(list, index) {
-        if (index < list.length - 1) {
-            const temp = list[index];
-            list[index] = list[index + 1];
-            list[index + 1] = temp;
-        }
+    function moveUp(list, index, updateList) {
+    if (index > 0) {
+        const updatedList = [...list]; // Create a new copy
+        const temp = updatedList[index];
+        updatedList[index] = updatedList[index - 1];
+        updatedList[index - 1] = temp;
+        updateList(updatedList); // Update using the callback
     }
+}
+
+function moveDown(list, index, updateList) {
+    if (index < list.length - 1) {
+        const updatedList = [...list]; // Create a new copy
+        const temp = updatedList[index];
+        updatedList[index] = updatedList[index + 1];
+        updatedList[index + 1] = temp;
+        updateList(updatedList); // Update using the callback
+    }
+}
 
     function loadProject(project) {
         selectedProject = project;
         console.log(`Project ${project.name} loaded.`);
     }
+
 </script>
 
 <style>
+     .header {
+        font-weight: bold;
+        color: #2c3e50;
+        margin-bottom: 10px;
+        text-align: left;
+    }
+
+    .header h1 {
+        font-size: 24px; /* For h1 */
+    }
+
+    .header h2 {
+        font-size: 20px; /* For h2 */
+    }
+
+    .header h3 {
+        font-size: 18px; /* For h3 */
+    }
     .container {
         display: flex;
         justify-content: space-between;
@@ -68,10 +119,6 @@
         align-items: center;
         justify-content: space-between;
         margin-bottom: 10px;
-    }
-    .arrows {
-        display: flex;
-        gap: 5px;
     }
     .menu-icon {
         font-size: 16px;
@@ -150,11 +197,51 @@
         border-radius: 10px;
         box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
     }
+    .custom-button {
+        background-color: #003366; /* Dark blue */
+        color: white;
+        border: none;
+        padding: 5px 10px; /* Reduced padding */
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+        font-size: 0.8rem; /* Smaller font size */
+    }
+
+    .custom-button:hover {
+        background-color: #002244; /* Darker blue on hover */
+    }
+
+    .custom-button:focus {
+        outline: none;
+        box-shadow: 0 0 5px rgba(0, 51, 102, 0.5);
+    }
+    .trash-button {
+        background-color: #ff4d4d; /* Red color */
+        color: white;
+        border: none;
+        padding: 8px;
+        border-radius: 5px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        transition: background-color 0.3s;
+    }
+
+    .trash-button:hover {
+        background-color: #cc0000; /* Darker red on hover */
+    }
+
+    .trash-icon {
+        margin-right: 5px; /* Space between icon and text */
+    }
 </style>
 
 <div class="container">
     <div class="section">
-        <h2>Current project folder</h2>
+        <div class="header">
+            <h2>Current project folder</h2>
+        </div>
             <!-- Selected Project Box -->
             {#if selectedProject}
             <div class="selected-project">
@@ -172,34 +259,75 @@
             </div>
             {/if}
         <div>
-            <h3>Scope IP List</h3>
-            {#each scopeIPs as ip, index}
+            <div class="header">
+                <h3>Scope allowed IP List</h3>
+            </div>
+            {#each scopeIPsAllowed as ip, index}
                 <div class="item">
                     <div>
                         <input type="checkbox" bind:checked={ip.selected} />
                         <span>{ip.ip}</span>
                     </div>
-                    <div class="arrows">
-                        <button on:click={() => moveUp(scopeIPs, index)}>⬆</button>
-                        <button on:click={() => moveDown(scopeIPs, index)}>⬇</button>
+                    <ButtonGroup class="*:!ring-primary-700">
+                        <button on:click={() => moveUp(scopeIPsAllowed, index, (newList) => scopeIPsAllowed = newList)}>⬆</button>
+                        <button on:click={() => moveDown(scopeIPsAllowed, index, (newList) => scopeIPsAllowed = newList)}>⬇</button>
                         <i class="fas fa-bars menu-icon"></i>
-                    </div>
+                        <button class="trash-button" on:click={() => handleDelete(scopeIPsAllowed, index, (newList) => scopeIPsAllowed = newList)}>
+                            <i class="fas fa-trash trash-icon"></i>
+                        </button>
+                    </ButtonGroup>
                 </div>
             {/each}
+            <ButtonGroup class="*:!ring-primary-700">
+                <button class="custom-button" on:click={() => addIP((newIP) => scopeIPsAllowed = [...scopeIPsAllowed, newIP])}>
+                    Add allowed IP
+                </button>
+                <button class ="custom-button">Import IPs</button>
+            </ButtonGroup>
         </div>
         <div>
-            <h3>Exploits Allowed</h3>
+            <div class='header'>
+            <h3>Scope disallowed IP List</h3>
+            </div>
+            
+            {#each scopeIPsDisallowed as ip, index}
+                <div class="item">
+                    <div>
+                        <input type="checkbox" bind:checked={ip.selected} />
+                        <span>{ip.ip}</span>
+                    </div>
+                    <ButtonGroup class="*:!ring-primary-700">
+                        <button on:click={() => moveUp(scopeIPsDisallowed, index, (newList) => scopeIPsDisallowed = newList)}>⬆</button>
+                        <button on:click={() => moveDown(scopeIPsDisallowed, index, (newList) => scopeIPsDisallowed = newList)}>⬇</button>
+                        <i class="fas fa-bars menu-icon"></i>
+                        <button class="trash-button" on:click={handleDelete}>
+                            <i class="fas fa-trash trash-icon"></i>
+                        </button>
+                    </ButtonGroup>
+                </div>
+            {/each}
+            <ButtonGroup class="*:!ring-primary-700">
+                <button class="custom-button" on:click={() => addIP((newIP) => scopeIPsDisallowed = [...scopeIPsDisallowed, newIP])}>
+                    Add Disallowed IP
+                </button>
+                <button class ="custom-button">Import IPs</button>
+            </ButtonGroup>
+        </div>
+        <div>
+            <div class='header'>
+                <h3>Exploits Allowed</h3>
+            </div>
             {#each exploitsAllowed as exploit, index}
                 <div class="item">
                     <div>
                         <input type="checkbox" bind:checked={exploit.selected} />
                         <span>{exploit.name}</span>
                     </div>
-                    <div class="arrows">
-                        <button on:click={() => moveUp(exploitsAllowed, index)}>⬆</button>
-                        <button on:click={() => moveDown(exploitsAllowed, index)}>⬇</button>
+                    <ButtonGroup class="*:!ring-primary-700">
+                        <button on:click={() => moveUp(exploitsAllowed, index, (newList) => exploitsAllowed = newList)}>⬆</button>
+                        <button on:click={() => moveDown(exploitsAllowed, index, (newList) => exploitsAllowed = newList)}>⬇</button>
                         <i class="fas fa-bars menu-icon"></i>
-                    </div>
+                    </ButtonGroup>
                 </div>
             {/each}
         </div>

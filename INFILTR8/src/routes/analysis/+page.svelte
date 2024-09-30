@@ -1,4 +1,6 @@
 <script>
+    import { SystemInfo } from '../../lib/SystemInfo.js'
+    import { LogManager } from '../../lib/LogManager.js'
     import  { Progressbar } from 'flowbite-svelte';
     import { Table, TableBody, TableBodyCell, TableBodyRow, TableHead, TableHeadCell } from 'flowbite-svelte';
     import { Chart, Card, A, Button, Dropdown, DropdownItem, Popover, Tooltip } from 'flowbite-svelte';
@@ -8,15 +10,8 @@
     const options = {
         series: [1, 1, 3],
         colors: ['#1C64F2', '#16BDCA', '#FDBA8C'],
-        chart: {
-        height: 280,
-        width: '100%',
-        type: 'donut'
-        },
-        stroke: {
-        colors: ['transparent'],
-        lineCap: ''
-        },
+        chart: {height: 280,width: '100%',type: 'donut'},
+        stroke: {colors: ['transparent'],lineCap: ''},
         plotOptions: {
         pie: {
             donut: {
@@ -52,19 +47,10 @@
             }
         }
         },
-        grid: {
-        padding: {
-            top: -2
-        }
-        },
+        grid: {padding: {top: -2}},
         labels: ['Analyzing', 'Scheduled', 'Completed'],
-        dataLabels: {
-        enabled: false
-        },
-        legend: {
-        position: 'bottom',
-        fontFamily: 'Inter, sans-serif'
-        },
+        dataLabels: {enabled: false},
+        legend: {position: 'bottom', fontFamily: 'Inter, sans-serif'},
         yaxis: {
         labels: {
             formatter: function (value) {
@@ -86,6 +72,13 @@
         }
         }
     };
+
+    const sysInfo = new SystemInfo()
+    var timestamp = sysInfo.getCurrentTimestamp()
+    var date =  sysInfo.getFormattedDate()
+
+    const logger = new LogManager()
+   
 </script>
 
 
@@ -176,6 +169,8 @@
                     <p>IPs Excluded?: Yes</p>
                     <p>Time Started: 10:00:00 AM - 9/12/2024</p>
                     <p>Time Completed: </p>
+                    <button type="button" on:click={logger.logUserAction("Ashley Rivas","button click", "user clicked button")}> click this</button>
+                    <p> {timestamp}</p>
                 </div>
             </div>
         </div>
