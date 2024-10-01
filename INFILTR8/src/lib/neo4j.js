@@ -1,10 +1,12 @@
 import neo4j from 'neo4j-driver';
+import dotenv from 'dotenv';
+dotenv.config(process.env._URL);
 
 // starts the driver and a session
-const driver = neo4j.driver('neo4j://localhost:7687');
+const driver = neo4j.driver(process.env.NEO4J_URI,neo4j.auth.basic(process.env.NEO4J_USERNAME, process.env.NEO4J_PASSWORD));
 const session = driver.session();
 
-// runs a givne query and retuns the output as a map
+// runs a given query and retuns the output as a map
 export async function runQuery(query, params) {
     try {
         const result = await session.run(query, params);
