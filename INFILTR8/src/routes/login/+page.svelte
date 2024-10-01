@@ -1,26 +1,48 @@
 <script>
   import { ThumbsUpSolid, ThumbsDownSolid } from 'flowbite-svelte-icons';
   import { Card } from 'flowbite-svelte'
+  import { goto } from '$app/navigation';
  
   let username = '';
   let password = '';
   let errorMessage = '';
  
-  function handleSubmit() {
+  async function handleSubmit() {
     if (!username || !password) {
       errorMessage = 'Please enter both username and password.';
       return;
     }
- 
-    // Placeholder for authentication logic
-    console.log(`Username: ${username}, Password: ${password}`);
-    // Clear fields after submission (optional)
-    username = '';
-    password = '';
-    errorMessage = '';
+    try {
+      const data = await getUserInfo();
+      const pulledUserName = data[0]['p']["start"]["properties"]["username"];
+      const pulledPassword = data[0]['p']["start"]["properties"]["password"];
+      if (username === pulledUserName && password === pulledPassword) {
+        username, password, errorMessage = '', '', '';
+        goto('/dashboard');
+      } else {
+        errorMessage = 'Username or Password is incorrect';
+        return;
+      }
+    } catch (error) {
+      console.error("Error fetching user info:", error);
+    }
   }
- 
 
+  async function getUserInfo() {
+		try {
+			const response = await fetch('login/query/', { method: 'GET' });
+			if (!response.ok) {
+				throw new Error('Failed to fetch data');
+			}
+			const data = await response.json();
+      console.log(data[0]['p']["start"]["properties"]["username"])
+      console.log(data[0]['p']["start"]["properties"]["password"])
+      return data
+		} catch (err) {
+			console.log(err);
+		}
+	}
+ 
 </script>
  
  
@@ -167,7 +189,7 @@
 </style>
  
 <div class='login-container'>
-  <Card><h1>SUP BRUH</h1></Card>
+  <Card><h1>Hello!</h1></Card>
 <h1 class="brand">INFILTR8</h1>
 <div class="login-form">
 <h2>Login</h2>
