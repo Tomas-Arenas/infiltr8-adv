@@ -6,13 +6,13 @@
     import { titleCase } from '$lib/utils.js';
   
     // Filter only new notifications
-    let notificationMessages = $notifications.filter(notification => notification.new);
+    $: notificationMessages = $notifications.filter(notification => notification.new);
   
     function handleNotificationClose(id, type) {
         // Mark notification as no longer new
         markNotificationAsOld(id);
         // Remove temporary notifications from both store and backend
-        removeNotification(id, type);
+        //removeNotification(id, type);
     }
   
     // Determine icon based on notification type
@@ -40,19 +40,20 @@
             <Toast
                 transition={fly}
                 params={{ x: 200 }}
-                color={type === 'success' ? 'green' : type === 'alert' ? 'red' : type === 'message' ? 'blue' : 'white'}  
-                defaultIconClass='h-16 w-16'
+                color={type === 'success' ? 'green' : type === 'alert' ? 'red' : type === 'message' ? 'blue' : 'white'}
+                divClass='w-full max-w-xs p-2 text-gray-500 bg-white shadow dark:text-gray-400 dark:bg-gray-800 gap-3 rounded-lg' 
+                defaultIconClass='h-12 w-12'
                 align={false}
                 on:close={() => handleNotificationClose(id, type)}>
                 <svelte:fragment slot="icon">
                     {#if type}
                         {#await getIcon(type) then Icon}
-                            <Icon class="h-14 w-14" />
+                            <Icon class="h-10 w-10" />
                         {/await}
                     {/if}
                 </svelte:fragment>
                 <div class="font-semibold text-base text-gray-900 dark:text-white">{titleCase(type)}</div>
-                <div class="pt-1 text-base font-normal">{message}</div>
+                <div class="text-base font-normal">{message}</div>
             </Toast>
         </div>
     {/each}
