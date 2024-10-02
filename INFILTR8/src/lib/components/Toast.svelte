@@ -1,8 +1,9 @@
 <script>
-    import { notifications, markNotificationAsOld, removeNotification } from '$lib/stores/notificationStore.js';
+    import { notifications, markNotificationAsOld, removeNotification } from '$lib/stores/notifications.js';
     import { Toast } from 'flowbite-svelte';
     import { fly, fade } from 'svelte/transition';
     import { BellRingSolid, CheckCircleSolid, ExclamationCircleSolid, InfoCircleSolid } from 'flowbite-svelte-icons';
+    import { titleCase } from '$lib/utils.js';
   
     // Filter only new notifications
     let notificationMessages = $notifications.filter(notification => notification.new);
