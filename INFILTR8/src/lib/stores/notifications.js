@@ -20,6 +20,7 @@ export async function loadNotificationsFromDB(username) {
 // Add new notification (new notifications during session)
 export function addNewNotification(notification) {
     notifications.update(n => [...n, { ...notification, new: true }]);
+    console.log('New notification:', notification);
 }
 
 // Mark notification as old (after being shown in Toast)
@@ -30,7 +31,7 @@ export function markNotificationAsOld(id) {
 }
 
 // Remove notification (used for temporary notifications)
-export function removeNotification(id, type) {
+export function removeNotification(id) {
     notifications.update(n => n.filter(notification => notification.id !== id));
     // Optionally call backend to remove notification from Neo4j if it's temporary
 }
