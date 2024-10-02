@@ -8,15 +8,17 @@
 	import Toast from '$lib/components/Toast.svelte';
 
 	const mockNotifications = [
-        { id: 1, message: 'Mock Notification 1', type: 'message', timestamp: '2024-01-01T12:00:00', new: true },
-        { id: 2, message: 'Mock Notification 2', type: 'success', timestamp: '2024-01-02T13:00:00', new: true },
-        { id: 3, message: 'Mock Notification 3', type: 'error', timestamp: '2024-01-03T14:00:00', new: false }
+        { id: 1, message: 'Mock Notification 1', type: 'message', timestamp: '2024-01-01T12:00:00', new: true, timeout: 3000 },
+        { id: 2, message: 'Mock Notification 2', type: 'success', timestamp: '2024-01-02T13:00:00', new: true, timeout: 3000 },
+        { id: 3, message: 'Mock Notification 3', type: 'error', timestamp: '2024-01-03T14:00:00', new: false, timeout: 3000 }
     ];
 
 	onMount(() => {
+		console.log('Loading mock notifications...');
 		mockNotifications.forEach(notification => {
 			addNewNotification(notification);
 		});
+		console.log('Mock notifications loaded.');
 	});
 </script>
 
