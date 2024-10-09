@@ -1,11 +1,16 @@
-<!--TODO test stores -->
+<!--TODO add store for exploits allowed -->
 <!--visual planning-->
+<!--THIS PAGE EXPECTS DATA FROM THE NESSUS FILE LIKE IPS AND ENTRY POINTS  -->
 
 <script>
-    import { Card } from 'flowbite-svelte';
+    import IP from '$lib/IP.js';
+    import { Card, Button, ButtonGroup, Listgroup, ListgroupItem, Table, TableBody, TableBodyCell, TableBodyRow, TableHead, TableHeadCell } from 'flowbite-svelte';
     import { TrashBinSolid } from 'flowbite-svelte-icons';
     import { ipsAllowed } from '$lib/stores.js';
     import { ipsDisallowed } from '$lib/stores.js';
+    import { LogManager } from '../../lib/LogManager.js';
+
+    const logger = new LogManager();
 
     let exploitsAllowed = [
         { id: 1, name: 'SQL Injection', selected: false },
@@ -28,6 +33,29 @@
 
     let selectedProject = null;
 
+    function isValidIPv4(ip) {
+        const ipv4Regex = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+        return ipv4Regex.test(ip);
+    }
+
+    //testing purpose
+    function addIP() {
+        let ipAddress = prompt("Enter the IPv4 address:"); 
+        if (ipAddress) {
+            if (isValidIPv4(ipAddress)) {
+                let newIP = new IP(ipAddress); 
+                ipsAllowed.update(list => [...list,newIP])
+                logger.logUserAction("testuser","Created IP", newIP.getDescription()); 
+
+            } else {
+                alert("Please enter a valid IPv4 address.");
+            }
+        } else {
+            alert("IP address cannot be empty.");
+        }
+    }
+
+
     function moveUp(list, index) {
         if (index > 0) {
             [list[index - 1], list[index]] = [list[index], list[index - 1]];
@@ -40,16 +68,6 @@
             [list[index], list[index + 1]] = [list[index + 1], list[index]];
             updateList(list);
         }
-    }
-    
-    function addItem(list, item){
-        list.push(item)
-        updateList(list)
-    }
-
-    function deleteItem(list, index) {
-        list.splice(index, 1);
-        updateList(list);      
     }
 
     // Ensure the list is updated to trigger reactivity
@@ -75,87 +93,58 @@
 	<!-- Main container with both cards -->
 	<Card class="flex min-w-fit flex-row gap-5 rounded-lg bg-gray-100 p-5 shadow-md dark:bg-gray-800">
 		<!-- Current Project Folder Card -->
+        <Card class="flex-1 rounded-lg bg-white p-5 shadow-md">
+            <h2 class="mb-4 text-lg font-semibold">Current Project Folder</h2>
+            {#if selectedProject}
+                <div class="flex items-center justify-between rounded-lg bg-gray-100 p-4 shadow">
+                    <div class="flex items-center gap-3">
+                        <!-- Font Awesome folder icon -->
+                        <i class="fas fa-folder text-lg"></i>
+                        <div>
+                            <span class="block font-medium">{selectedProject.name}</span>
+                            <span class="text-sm text-gray-500"
+                                >{selectedProject.items} items • {selectedProject.size}</span
+                            >
+                        </div>
+                    </div>
+                    <span class="text-gray-500">⋮</span>
+                </div>
+            {/if}
+        </Card>
+
 		<Card class="flex-1 rounded-lg bg-white p-5 shadow-md">
-			<h2 class="mb-4 text-lg font-semibold">Current Project Folder</h2>
-			{#if selectedProject}
-				<div class="flex items-center justify-between rounded-lg bg-gray-100 p-4 shadow">
-					<div class="flex items-center gap-3">
-						<!-- Font Awesome folder icon -->
-						<i class="fas fa-folder text-lg"></i>
-						<div>
-							<span class="block font-medium">{selectedProject.name}</span>
-							<span class="text-sm text-gray-500"
-								>{selectedProject.items} items • {selectedProject.size}</span
-							>
-						</div>
-					</div>
-					<span class="text-gray-500">⋮</span>
-				</div>
-			{/if}
-
-			<!-- Scope IP List -->
-			<div class="mt-6">
-				<h3 class="mb-2 text-lg font-semibold">Scope IP List</h3>
+            <h2 class="mb-4 text-lg font-semibold">Project Scope</h2>
+			<!-- Allowed IP List -->
+				<h3 class="mb-2 text-lg font-semibold">IPs Allowed</h3>
+            <Listgroup class="border-none">
 				{#each $ipsAllowed as ip, index}
-					<div class="mb-2 flex items-center justify-between rounded-lg bg-gray-100 p-3 shadow">
-						<div class="flex items-center gap-3">
-							<input type="checkbox" bind:checked={ip.selected} />
-							<span>{ip.ip}</span>
-						</div>
-						<div class="flex gap-2">
-							<button class="text-lg" on:click={() => moveUp($ipsAllowed, index)}>⬆</button>
-							<button class="text-lg" on:click={() => moveDown($ipsAllowed, index)}>⬇</button>
-                            <div class="flex gap-2">
-                                <button class="text-lg" on:click={() => deleteItem($ipsAllowed, index)}>
-                                  <TrashBinSolid class="w-6 h-6 text-red-600" /> <!-- Trash Icon Here -->
-                                </button>
-                            </div>
-
-							<i class="fas fa-bars cursor-pointer"></i>
-						</div>
-					</div>
+					<ListgroupItem class="flex items-center gap-3 justify-between rounded-lg bg-gray-100 p-4 shadow dark:bg-gray-800 mb-4">                  
+                        <input type="checkbox" bind:checked={ip.selected} />
+                        <span>{ip.ip}</span>
+                        <ButtonGroup class="*:!ring-primary-700">
+                            <Button size="sm mr-2" on:click={() => moveUp($ipsAllowed, index)}>⬆</Button>
+                            <Button size="sm mr-2" on:click={() => moveDown($ipsAllowed, index)}>⬇</Button>             
+                        </ButtonGroup >						
+					</ListgroupItem>
 				{/each}
-			</div>
-            <!-- Scope IP List -->
-			<div class="mt-6">
-				<h3 class="mb-2 text-lg font-semibold">Scope IP List</h3>
-				{#each $ipsAllowed as ip, index}
-					<div class="mb-2 flex items-center justify-between rounded-lg bg-gray-100 p-3 shadow">
-						<div class="flex items-center gap-3">
-							<input type="checkbox" bind:checked={ip.selected} />
-							<span>{ip.ip}</span>
-						</div>
-						<div class="flex gap-2">
-							<button class="text-lg" on:click={() => moveUp($ipsAllowed, index)}>⬆</button>
-							<button class="text-lg" on:click={() => moveDown($ipsAllowed, index)}>⬇</button>
-                            <div class="flex gap-2">
-                                <button class="text-lg" on:click={() => deleteItem($ipsAllowed, index)}>
-                                  <TrashBinSolid class="w-6 h-6 text-red-600" /> <!-- Trash Icon Here -->
-                                </button>
-                            </div>
-
-							<i class="fas fa-bars cursor-pointer"></i>
-						</div>
-					</div>
-				{/each}
-			</div>
+			</Listgroup>
+            <Button class="text-base mt-4" on:click={() => addIP()}>add ip (testing purposes only)</Button>
 
 			<!-- Exploits Allowed -->
 			<div class="mt-6">
 				<h3 class="mb-2 text-lg font-semibold">Exploits Allowed</h3>
-				{#each exploitsAllowed as exploit, index}
-					<div class="mb-2 flex items-center justify-between rounded-lg bg-gray-100 p-3 shadow">
-						<div class="flex items-center gap-3">
-							<input type="checkbox" bind:checked={exploit.selected} />
-							<span>{exploit.name}</span>
-						</div>
-						<div class="flex gap-2">
-							<button class="text-lg" on:click={() => moveUp(exploitsAllowed, index)}>⬆</button>
-							<button class="text-lg" on:click={() => moveDown(exploitsAllowed, index)}>⬇</button>
-							<i class="fas fa-bars cursor-pointer"></i>
-						</div>
-					</div>
-				{/each}
+                <Listgroup class="border-none">
+                    {#each exploitsAllowed as exploit, index}
+                        <ListgroupItem class="flex items-center gap-3 justify-between rounded-lg bg-gray-100 p-4 shadow dark:bg-gray-800 mb-4">                  
+                            <input type="checkbox" bind:checked={exploit.selected} />
+                            <span>{exploit.name}</span>
+                            <ButtonGroup class="*:!ring-primary-700">
+                                <Button size="sm mr-2" on:click={() => moveUp(exploitsAllowed, index)}>⬆</Button>
+                                <Button size="sm mr-2" on:click={() => moveDown(exploitsAllowed, index)}>⬇</Button>             
+                            </ButtonGroup >						
+                        </ListgroupItem>
+                    {/each}
+                </Listgroup>
 			</div>
 		</Card>
 
@@ -164,7 +153,7 @@
 			<h3 class="mb-4 text-lg font-semibold">Load Project</h3>
 			{#each projects as project}
 				<div
-					class="mb-4 flex cursor-pointer items-center justify-between rounded-lg bg-gray-100 p-4 shadow"
+					class="mb-4 flex cursor-pointer items-center justify-between rounded-lg bg-gray-100 p-4 shadow dark:bg-gray-800 mb-4"
 					on:click={() => loadProject(project)}
 				>
 					<div class="flex items-center gap-3">
@@ -178,7 +167,8 @@
 					<span class="text-gray-500">⋮</span>
 				</div>
 			{/each}
-		</Card>
+    
+	    </Card>
 	</Card>
 
 	<!-- Start Testing button placed below the layout -->
