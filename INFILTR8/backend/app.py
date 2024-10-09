@@ -8,7 +8,7 @@ config = dotenv_values(".env")
 app = Flask(__name__)
 CORS(app)
 # CORS(app, resources={r"/api/*": {"origins": "*"}})  # Apply CORS to all routes under '/api'
-@app.route("/test")
+@app.route("/flask-api/test")
 def test():
     URI = config['URI']
     AUTH = (config['USERNAME'], config['PASSWORD'])
@@ -25,3 +25,7 @@ def test():
         # print(type(record))
         names.append(record[0]['name'])
     return jsonify({'info': names})
+
+@app.route("/flask-api/test2")
+def test2():
+    return jsonify({'test':'test2 to see if the proxy stuff works'})
