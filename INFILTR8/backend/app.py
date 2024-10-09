@@ -12,7 +12,9 @@ CORS(app)
 def test():
     URI = config['URI']
     AUTH = (config['USERNAME'], config['PASSWORD'])
+
     driver = GraphDatabase.driver(URI, auth=AUTH)
+
     records, summary, keys = driver.execute_query(
         "MATCH (n:Person) RETURN n LIMIT 25",
         database_="neo4j",

@@ -31,4 +31,4 @@ vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 
 # pycache
-!/__pycache
+backend/__pycache__
