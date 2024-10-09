@@ -21,11 +21,19 @@ def test():
     )
     names = []
     for record in records:
-        # print(record)
-        # print(type(record))
         names.append(record[0]['name'])
     return jsonify({'info': names})
 
 @app.route("/flask-api/test2")
 def test2():
     return jsonify({'test':'test2 to see if the proxy stuff works'})
+
+# Handles the uploading of the file
+@app.route("/flask-api/nessus-upload")
+def nessusFileUpload():
+    return jsonify({'test': 'hold'})
+
+# Sends the entry points
+@app.route("/flask-api/entry-points")
+def rankedEntryPoints():
+    return
