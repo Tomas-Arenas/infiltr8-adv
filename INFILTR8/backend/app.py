@@ -3,7 +3,7 @@ from flask_cors import CORS
 from neo4j import GraphDatabase
 from dotenv import dotenv_values
 
-config = dotenv_values(".env")
+config = dotenv_values("../.env")
 
 app = Flask(__name__)
 CORS(app)
