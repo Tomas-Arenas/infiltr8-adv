@@ -1,7 +1,9 @@
-from flask import Flask, make_response, jsonify
+from flask import Flask, make_response, request, jsonify
 from flask_cors import CORS
 from neo4j import GraphDatabase
 from dotenv import dotenv_values
+from user_service import createUserNode
+import bcrypt
 
 config = dotenv_values("../.env")
 
@@ -37,3 +39,20 @@ def nessusFileUpload():
 @app.route("/flask-api/entry-points")
 def rankedEntryPoints():
     return
+
+# creates user in the db
+@app.route('flask-api/create_user', methods=['POST'])
+def create_user_route():
+    data = request.get_json()
+    first_name = data['first_name']
+    last_name = data['last_name']
+    username = data['username']
+    password = data['password']
+
+    # Hash the password
+    hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+
+    with driver.session() as session:
+        session.write_transaction(create_user, first_name, last_name, username, hashed_password.decode('utf-8'))
+    
+    return jsonify({"status": "User created successfully"})
