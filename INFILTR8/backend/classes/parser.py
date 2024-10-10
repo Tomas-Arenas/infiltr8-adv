@@ -149,6 +149,7 @@ entry_point_info['combined_score'] = (
 
 # Sort by the combined score
 ranked_entry_points = entry_point_info.sort_values(by='combined_score', ascending=False)
+print(type(ranked_entry_points))
 
 # Display the ranked entry points
 print("\nRanked entry points based on combined score:")
