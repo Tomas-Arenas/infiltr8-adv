@@ -6,7 +6,7 @@
     import { titleCase } from '$lib/utils.js';
     
     // Filter only new notifications
-    $: notificationMessages = $notifications.filter(notification => notification.new);
+    $: notificationMessages = $notifications.filter(notification => notification.isNew);
   
     // Function to handle closing of notification (only mark as old now, no removal)
     function handleNotificationClose(id) {
