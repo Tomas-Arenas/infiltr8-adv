@@ -5,7 +5,13 @@
     import { Table, TableBody, TableBodyCell, TableBodyRow, TableHead, TableHeadCell } from 'flowbite-svelte';
     import { Chart, Card, A, Button, Dropdown, DropdownItem, Popover, Tooltip } from 'flowbite-svelte';
     import { InfoCircleSolid, ArrowDownToBracketOutline, ChevronDownOutline, ChevronRightOutline, PenSolid, DownloadSolid, ShareNodesSolid } from 'flowbite-svelte-icons';
+    import { onMount } from 'svelte';
+    import { session, checkSession } from '$lib/stores/session.js';
 
+    onMount(() => {
+        checkSession(); // Check session on page load
+    });
+    
     // pie chart
     const options = {
         series: [1, 1, 3],

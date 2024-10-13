@@ -7,3 +7,4 @@ export const menuOpen = writable(false);
 export const ipsAllowed = writable([]);
 export const ipsDisallowed = writable([]);
 
+export const userSession = writable({loggedIn: false, username: ''});

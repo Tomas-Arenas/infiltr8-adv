@@ -1,19 +1,13 @@
-<<<<<<< HEAD
-from flask import Flask, make_response, request, jsonify
-=======
 import os
-from flask import Flask, make_response, jsonify, request, redirect, url_for, flash
+from flask import Flask, make_response, jsonify, request, redirect, url_for, flash, session
 from werkzeug.utils import secure_filename
->>>>>>> f848c1191e31cd57cbf2c4f8703ffb5e8559ca0e
 from flask_cors import CORS
 from dotenv import dotenv_values
-<<<<<<< HEAD
-from user_service import createUserNode
-import bcrypt
-
-config = dotenv_values("../.env")
-=======
 from classes import database
+from classes import user_service
+import bcrypt
+from flask_session import Session
+
 
 # Gets all the env variables
 config = dotenv_values(".env")
@@ -23,15 +17,23 @@ AUTH = (config['USERNAME'], config['PASSWORD'])
 # Used to know where to save the files ones uploaded
 UPLOAD_FOLDER = "./nessus-drop"
 ALLOWED_EXTENSIONS = {'nessus'} # not used but might be
->>>>>>> f848c1191e31cd57cbf2c4f8703ffb5e8559ca0e
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.secret_key = os.urandom(12).hex() # Needed to sign session cookies and what not
 CORS(app) # have to have or nothing works
 
+# Flask-Session configuration
+app.config['SECRET_KEY'] = 'your_secret_key'
+app.config['SESSION_TYPE'] = 'filesystem'
+app.config['SESSION_FILE_DIR'] = './flask_session'  # Ensure the directory exists and is writable
+app.config['SESSION_PERMANENT'] = False  # Disable permanent sessions
+app.config['SESSION_USE_SIGNER'] = True  # To add an extra layer of security
+Session(app)
+
 # Makes the database object can be used anywhere
 neo4j = database.DataBase(URI, AUTH)
+driver = neo4j.driver_make()
 
 @app.route("/flask-api/test")
 def test():
@@ -70,7 +72,7 @@ def rankedEntryPoints():
     return
 
 # creates user in the db
-@app.route('flask-api/create_user', methods=['POST'])
+@app.route('/flask-api/create_user', methods=['POST'])
 def create_user_route():
     data = request.get_json()
     first_name = data['first_name']
@@ -82,6 +84,32 @@ def create_user_route():
     hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
 
     with driver.session() as session:
-        session.write_transaction(create_user, first_name, last_name, username, hashed_password.decode('utf-8'))
+        session.write_transaction(user_service.create_user, username, first_name, last_name, hashed_password.decode('utf-8'))
     
     return jsonify({"status": "User created successfully"})
+
+# checks login information 
+@app.route('/flask-api/login', methods=['POST'])
+def login_route():
+    data = request.get_json()
+    username = data.get('username')
+    password = data.get('password')
+
+    if user_service.login_user(driver, username, password):
+        session['username'] = username  # Store username in session
+        return jsonify({"status": "Login successful"})
+    else:
+        return jsonify({"status": "Invalid username or password"}), 401
+
+@app.route('/flask-api/logout', methods=['POST'])
+def logout_route():
+    session.pop('username', None)
+    session.clear()
+    return jsonify({"status": "Logged out successfully"})
+
+@app.route('/flask-api/check_session', methods=['GET'])
+def check_session_route():
+    if 'username' in session:
+        return jsonify({"status": "Logged in", "logged_in": True, "username": session['username']})
+    else:
+        return jsonify({"status": "Not Logged in", "logged_in": False, "username": ''})
