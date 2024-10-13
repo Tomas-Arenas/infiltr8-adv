@@ -22,11 +22,19 @@
       const result = await response.json();
       console.log(result.status); // "Login successful"
       await checkSession(); // Update session store
+      goto('/dashboard')
     } else {
       console.error('Failed to login');
     }
   }
 
+  let selectedScheme = 'Default';  // Default scheme
+  let colorSchemes = {
+    'Default': {
+      bg: 'bg-white dark:bg-gray-900', text: 'text-black dark:text-white', primary: 'bg-blue-500', danger: 'bg-red-500', success: 'bg-green-500', warning: 'bg-yellow-500',
+    }
+  };
+  $: currentScheme = colorSchemes[selectedScheme];
   
 
 </script>

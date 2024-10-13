@@ -26,7 +26,7 @@ CORS(app) # have to have or nothing works
 # Flask-Session configuration
 app.config['SECRET_KEY'] = 'your_secret_key'
 app.config['SESSION_TYPE'] = 'filesystem'
-app.config['SESSION_FILE_DIR'] = './flask_session'  # Ensure the directory exists and is writable
+app.config['SESSION_FILE_DIR'] = './flask_session'  
 app.config['SESSION_PERMANENT'] = False  # Disable permanent sessions
 app.config['SESSION_USE_SIGNER'] = True  # To add an extra layer of security
 Session(app)
@@ -97,19 +97,32 @@ def login_route():
 
     if user_service.login_user(driver, username, password):
         session['username'] = username  # Store username in session
-        return jsonify({"status": "Login successful"})
+        session_id = session.sid
+        return jsonify({"status": "Login successful", "session_id": session_id})
     else:
         return jsonify({"status": "Invalid username or password"}), 401
 
+# clears session and deletes all session files
 @app.route('/flask-api/logout', methods=['POST'])
 def logout_route():
     session.pop('username', None)
     session.clear()
+
+    # List session files for debugging
+    session_files = os.listdir(app.config['SESSION_FILE_DIR'])
+    print(f"Session files after logout: {session_files}")
+
+    # Optionally manually delete files if they are not cleared
+    for file in session_files:
+        file_path = os.path.join(app.config['SESSION_FILE_DIR'], file)
+        os.remove(file_path)
+
     return jsonify({"status": "Logged out successfully"})
 
+#checks whether the session contains the username
 @app.route('/flask-api/check_session', methods=['GET'])
 def check_session_route():
     if 'username' in session:
-        return jsonify({"status": "Logged in", "logged_in": True, "username": session['username']})
+        return jsonify({"status": "Logged in", "logged_in": True, "username": session['username'], "session_id": session.sid})
     else:
         return jsonify({"status": "Not Logged in", "logged_in": False, "username": ''})

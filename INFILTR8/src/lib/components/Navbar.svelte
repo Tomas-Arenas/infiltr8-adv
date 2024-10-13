@@ -11,17 +11,26 @@
 	import { menuOpen } from '$lib/stores.js';
 	import { session, checkSession } from '$lib/stores/session';
 
+
+	let loggedIn = false
+
 	onMount(async () => {
 		checkSession();
 	});
 
+	$: $session = session.subscribe(($session) => {
+        loggedIn = $session.logged_in;
+        userInitials = $session.logged_in ? $session.username[0].toUpperCase() : 'U';
+    });
+
+	
 	export let open = $menuOpen || false;
 	let slideMenu = false;
 
 	export let userInitials = 'U';
 
-	let loggedIn = $session.logged_in;
-	console.log($session.logged_in)
+	
+	
 
 	// Reactive statement to track current page path
 	$: currentPath = $page.url.pathname;
