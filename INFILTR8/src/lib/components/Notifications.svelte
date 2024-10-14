@@ -14,12 +14,12 @@
 </script>
 
 <div class="relative">
-	<button class="relative text-gray-600 dark:text-gray-400" on:click={toggleNotifications}>
-		<BellSolid class="h-6 w-6" />
+	<button class="flex items-center justify-center relative text-gray-600 dark:text-gray-400" on:click={toggleNotifications}>
+		<BellSolid class="pointer-events-none text-black dark:text-white" />
 
 		{#if unreadCount > 0}
 			<span
-				class="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-600 text-xs text-white"
+				class="absolute -right-1 -top-1 flex h-3 w-3 items-center justify-center rounded-full bg-red-600 text-xs text-white"
 			>
 				{unreadCount}
 			</span>
