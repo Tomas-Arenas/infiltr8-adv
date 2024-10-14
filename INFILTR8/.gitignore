@@ -29,3 +29,13 @@ Thumbs.db
 # Vite
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+# pycache and backend stuff
+backend/__pycache__/*
+backend/classes/__pycache__/*
+backend/nessus-drop/*
+!backend/nessus-drop/.gitkeep
+backend/output/*
+!backend/output/.gitkeep
+backend/flask_session/*
+!backend/flask_session/.gitkeep

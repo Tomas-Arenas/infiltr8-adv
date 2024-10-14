@@ -33,24 +33,50 @@
 		localStorage.setItem('theme', theme); // Save theme preference
 	}
 
-	let data = [];
+	let selectedFile;
 
+	const handleFileChange = (event) => {
+		selectedFile = event.target.files[0];
+	};
+
+	let data = [];
+	const headers = new Headers();
+	headers.append('Content-Type', 'application/json');
 	// Fetch data to mimic fetching a file
 	async function testGet() {
 		try {
-			const response = await fetch('report/query/', { method: 'GET' });
+			const response = await fetch('http://127.0.0.1:5000/flask-api/test2', {method: 'GET',});
 			if (!response.ok) {
+				const errorText = await response.text();
 				throw new Error('Failed to fetch data');
 			}
-			data = await response.json();
+			const jsonData = await response.json();
+			data = jsonData; // Ensure jsonData is actually an array if this assignment is made
 			console.log(data);
 		} catch (err) {
-			console.log(err);
+			console.log('Error fetching data:',err);
+			console.log(err)
 		}
+	}
+
+	async function sendFile(file) {
+		const formData = new FormData()
+		// Have to give the first parameter 'file' to the formData
+		formData.append('file', file)
+		console.log(formData)
+		// Make sure to use the post method here and to include the formData in the body
+		const response = await fetch("/flask-api/nessus-upload", {
+			method: 'POST',
+			body: formData
+		});
+		const jsonData = await response.json();
+		data = jsonData; // Ensure jsonData is actually an array if this assignment is made
+		console.log(data);
 	}
 
 	function handleDataBaseTest() {
 		testGet();
+		sendFile(selectedFile)
 	}
 
 	let rows = [
@@ -188,6 +214,10 @@
 	<!-- Database test button -->
 	<div class="database-container">
 		<button class="test-button" on:click={handleDataBaseTest}> Database Test </button>
+	</div>
+
+	<div>
+		<input type="file" on:change="{handleFileChange}" />
 	</div>
 </div>
 
