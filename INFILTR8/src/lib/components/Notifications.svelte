@@ -15,13 +15,15 @@
 
 <div class="relative">
 	<button class="flex items-center justify-center relative text-gray-600 dark:text-gray-400" on:click={toggleNotifications}>
-		<BellSolid class="pointer-events-none text-black dark:text-white" />
+		<BellSolid class="h-7 w-7 pointer-events-none text-black dark:text-white" />
 
 		{#if unreadCount > 0}
 			<span
-				class="absolute -right-1 -top-1 flex h-3 w-3 items-center justify-center rounded-full bg-red-600 text-xs text-white"
+				class="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center text-justify rounded-full bg-red-900 {unreadCount > 99 ? 'text-[7px]' : 'text-[10px]'} text-white"
 			>
-				{unreadCount}
+				<span class="pointer-events-none my-auto">
+					{unreadCount > 99 ? '99+' : unreadCount}
+				</span>
 			</span>
 		{/if}
 	</button>
