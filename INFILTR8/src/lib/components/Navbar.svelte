@@ -9,18 +9,33 @@
 	import { Dropdown, DropdownItem, Popover } from 'flowbite-svelte';
 	import { fade } from 'svelte/transition';
 	import { menuOpen } from '$lib/stores.js';
+	import { session, checkSession } from '$lib/stores/session';
 
+
+	let loggedIn = false
+
+	onMount(async () => {
+		checkSession();
+	});
+
+	$: $session = session.subscribe(($session) => {
+        loggedIn = $session.logged_in;
+        userInitials = $session.logged_in ? $session.username[0].toUpperCase() : 'U';
+    });
+
+	
 	export let open = $menuOpen || false;
 	let slideMenu = false;
 
 	export let userInitials = 'U';
 
-	let loggedIn = false;
+	
+	
 
 	// Reactive statement to track current page path
 	$: currentPath = $page.url.pathname;
 
-	onMount(async () => {});
+	
 
 	// Sidebar item data: each item has text, href (link), and an icon key
 	const sidebarItems = [

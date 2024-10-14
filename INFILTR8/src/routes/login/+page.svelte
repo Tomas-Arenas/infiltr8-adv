@@ -1,43 +1,30 @@
 <script>
   import { ThumbsUpSolid, ThumbsDownSolid } from 'flowbite-svelte-icons';
   import { Card } from 'flowbite-svelte';
-  import { goto } from '$app/navigation';
+  import { goto } from '$app/navigation'
+  import { session, checkSession } from '../../lib/stores/session';
+  import { onMount } from 'svelte';
 
+  onMount(() => {
+    checkSession(); // Check session on page load
+  });
+ 
   let username = '';
   let password = '';
   let errorMessage = '';
 
-  async function handleSubmit() {
-    if (!username || !password) {
-      errorMessage = 'Please enter a username and password.';
-      return;
-    }
-    try {
-      const data = await getUserInfo();
-      const pulledUserName = data[0]['p']["start"]["properties"]["username"];
-      const pulledPassword = data[0]['p']["start"]["properties"]["password"];
-      if (username === pulledUserName && password === pulledPassword) {
-        username, password, errorMessage = '', '', '';
-        goto('/dashboard');
-      } else {
-        errorMessage = 'Username or Password is incorrect';
-        return;
-      }
-    } catch (error) {
-      console.error("Error fetching user info:", error);
-    }
-  }
+  async function loginUser() {
+    const response = await fetch('/flask-api/login', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ username, password })});
 
-  async function getUserInfo() {
-    try {
-      const response = await fetch('login/query/', { method: 'GET' });
-      if (!response.ok) {
-        throw new Error('Failed to fetch data');
-      }
-      const data = await response.json();
-      return data;
-    } catch (err) {
-      console.log(err);
+    if (response.ok) {
+      const result = await response.json();
+      console.log(result.status); // "Login successful"
+      await checkSession(); // Update session store
+      goto('/dashboard')
+    } else {
+      console.error('Failed to login');
     }
   }
 
@@ -48,6 +35,8 @@
     }
   };
   $: currentScheme = colorSchemes[selectedScheme];
+  
+
 </script>
 
 
@@ -154,20 +143,24 @@
 
 <div class={`login-container ${currentScheme.bg} ${currentScheme.text}`}>
   <h1 class="brand">INFILTR8</h1>
+  
+<form on:submit|preventDefault={loginUser}>
   <div class="login-form">
-    <h2>Login</h2>
-    {#if errorMessage}
-    <div class="error-message">{errorMessage}</div>
-    {/if}
-    <div class="form-group"> 
-      <label for="username" class="text-left">Username</label>
-      <input type="text" id="username" bind:value={username} placeholder="Enter your username" />
+        <h2>Login</h2>
+        {#if errorMessage}
+      <div class="error-message">{errorMessage}</div>
+      {/if}
+      <div class="form-group"> 
+          <label for="username" class="text-left">Username</label>
+          <input type="text" id="username" bind:value={username} placeholder="Enter your username" />
+      </div>
+      <div class="form-group">
+          <label for="password" class="text-left">Password</label>
+          <input type="password" id="password" bind:value={password} placeholder="Enter your password" />
+      </div>
+      <a href="/forgot-password" class="forgot-password">Forgot password?</a>
+      <button type="submit">Login</button>
     </div>
-    <div class="form-group">
-      <label for="password" class="text-left">Password</label>
-      <input type="password" id="password" bind:value={password} placeholder="Enter your password" />
-    </div>
-    <a href="/forgot-password" class="forgot-password">Forgot password?</a>
-    <button class="submit-button" on:click={handleSubmit}>Login</button>
-  </div>
+</form>
 </div>
+

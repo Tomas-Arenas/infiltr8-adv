@@ -5,7 +5,7 @@ export class LogManager {
     constructor() {
         this.systemInfo = new SystemInfo();
         this.currentDate = this.systemInfo.getFormattedDate();
-        this.driver = neo4j.driver('bolt://localhost:7687');
+        
     }
 
     async logEntryPoints(username, entryPoints) {
