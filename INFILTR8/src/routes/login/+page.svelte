@@ -1,58 +1,52 @@
 <script>
   import { ThumbsUpSolid, ThumbsDownSolid } from 'flowbite-svelte-icons';
-  import { Card } from 'flowbite-svelte'
-  import { goto } from '$app/navigation';
+  import { Card } from 'flowbite-svelte';
+  import { goto } from '$app/navigation'
+  import { session, checkSession } from '../../lib/stores/session';
+  import { onMount } from 'svelte';
+
+  onMount(() => {
+    checkSession(); // Check session on page load
+  });
  
   let username = '';
   let password = '';
   let errorMessage = '';
- 
-  async function handleSubmit() {
-    if (!username || !password) {
-      errorMessage = 'Please enter both username and password.';
-      return;
-    }
-    try {
-      const data = await getUserInfo();
-      const pulledUserName = data[0]['p']["start"]["properties"]["username"];
-      const pulledPassword = data[0]['p']["start"]["properties"]["password"];
-      if (username === pulledUserName && password === pulledPassword) {
-        username, password, errorMessage = '', '', '';
-        goto('/dashboard');
-      } else {
-        errorMessage = 'Username or Password is incorrect';
-        return;
-      }
-    } catch (error) {
-      console.error("Error fetching user info:", error);
+
+  async function loginUser() {
+    const response = await fetch('/flask-api/login', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ username, password })});
+
+    if (response.ok) {
+      const result = await response.json();
+      console.log(result.status); // "Login successful"
+      await checkSession(); // Update session store
+      goto('/dashboard')
+    } else {
+      console.error('Failed to login');
     }
   }
 
-  async function getUserInfo() {
-		try {
-			const response = await fetch('login/query/', { method: 'GET' });
-			if (!response.ok) {
-				throw new Error('Failed to fetch data');
-			}
-			const data = await response.json();
-      console.log(data[0]['p']["start"]["properties"]["username"])
-      console.log(data[0]['p']["start"]["properties"]["password"])
-      return data
-		} catch (err) {
-			console.log(err);
-		}
-	}
- 
+  let selectedScheme = 'Default';  // Default scheme
+  let colorSchemes = {
+    'Default': {
+      bg: 'bg-white dark:bg-gray-900', text: 'text-black dark:text-white', primary: 'bg-blue-500', danger: 'bg-red-500', success: 'bg-green-500', warning: 'bg-yellow-500',
+    }
+  };
+  $: currentScheme = colorSchemes[selectedScheme];
+  
+
 </script>
- 
- 
+
+
 <style>
   :global(body) {
     margin: 0;
     padding: 0;
     font-family: Arial, sans-serif;
   }
- 
+
   .login-container {
     display: flex;
     flex-direction: column;
@@ -64,38 +58,37 @@
     transition: background 0.3s ease;
     position: relative;
   }
- 
+
   .login-form {
-    background-color: var(--form-background);
+    background-color: var(--background-color);
     padding: 20px;
     border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
     width: 350px;
   }
- 
+
   h1.brand {
     margin-bottom: 20px;
     font-size: 36px;
     color: var(--brand-color);
   }
- 
+
   h2 {
     margin-bottom: 20px;
     font-size: 24px;
-    color: var(--text-color);
   }
- 
+
   .form-group {
     margin-bottom: 15px;
   }
- 
+
   .form-group label {
     display: block;
     margin-bottom: 5px;
     font-weight: bold;
     color: var(--label-color);
   }
- 
+
   .form-group input {
     width: 100%;
     padding: 10px;
@@ -105,17 +98,17 @@
     background: var(--input-background);
     color: var(--input-text);
   }
- 
+
   .form-group input:focus {
     border-color: var(--input-focus-border);
     outline: none;
   }
- 
+
   .error-message {
     color: var(--error-color);
     margin-bottom: 15px;
   }
- 
+
   .submit-button {
     padding: 10px 20px;
     font-size: 16px;
@@ -126,11 +119,11 @@
     border-radius: 4px;
     transition: background-color 0.3s ease;
   }
- 
+
   .submit-button:hover {
-    background-color: var(--button-hover-background);
+    text-decoration: underline;
   }
- 
+
   .forgot-password {
     display: block;
     margin-top: 15px;
@@ -138,73 +131,32 @@
     color: var(--forgot-password-color);
     text-decoration: none;
   }
- 
+
   .forgot-password:hover {
     text-decoration: underline;
   }
- 
-  .dark-mode-toggle {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    cursor: pointer;
-    font-size: 18px;
-  }
- 
-  /* Light mode styles */
-  :global(:root) {
-    --background-color: #f5f5f5;
-    --form-background: white;
-    --brand-color: #007bff;
-    --text-color: #333;
-    --label-color: #666;
-    --input-background: #fff;
-    --input-border: #ddd;
-    --input-focus-border: #007bff;
-    --input-text: #333;
-    --error-color: red;
-    --button-background: #007bff;
-    --button-text: white;
-    --button-hover-background: #0056b3;
-    --forgot-password-color: #007bff;
-  }
- 
-  /* Dark mode styles */
-  .dark-mode {
-    --background-color: #121212;
-    --form-background: #1e1e1e;
-    --brand-color: #1e90ff;
-    --text-color: #e0e0e0;
-    --label-color: #e0e0e0;
-    --input-background: #2e2e2e;
-    --input-border: #444;
-    --input-focus-border: #1e90ff;
-    --input-text: #e0e0e0;
-    --error-color: #ff4c4c;
-    --button-background: #1e90ff;
-    --button-text: white;
-    --button-hover-background: #1c86ee;
-    --forgot-password-color: #1e90ff;
-  }
 </style>
- 
-<div class='login-container'>
-  <Card><h1>Hello!</h1></Card>
-<h1 class="brand">INFILTR8</h1>
-<div class="login-form">
-<h2>Login</h2>
-    {#if errorMessage}
-<div class="error-message">{errorMessage}</div>
-    {/if}
-<div class="form-group">
-<label for="username">Username</label>
-<input type="text" id="username" bind:value={username} placeholder="Enter your username" />
+
+<div class={`login-container ${currentScheme.bg} ${currentScheme.text}`}>
+  <h1 class="brand">INFILTR8</h1>
+  
+<form on:submit|preventDefault={loginUser}>
+  <div class="login-form">
+        <h2>Login</h2>
+        {#if errorMessage}
+      <div class="error-message">{errorMessage}</div>
+      {/if}
+      <div class="form-group"> 
+          <label for="username" class="text-left">Username</label>
+          <input type="text" id="username" bind:value={username} placeholder="Enter your username" />
+      </div>
+      <div class="form-group">
+          <label for="password" class="text-left">Password</label>
+          <input type="password" id="password" bind:value={password} placeholder="Enter your password" />
+      </div>
+      <a href="/forgot-password" class="forgot-password">Forgot password?</a>
+      <button type="submit">Login</button>
+    </div>
+</form>
 </div>
-<div class="form-group">
-<label for="password">Password</label>
-<input type="password" id="password" bind:value={password} placeholder="Enter your password" />
-</div>
-<a href="/forgot-password" class="forgot-password">Forgot password?</a>
-<button class="submit-button" on:click={handleSubmit}>Login</button>
-</div>
-</div>
+

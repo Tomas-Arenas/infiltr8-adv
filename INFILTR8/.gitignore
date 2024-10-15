@@ -37,3 +37,5 @@ backend/nessus-drop/*
 !backend/nessus-drop/.gitkeep
 backend/output/*
 !backend/output/.gitkeep
+backend/flask_session/*
+!backend/flask_session/.gitkeep
