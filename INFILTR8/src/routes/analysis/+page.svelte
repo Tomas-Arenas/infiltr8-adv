@@ -84,6 +84,55 @@
     var date =  sysInfo.getFormattedDate()
 
     const logger = new LogManager()
+
+    async function logButtonClick(detail) {
+        console.log("Button clicked with detail:", detail);  // For debugging
+        try {
+            const response = await fetch('/flask-api/log-action', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    username: 'DummyUser',  // Dummy username for now
+                    action: 'ButtonClick',
+                    details: detail
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to log action');
+            }
+
+            const result = await response.json();
+            console.log('Action logged:', result);
+        } catch (error) {
+            console.error('Failed to log button click:', error);
+        }
+    }
+
+    async function downloadLogs() {
+        const date = new Date().toISOString().slice(0, 10);  // Get today's date in 'YYYY-MM-DD' format
+        try {
+            const response = await fetch(`/flask-api/download-logs/${date}`);
+            if (!response.ok) {
+                throw new Error('Failed to download logs');
+            }
+            
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            a.download = `logs_${date}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            a.remove();
+        } catch (error) {
+            console.error('Failed to download logs:', error);
+        }
+    }
    
 </script>
 
@@ -92,6 +141,7 @@
 
 <!-- whole page -->
 <main>
+    
     <h1 class="font-bold text-xl">Analysis</h1>
 
     <div>
@@ -178,11 +228,13 @@
                     <p>IPs Excluded?: Yes</p>
                     <p>Time Started: 10:00:00 AM - 9/12/2024</p>
                     <p>Time Completed: </p>
-                    <button type="button" on:click={logger.logUserAction("Ashley Rivas","button click", "user clicked button")}> click this</button>
-                    <button type="button" on:click={logger.getLogsForDate("Ashley Rivas","button click", "user clicked button")}> click this</button>
+                    <button on:click={() => logButtonClick('Dummy button clicked')}>Click Me</button>
+                    <button on:click={downloadLogs}>Download Logs</button>
                     <p> {timestamp}</p>
                 </div>
+            
             </div>
+
             <!-- Entry Points dropdown section -->
             <div id="entryPoints" class="my-6 ">
                 <label for="entry-point-type" class=" dark:text-white block text-sm font-medium text-gray-700">Entry Points</label>
@@ -203,8 +255,6 @@
             </div>
         </div>
 
-
-        
         <div id="middle" class="flex-top float-left  w-8/12  py-0">
             <!-- start of Summary-->
             <div id="bottomSettings" class="py-8 rounded-md shadow-2xl dark:bg-gray-900"> 
@@ -254,15 +304,9 @@
                 </div>
             </div>
         </div>
-
-
-
-
-
-
-
-        
         
             
-    </div>  
+    </div> 
+     
+    
 </main>
