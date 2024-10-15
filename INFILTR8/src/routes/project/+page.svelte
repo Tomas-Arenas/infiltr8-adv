@@ -8,9 +8,7 @@
     import { TrashBinSolid } from 'flowbite-svelte-icons';
     import { ipsAllowed } from '$lib/stores.js';
     import { ipsDisallowed } from '$lib/stores.js';
-    import { LogManager } from '../../lib/LogManager.js';
 
-    const logger = new LogManager();
 
     let exploitsAllowed = [
         { id: 1, name: 'SQL Injection', selected: false },

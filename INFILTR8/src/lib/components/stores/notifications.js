@@ -12,7 +12,7 @@ export async function loadNotificationsFromDB(username) {
     const dbNotifications = await getUserNotifications(username, skip, pageSize); // Fetch with pagination from Neo4j
     notifications.update(n => [...n, ...dbNotifications.map(notification => ({
         ...notification,
-        isNew: false, // Mark notifications from the DB as not new
+        new: false, // Mark notifications from the DB as not new
         isPermanent: true // Ensure all notifications from the DB are marked as permanent
     }))]);
     currentPage++; // Increment for pagination
@@ -22,7 +22,7 @@ export async function loadNotificationsFromDB(username) {
 export function addNewNotification(notification) {
     notifications.update(n => [...n, {
         ...notification,
-        isNew: true, // Mark as new (to be shown in the toast)
+        new: true, // Mark as new (to be shown in the toast)
         isPermanent: notification.isPermanent ?? false // Default to false if not specified
     }]);
     console.log('New notification:', notification);
@@ -36,7 +36,7 @@ export function addNewNotification(notification) {
 // Mark notification as old (after being shown in Toast, but no removal)
 export function markNotificationAsOld(id) {
     notifications.update(n => n.map(notification =>
-        notification.id === id ? { ...notification, isNew: false } : notification
+        notification.id === id ? { ...notification, new: false } : notification
     ));
 }
 
