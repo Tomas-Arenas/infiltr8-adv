@@ -10,7 +10,7 @@
     onMount(() => {
         checkSession(); // Check session on page load
     });
-    
+
     // pie chart
     const options = {
         series: [1, 1, 3],
@@ -216,7 +216,7 @@
             
             <!-- start of current project settings -->
             <div id="bottomSettings" class=" py-6 rounded-md shadow-2xl  ">
-                <h2 class="text-center font-bold  font-bold leading-none text-gray-900 dark:text-white me-1 dark:bg-gray-900">Current Test</h2>
+                <h2 class="text-center font-bold leading-none text-gray-900 dark:text-white me-1 dark:bg-gray-900">Current Test</h2>
                 
                 <div class="px-2 dark:text-white dark:bg-gray-700">
                     <p>Project Name: Test Run</p>
@@ -256,8 +256,8 @@
         <div id="middle" class="flex-top float-left  w-8/12  py-0">
             <!-- start of Summary-->
             <div id="bottomSettings" class="py-8 rounded-md shadow-2xl dark:bg-gray-900"> 
-                <h2 class="text-center font-bold text-xl  font-bold leading-none text-gray-900 dark:text-white me-1 dark:bg-gray-900" >Summary</h2>
-                <div class="overflow-y-auto h-11  max-w-2xs lg:h-[calc(100vh-30rem)] lg:block dark:bg-gray-800 lg:me-0 lg:sticky top-2 px-2 dark:text-white dark:bg-gray-700">
+                <h2 class="text-center font-bold text-xl leading-none text-gray-900 dark:text-white me-1 dark:bg-gray-900" >Summary</h2>
+                <div class="overflow-y-auto h-11  max-w-2xs lg:h-[calc(100vh-30rem)] lg:block dark:bg-gray-800 lg:me-0 lg:sticky top-2 px-2 dark:text-white">
                     <p>Current Testing</p>
                     <p>Weak password Attack</p>
                     <p>Device X</p>
