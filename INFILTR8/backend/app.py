@@ -4,6 +4,9 @@ from werkzeug.utils import secure_filename
 from flask_cors import CORS
 from dotenv import dotenv_values
 from classes import database
+from flask import send_file
+from logs.logmanager import LogManager
+
 
 # Gets all the env variables
 config = dotenv_values(".env")
@@ -57,3 +60,29 @@ def nessusFileUpload():
 @app.route("/flask-api/entry-points")
 def rankedEntryPoints():
     return
+
+
+# Log user action from frontend
+@app.route("/flask-api/log-action", methods=['POST'])
+def log_action():
+    data = request.json
+    username = data.get('username', 'Anonymous')
+    action = data.get('action', 'No action specified')
+    details = data.get('details', 'No details provided')
+
+    logger = LogManager()
+    logger.log_action(username, action, details)
+    
+    return jsonify({"message": f"Action logged for {username}: {action} with details: {details}"})
+
+
+# Download logs 
+@app.route("/flask-api/download-logs/<date>", methods=['GET'])
+def download_logs(date):
+    log_file_path = os.path.join(app.root_path, 'logs', f'logs_{date}.txt')
+    print(f"Looking for log file at: {log_file_path}")  # Debug
+
+    try:
+        return send_file(log_file_path, as_attachment=True)
+    except FileNotFoundError:
+        return jsonify({'error': 'Log file not found'}), 404
