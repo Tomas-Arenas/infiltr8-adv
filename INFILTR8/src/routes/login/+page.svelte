@@ -78,10 +78,6 @@
     font-size: 24px;
   }
 
-  button {
-    color: var(--text-color);
-  }
-
   .form-group {
     margin-bottom: 15px;
   }
