@@ -1,10 +1,8 @@
 <script>
 
     import IP from '$lib/IP.js';
-    import { LogManager } from '../../lib/LogManager.js';
     import { ButtonGroup} from 'flowbite-svelte';
     
-    const logger = new LogManager();
     let scopeIPsAllowed = [];
     let scopeIPsDisallowed= [];
 
@@ -37,7 +35,7 @@
     function handleDelete(list, index, updateList) {
         const newList = list.filter((_, i) => i !== index);
         updateList(newList);
-        logger.logUserAction(testuser,"Deleted item", `at index ${index}. New list:`, newList );
+       // logger.logUserAction(testuser,"Deleted item", `at index ${index}. New list:`, newList );
     }
 
     function addIP(updateList) {
@@ -46,7 +44,7 @@
             if (isValidIPv4(ipAddress)) {
                 let newIP = new IP(ipAddress); 
                 updateList(newIP); // Call the callback to update the list
-                logger.logUserAction(testuser,"Created IP", newIP.getDescription()); 
+                //logger.logUserAction(testuser,"Created IP", newIP.getDescription()); 
             } else {
                 alert("Please enter a valid IPv4 address.");
             }

@@ -1,6 +1,5 @@
 <script>
     import { SystemInfo } from '../../lib/SystemInfo.js'
-    import { LogManager } from '../../lib/LogManager.js'
     import  { Progressbar } from 'flowbite-svelte';
     import { Table, TableBody, TableBodyCell, TableBodyRow, TableHead, TableHeadCell } from 'flowbite-svelte';
     import { Chart, Card, A, Button, Dropdown, DropdownItem, Popover, Tooltip } from 'flowbite-svelte';
@@ -77,7 +76,6 @@
     var timestamp = sysInfo.getCurrentTimestamp()
     var date =  sysInfo.getFormattedDate()
 
-    const logger = new LogManager()
 
     async function logButtonClick(detail) {
         console.log("Button clicked with detail:", detail);  // For debugging
