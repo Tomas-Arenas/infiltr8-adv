@@ -240,8 +240,6 @@
 		max-width: 1200px; /* Maximum width to ensure container does not get too wide */
 		margin: 0 auto; /* Center the container horizontally */
 		padding: 20px; /* Padding inside the container */
-		background-color: var(--bg-color); /* Responsive to theme changes */
-		color: var(--text-color); /* Responsive to theme changes */
 		box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Optional: Adds shadow for better visibility */
 		border-radius: 10px; /* Optional: Rounds the corners */
 	}
