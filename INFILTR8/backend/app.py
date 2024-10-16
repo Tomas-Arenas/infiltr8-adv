@@ -37,6 +37,8 @@ Session(app)
 neo4j = database.DataBase(URI, AUTH)
 driver = neo4j.driver_make()
 
+### TEST ROUTES ###
+
 @app.route("/flask-api/test")
 def test():
     return jsonify({'info': 'Test to makes sure everything is working'})
@@ -48,6 +50,22 @@ def test2():
     for record in records:
         names.append(record[0]['name'])
     return jsonify({'test':names})
+
+### Project Routes ###
+
+@app.route("/flask-api/create-project")
+def createProject():
+    return
+
+@app.route("/flask-api/all-project")
+def allProject():
+    return
+
+@app.route("/flask-api/something")
+def something():
+    return
+
+### Nessus Routes ###
 
 # Handles the uploading of the file
 @app.route("/flask-api/nessus-upload", methods=['POST'])
@@ -68,11 +86,16 @@ def nessusFileUpload():
         file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
         return jsonify({'status':'file was sent and has been saved on server'})
 
+@app.route("/flask-api/process-nessus")
+def processNessus():
+    return
+
 # Sends the entry points
-@app.route("/flask-api/entry-points")
+@app.route("/flask-api/ranked-entry-points")
 def rankedEntryPoints():
     return
 
+### Logging fuctions ###
 
 # Log user action from frontend
 @app.route("/flask-api/log-action", methods=['POST'])
@@ -98,6 +121,9 @@ def download_logs(date):
         return send_file(log_file_path, as_attachment=True)
     except FileNotFoundError:
         return jsonify({'error': 'Log file not found'}), 404
+
+### Login and Create User ###
+
 # creates user in the db
 @app.route('/flask-api/create_user', methods=['POST'])
 def create_user_route():
