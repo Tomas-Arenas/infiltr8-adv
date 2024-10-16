@@ -7,7 +7,7 @@ import threading
 frontStart = ['npm', 'run', 'dev']
 backendStart = ['flask', 'run', '--debug']
 # Might need to change this to python3 for you windows people
-backendStartWindows = ['python','flask', 'run', '--debug']
+backendStartWindows = ['python', '-m', 'flask', 'run', '--debug']
 
 def start_front():
     os.chdir('INFILTR8/')
