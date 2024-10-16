@@ -33,6 +33,7 @@ vite.config.ts.timestamp-*
 # pycache and backend stuff
 backend/__pycache__/*
 backend/classes/__pycache__/*
+backend/logs/__pycache__/*
 backend/nessus-drop/*
 !backend/nessus-drop/.gitkeep
 backend/output/*
