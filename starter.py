@@ -18,9 +18,6 @@ backendStartWindows = [python_path, '-m', 'flask', 'run', '--debug']
 def start_front():
     os.chdir('INFILTR8/')
     subprocess.run(frontStart)
-    # proc1 = subprocess.Popen(
-        
-    # )
 
 def start_back():
     os.chdir('backend/')
