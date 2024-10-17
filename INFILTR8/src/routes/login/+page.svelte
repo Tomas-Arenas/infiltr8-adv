@@ -2,8 +2,9 @@
   import { ThumbsUpSolid, ThumbsDownSolid } from 'flowbite-svelte-icons';
   import { Card } from 'flowbite-svelte';
   import { goto } from '$app/navigation'
-  import { session, checkSession } from '../../lib/stores/session';
+  import { session, checkSession } from '$lib/stores/session';
   import { onMount } from 'svelte';
+  import Modal from '$lib/components/Modal.svelte';
 
   onMount(() => {
     checkSession(); // Check session on page load
@@ -12,6 +13,14 @@
   let username = '';
   let password = '';
   let errorMessage = '';
+
+  //Fields for CreateModal to make a new user
+  let fields = [
+    { name: 'username', label: 'Username', type: 'text', value: '' },
+    { name: 'password', label: 'Password', type: 'password', value: '' },
+    { name: 'email', label: 'Email', type: 'email', value: '' },
+    { name: 'role', label: 'Role', type: 'text', value: '' },
+  ];
 
   async function loginUser() {
     const response = await fetch('/flask-api/login', {
@@ -136,6 +145,8 @@
     text-decoration: underline;
   }
 </style>
+
+<Modal title='Create New User' open {fields} />
 
 <div class={`login-container ${currentScheme.bg} ${currentScheme.text}`}>
   <h1 class="brand">INFILTR8</h1>
