@@ -1,10 +1,14 @@
-<script>
+<!--TODO add store for exploits allowed -->
+<!--visual planning-->
+<!--THIS PAGE EXPECTS DATA FROM THE NESSUS FILE LIKE IPS AND ENTRY POINTS  -->
 
+<script>
     import IP from '$lib/IP.js';
-    import { ButtonGroup} from 'flowbite-svelte';
-    
-    let scopeIPsAllowed = [];
-    let scopeIPsDisallowed= [];
+    import { Card, Button, ButtonGroup, Listgroup, ListgroupItem, Table, TableBody, TableBodyCell, TableBodyRow, TableHead, TableHeadCell } from 'flowbite-svelte';
+    import { TrashBinSolid } from 'flowbite-svelte-icons';
+    import { ipsAllowed } from '$lib/stores.js';
+    import { ipsDisallowed } from '$lib/stores.js';
+
 
     let exploitsAllowed = [
         { id: 1, name: 'SQL Injection', selected: false },
@@ -27,7 +31,7 @@
 
     let selectedProject = null;
 
-   function isValidIPv4(ip) {
+    function isValidIPv4(ip) {
         const ipv4Regex = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
         return ipv4Regex.test(ip);
     }
@@ -53,304 +57,125 @@
         }
     }
 
-    function moveUp(list, index, updateList) {
-    if (index > 0) {
-        const updatedList = [...list]; // Create a new copy
-        const temp = updatedList[index];
-        updatedList[index] = updatedList[index - 1];
-        updatedList[index - 1] = temp;
-        updateList(updatedList); // Update using the callback
-    }
-}
 
-function moveDown(list, index, updateList) {
-    if (index < list.length - 1) {
-        const updatedList = [...list]; // Create a new copy
-        const temp = updatedList[index];
-        updatedList[index] = updatedList[index + 1];
-        updatedList[index + 1] = temp;
-        updateList(updatedList); // Update using the callback
+    function moveUp(list, index) {
+        if (index > 0) {
+            [list[index - 1], list[index]] = [list[index], list[index - 1]];
+            updateList(list);
+        }
     }
-}
+
+    function moveDown(list, index) {
+        if (index < list.length - 1) {
+            [list[index], list[index + 1]] = [list[index + 1], list[index]];
+            updateList(list);
+        }
+    }
+
+    // Ensure the list is updated to trigger reactivity
+    function updateList(list) {
+        if (list === $ipsAllowed) {
+            $ipsAllowed = [...list];
+        }  else if (list === $ipsDisallowed) {
+            $ipsDisallowed = [...list]
+        }  else if (list === exploitsAllowed) {
+            exploitsAllowed = [...list];
+        }
+        
+    }
 
     function loadProject(project) {
         selectedProject = project;
         console.log(`Project ${project.name} loaded.`);
     }
-
 </script>
 
-<style>
-     .header {
-        font-weight: bold;
-        color: #2c3e50;
-        margin-bottom: 10px;
-        text-align: left;
-    }
-
-    .header h1 {
-        font-size: 24px; /* For h1 */
-    }
-
-    .header h2 {
-        font-size: 20px; /* For h2 */
-    }
-
-    .header h3 {
-        font-size: 18px; /* For h3 */
-    }
-    .container {
-        display: flex;
-        justify-content: space-between;
-        padding: 20px;
-        gap: 20px;
-    }
-    .section {
-        flex: 1;
-        background-color: #f8f8f8;
-        padding: 20px;
-        border-radius: 10px;
-        box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-    }
-    .item {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-bottom: 10px;
-    }
-    .menu-icon {
-        font-size: 16px;
-        cursor: pointer;
-        margin-left: 10px;
-    }
-    button {
-        background-color: white;
-        border: none;
-        cursor: pointer;
-        font-size: 18px;
-    }
-    button:hover {
-        color: blue;
-    }
-    .start-button {
-        background-color: blue;
-        color: white;
-        padding: 20px 40px;
-        border: none;
-        border-radius: 8px;
-        cursor: pointer;
-        font-size: 20px;
-        margin-top: 20px;
-        display: block;
-        width: fit-content;
-        margin-left: auto;
-        margin-right: auto;
-    }
-    .start-button:hover {
-        background-color: #0056b3;
-    }
-    .load-project-section {
-        flex: 0.3;
-    }
-    .project-item {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        background-color: white;
-        padding: 15px;
-        border-radius: 10px;
-        margin-bottom: 10px;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    }
-    .project-item:hover {
-        background-color: #e6e6e6;
-    }
-    .project-info {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        flex-grow: 1;
-    }
-    .project-icon {
-        font-size: 24px;
-    }
-    .project-name {
-        display: flex;
-        flex-direction: column;
-    }
-    .project-size {
-        color: gray;
-        font-size: 12px;
-    }
-    .project-dots {
-        text-align: right;
-    }
-    .selected-project {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        background-color: #ffffff;
-        padding: 15px;
-        margin-top: 10px;
-        border-radius: 10px;
-        box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-    }
-    .custom-button {
-        background-color: #003366; /* Dark blue */
-        color: white;
-        border: none;
-        padding: 5px 10px; /* Reduced padding */
-        border-radius: 5px;
-        cursor: pointer;
-        transition: background-color 0.3s;
-        font-size: 0.8rem; /* Smaller font size */
-    }
-
-    .custom-button:hover {
-        background-color: #002244; /* Darker blue on hover */
-    }
-
-    .custom-button:focus {
-        outline: none;
-        box-shadow: 0 0 5px rgba(0, 51, 102, 0.5);
-    }
-    .trash-button {
-        background-color: #ff4d4d; /* Red color */
-        color: white;
-        border: none;
-        padding: 8px;
-        border-radius: 5px;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        transition: background-color 0.3s;
-    }
-
-    .trash-button:hover {
-        background-color: #cc0000; /* Darker red on hover */
-    }
-
-    .trash-icon {
-        margin-right: 5px; /* Space between icon and text */
-    }
-</style>
-
-<div class="container">
-    <div class="section">
-        <div class="header">
-            <h2>Current project folder</h2>
-        </div>
-            <!-- Selected Project Box -->
+<!-- Outer wrapper to center everything -->
+<div class="flex flex-col items-center justify-center">
+	<!-- Main container with both cards -->
+	<Card class="flex min-w-fit flex-row gap-5 rounded-lg bg-gray-100 p-5 shadow-md dark:bg-gray-800">
+		<!-- Current Project Folder Card -->
+        <Card class="flex-1 rounded-lg bg-white p-5 shadow-md">
+            <h2 class="mb-4 text-lg font-semibold">Current Project Folder</h2>
             {#if selectedProject}
-            <div class="selected-project">
-                <div class="project-info">
-                    <!-- Font Awesome folder icon -->
-                    <i class="fas fa-folder project-icon"></i>
-                    <div class="project-name">
-                        <span>{selectedProject.name}</span>
-                        <span class="project-size">{selectedProject.items} items • {selectedProject.size}</span>
+                <div class="flex items-center justify-between rounded-lg bg-gray-100 p-4 shadow">
+                    <div class="flex items-center gap-3">
+                        <!-- Font Awesome folder icon -->
+                        <i class="fas fa-folder text-lg"></i>
+                        <div>
+                            <span class="block font-medium">{selectedProject.name}</span>
+                            <span class="text-sm text-gray-500"
+                                >{selectedProject.items} items • {selectedProject.size}</span
+                            >
+                        </div>
                     </div>
+                    <span class="text-gray-500">⋮</span>
                 </div>
-                <div class="project-dots">
-                    <span>⋮</span>
-                </div>
-            </div>
             {/if}
-        <div>
-            <div class="header">
-                <h3>Scope allowed IP List</h3>
-            </div>
-            {#each scopeIPsAllowed as ip, index}
-                <div class="item">
-                    <div>
-                        <input type="checkbox" bind:checked={ip.selected} />
-                        <span>{ip.ip}</span>
-                    </div>
-                    <ButtonGroup class="*:!ring-primary-700">
-                        <button on:click={() => moveUp(scopeIPsAllowed, index, (newList) => scopeIPsAllowed = newList)}>⬆</button>
-                        <button on:click={() => moveDown(scopeIPsAllowed, index, (newList) => scopeIPsAllowed = newList)}>⬇</button>
-                        <i class="fas fa-bars menu-icon"></i>
-                        <button class="trash-button" on:click={() => handleDelete(scopeIPsAllowed, index, (newList) => scopeIPsAllowed = newList)}>
-                            <i class="fas fa-trash trash-icon"></i>
-                        </button>
-                    </ButtonGroup>
-                </div>
-            {/each}
-            <ButtonGroup class="*:!ring-primary-700">
-                <button class="custom-button" on:click={() => addIP((newIP) => scopeIPsAllowed = [...scopeIPsAllowed, newIP])}>
-                    Add allowed IP
-                </button>
-                <button class ="custom-button">Import IPs</button>
-            </ButtonGroup>
-        </div>
-        <div>
-            <div class='header'>
-            <h3>Scope disallowed IP List</h3>
-            </div>
-            
-            {#each scopeIPsDisallowed as ip, index}
-                <div class="item">
-                    <div>
-                        <input type="checkbox" bind:checked={ip.selected} />
-                        <span>{ip.ip}</span>
-                    </div>
-                    <ButtonGroup class="*:!ring-primary-700">
-                        <button on:click={() => moveUp(scopeIPsDisallowed, index, (newList) => scopeIPsDisallowed = newList)}>⬆</button>
-                        <button on:click={() => moveDown(scopeIPsDisallowed, index, (newList) => scopeIPsDisallowed = newList)}>⬇</button>
-                        <i class="fas fa-bars menu-icon"></i>
-                        <button class="trash-button" on:click={handleDelete}>
-                            <i class="fas fa-trash trash-icon"></i>
-                        </button>
-                    </ButtonGroup>
-                </div>
-            {/each}
-            <ButtonGroup class="*:!ring-primary-700">
-                <button class="custom-button" on:click={() => addIP((newIP) => scopeIPsDisallowed = [...scopeIPsDisallowed, newIP])}>
-                    Add Disallowed IP
-                </button>
-                <button class ="custom-button">Import IPs</button>
-            </ButtonGroup>
-        </div>
-        <div>
-            <div class='header'>
-                <h3>Exploits Allowed</h3>
-            </div>
-            {#each exploitsAllowed as exploit, index}
-                <div class="item">
-                    <div>
-                        <input type="checkbox" bind:checked={exploit.selected} />
-                        <span>{exploit.name}</span>
-                    </div>
-                    <ButtonGroup class="*:!ring-primary-700">
-                        <button on:click={() => moveUp(exploitsAllowed, index, (newList) => exploitsAllowed = newList)}>⬆</button>
-                        <button on:click={() => moveDown(exploitsAllowed, index, (newList) => exploitsAllowed = newList)}>⬇</button>
-                        <i class="fas fa-bars menu-icon"></i>
-                    </ButtonGroup>
-                </div>
-            {/each}
-        </div>
-    </div>
+        </Card>
 
-    <!-- Load Project Section -->
-    <div class="section load-project-section">
-        <h3>Load Project</h3>
-        {#each projects as project}
-            <div class="project-item" on:click={() => loadProject(project)}>
-                <div class="project-info">
-                    <!-- Font Awesome folder icon -->
-                    <i class="fas fa-folder project-icon"></i>
-                    <div class="project-name">
-                        <span>{project.name}</span>
-                        <span class="project-size">{project.items} items • {project.size}</span>
-                    </div>
-                </div>
-                <div class="project-dots">
-                    <span>⋮</span>
-                </div>
-            </div>
-        {/each}
-    </div>
+		<Card class="flex-1 rounded-lg bg-white p-5 shadow-md">
+            <h2 class="mb-4 text-lg font-semibold">Project Scope</h2>
+			<!-- Allowed IP List -->
+				<h3 class="mb-2 text-lg font-semibold">IPs Allowed</h3>
+            <Listgroup class="border-none">
+				{#each $ipsAllowed as ip, index}
+					<ListgroupItem class="flex items-center gap-3 justify-between rounded-lg bg-gray-100 p-4 shadow dark:bg-gray-800 mb-4">                  
+                        <input type="checkbox" bind:checked={ip.selected} />
+                        <span>{ip.ip}</span>
+                        <ButtonGroup class="*:!ring-primary-700">
+                            <Button size="sm mr-2" on:click={() => moveUp($ipsAllowed, index)}>⬆</Button>
+                            <Button size="sm mr-2" on:click={() => moveDown($ipsAllowed, index)}>⬇</Button>             
+                        </ButtonGroup >						
+					</ListgroupItem>
+				{/each}
+			</Listgroup>
+            <Button class="text-base mt-4" on:click={() => addIP()}>add ip (testing purposes only)</Button>
+
+			<!-- Exploits Allowed -->
+			<div class="mt-6">
+				<h3 class="mb-2 text-lg font-semibold">Exploits Allowed</h3>
+                <Listgroup class="border-none">
+                    {#each exploitsAllowed as exploit, index}
+                        <ListgroupItem class="flex items-center gap-3 justify-between rounded-lg bg-gray-100 p-4 shadow dark:bg-gray-800 mb-4">                  
+                            <input type="checkbox" bind:checked={exploit.selected} />
+                            <span>{exploit.name}</span>
+                            <ButtonGroup class="*:!ring-primary-700">
+                                <Button size="sm mr-2" on:click={() => moveUp(exploitsAllowed, index)}>⬆</Button>
+                                <Button size="sm mr-2" on:click={() => moveDown(exploitsAllowed, index)}>⬇</Button>             
+                            </ButtonGroup >						
+                        </ListgroupItem>
+                    {/each}
+                </Listgroup>
+			</div>
+		</Card>
+
+		<!-- Load Project Card -->
+		<Card class="flex-1 rounded-lg bg-white p-5 shadow-md">
+			<h3 class="mb-4 text-lg font-semibold">Load Project</h3>
+			{#each projects as project}
+				<div
+					class="mb-4 flex cursor-pointer items-center justify-between rounded-lg bg-gray-100 p-4 shadow dark:bg-gray-800 mb-4"
+					on:click={() => loadProject(project)}
+				>
+					<div class="flex items-center gap-3">
+						<!-- Font Awesome folder icon -->
+						<i class="fas fa-folder text-lg"></i>
+						<div>
+							<span class="block font-medium">{project.name}</span>
+							<span class="text-sm text-gray-500">{project.items} items • {project.size}</span>
+						</div>
+					</div>
+					<span class="text-gray-500">⋮</span>
+				</div>
+			{/each}
+    
+	    </Card>
+	</Card>
+
+	<!-- Start Testing button placed below the layout -->
+	<button
+		class="mt-6 rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white hover:bg-blue-700"
+		on:click={() => console.log('Start Testing')}>Start Testing</button
+	>
 </div>
-
-<!-- Start Testing button placed outside and below the layout -->
-<button class="start-button" on:click={() => console.log("Start Testing")}>Start Testing</button>

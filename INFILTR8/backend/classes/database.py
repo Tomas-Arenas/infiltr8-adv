@@ -14,3 +14,4 @@ class DataBase:
         records, summary, keys = driver.execute_query(query, database_="neo4j")
         driver.close()
         return records
+
