@@ -36,15 +36,19 @@
         return ipv4Regex.test(ip);
     }
 
-    //testing purpose
-    function addIP() {
+    function handleDelete(list, index, updateList) {
+        const newList = list.filter((_, i) => i !== index);
+        updateList(newList);
+       // logger.logUserAction(testuser,"Deleted item", `at index ${index}. New list:`, newList );
+    }
+
+    function addIP(updateList) {
         let ipAddress = prompt("Enter the IPv4 address:"); 
         if (ipAddress) {
             if (isValidIPv4(ipAddress)) {
                 let newIP = new IP(ipAddress); 
-                ipsAllowed.update(list => [...list,newIP])
-                logger.logUserAction("testuser","Created IP", newIP.getDescription()); 
-
+                updateList(newIP); // Call the callback to update the list
+                //logger.logUserAction(testuser,"Created IP", newIP.getDescription()); 
             } else {
                 alert("Please enter a valid IPv4 address.");
             }
