@@ -24,6 +24,6 @@ def fileRead(filepath):
         for lines in csvFile:
             stringLine = ''
             for part in lines:
-                stringLine = part + ' '
+                stringLine = stringLine + ' ' + part
             wholeCsv.append(stringLine)
         return wholeCsv
