@@ -6,7 +6,7 @@ from dotenv import dotenv_values
 from classes import database
 from flask import send_file
 from logs.logmanager import LogManager
-from classes import user_service
+from classes import user_service, project, nessus_upload
 import bcrypt
 from flask_session import Session
 
@@ -53,17 +53,37 @@ def test2():
 
 ### Project Routes ###
 
-@app.route("/flask-api/create-project")
+@app.route("/flask-api/create-project", methods=['GET', 'POST'])
 def createProject():
-    return
+    # will set up later
+    # data = request.get_json()
+    # projectName = data.get('projectName')
+    # ips = data.get('ips')
+    # exploits = data.get('exploits')
+    
+    newProId = project.createProject(driver, session['username'], 'Test Project 2', ["173.23.54.24", "173.23.54.24", "173.23.54.16"], 'All')
+    session['currentProject'] = newProId
+    return jsonify({'message': 'Poject has been created', 'projectId': newProId})
 
-@app.route("/flask-api/all-project")
+@app.route("/flask-api/all-projects")
 def allProject():
-    return
+    result = project.getAllProjectIds(driver, session['username'])
+    return jsonify({'data': result})
 
-@app.route("/flask-api/something")
+@app.route("/flask-api/total-project")
 def something():
-    return
+    result = project.countProjects(driver, session['username'])
+    return jsonify({'data': result})
+
+@app.route("/flask-api/current-project-info")
+def getCurrentProjectInfo():
+    result = project.getProjectInfomation(driver, session['username'], session['currentProject'])
+    return jsonify({'data': result})
+
+@app.route("/flask-api/get-all-project-info")
+def getAllProjectsInfo():
+    result = project.allProjectInfo(driver, session['username'])
+    return jsonify({'data': result})
 
 ### Nessus Routes ###
 
@@ -88,7 +108,9 @@ def nessusFileUpload():
 
 @app.route("/flask-api/process-nessus")
 def processNessus():
-    return
+    result = nessus_upload.processAndUpload(driver, session['username'], session['currentProject'], 'INFILTR8/backend/output/ranked_entry_points.csv')
+    return jsonify({'message': 'File has been uploaded'})
+    
 
 # Sends the entry points
 @app.route("/flask-api/ranked-entry-points")
