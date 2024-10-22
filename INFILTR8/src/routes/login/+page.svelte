@@ -60,10 +60,10 @@
   }
 
   .login-form {
-    background-color: var(--background-color);
+    background-color: rgba(0, 0, 0, 0.1);
     padding: 20px;
     border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.6);
     width: 350px;
   }
 
