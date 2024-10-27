@@ -24,4 +24,32 @@ export const sendIPSToBackend = async () => {
     } catch (error) {
       console.error('Error sending data:', error);
     }
+};
+
+  //should be ran once a nessus file is uploaded
+  export async function getIPsFromBackend() {
+    try {
+        const response = await fetch("/flask-api/get-all-ips", {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error("Network response was not ok");
+        }
+
+        const data = await response.json(); // Parse JSON response
+        console.log("IPs received from backend:", data);
+        addIPstoStore(data); // Update the store with received IPs
+    } catch (error) {
+        console.error("There was an error retrieving IPs from the backend:", error);
+    }
   };
+
+  function addIPstoStore(data) {
+    const ipInstances = data.map(ipAddress => new IP(ipAddress)); // Create IP instances
+    console.log(ipInstances)
+    ipsDisallowed.set(ipInstances); // Update the store with IP instances
+}
