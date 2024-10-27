@@ -8,7 +8,32 @@
     import { TrashBinSolid } from 'flowbite-svelte-icons';
     import { ipsAllowed } from '$lib/stores.js';
     import { ipsDisallowed } from '$lib/stores.js';
+    import { onMount } from "svelte";
 
+    async function getIPsFromBackend() {
+        try {
+            const response = await fetch("/flask-api/get-all-ips", {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error("Network response was not ok");
+            }
+
+            const data = await response.json(); // Parse JSON response
+            console.log("IPs received from backend:", data);
+            ipsDisallowed.set(data); // Update the store with received IPs
+        } catch (error) {
+            console.error("There was an error retrieving IPs from the backend:", error);
+        }
+    }
+
+    onMount(() => {
+        getIPsFromBackend();
+    });
 
     let exploitsAllowed = [
         { id: 1, name: 'SQL Injection', selected: false },
