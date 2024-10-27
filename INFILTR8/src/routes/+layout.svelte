@@ -59,8 +59,8 @@
 	<Notifications />
 	<!-- Darkmode Toggle -->
 	<Darkmode />
-	<!-- Colorblind Toggle -->
-	<Colorblind />
+	<!-- Colorblind Mode Toggle -->
+  	<Colorblind />
 </div>
 
 <div class="app flex h-screen bg-gray-50 dark:bg-gray-600">
