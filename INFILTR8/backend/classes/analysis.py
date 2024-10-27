@@ -23,6 +23,7 @@ port_0_entries_path = os.path.join(output_base_dir, 'port_0_entries.csv')
 def analyze_nessus_file():
     # Initialize an empty DataFrame
     df = pd.read_csv(nessus_file)
+    df = df[~df["name"].isin(disallowed_ips)]
 
     # Debugging: Print DataFrame shape and head to verify final output
     print(f"DataFrame shape: {df.shape}")
@@ -107,3 +108,7 @@ def analyze_nessus_file():
     # Save to a separate CSV for review
     port_0_entries.to_csv(port_0_entries_path, index=False)
     print(f"\nPort 0 entries saved to {port_0_entries_path}")
+
+# used for testing
+# if __name__ == "__main__":
+#     analyze_nessus_file()

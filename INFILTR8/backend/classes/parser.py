@@ -7,7 +7,7 @@ import category_encoders as ce
 from sklearn.preprocessing import MinMaxScaler
 
 # Path to the Nessus XML file, change line 10 to match path where your NESSUS file is
-nessus_file = '/Users/tomas/CS4311_INFILTR8_Team1_DecafCats_Fall2024/INFILTR8/backend/nessus-drop/Nessus_scan_file(1).nessus'
+nessus_file = '../nessus-drop'
 
 # Base directory for output CSV files, change line 13 to where you want output CSVs to go
 output_base_dir = '/Users/tomas/CS4311_INFILTR8_Team1_DecafCats_Fall2024/INFILTR8/backend/output'
