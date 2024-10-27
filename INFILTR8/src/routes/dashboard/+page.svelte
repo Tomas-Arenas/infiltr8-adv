@@ -14,35 +14,27 @@
     let possibleEntryPoints = [];
     let validEntryPoints = [];
     let nessusContent = '';
+    let message = "";
     
     // Initialize the array to hold file names
     let value = [];
     
     // Handle file drop
     const dropHandle = (event) => {
-      value = [];
+      console.log("File drop detected");
       event.preventDefault();
-      if (event.dataTransfer && event.dataTransfer.items) {
-        [...event.dataTransfer.items].forEach((item) => {
-          if (item.kind === 'file') {
-            const file = item.getAsFile();
-            if (file) {      
-              value.push(file.name);
-            }
-          }
-        });
-      } else if (event.dataTransfer && event.dataTransfer.files) {
-        [...event.dataTransfer.files].forEach((file) => {
-          value.push(file.name);
-        });
+      if (event.dataTransfer && event.dataTransfer.files.length > 0) {
+        nessusFile = event.dataTransfer.files[0];
+        console.log("File selected:", nessusFile);
+        uploadNessusFile();
       }
-      value = [...value]; // Ensure reactivity
     };
 
     // Function to parse Nessus XML content
     function parseNessusFile(content) {
       const parser = new DOMParser();
       const xmlDoc = parser.parseFromString(content, "application/xml");
+      possibleEntryPoints = [];
 
       // Example of extracting IP and port info
       const hosts = xmlDoc.getElementsByTagName("ReportHost");
@@ -60,6 +52,7 @@
           possibleEntryPoints.push({ ip, port, severity, pluginID, service });
         }
       }
+      console.log("Parsed entry points:", possibleEntryPoints);
     }
 
     // Function to validate entry points based on open ports or severity levels
@@ -88,27 +81,28 @@
     
     // Handle input change for file uploads
     const handleChange = (event) => {
-      const target = event.target;
-      const files = target?.files;
+        const target = event.target;
+        const files = target?.files;
     
-      if (files && files.length > 0) {
-        const file = files[0];
-        const fileExtension = file.name.split('.').pop()?.toLowerCase();
+        if (files && files.length > 0) {
+            const file = files[0];
+            const fileExtension = file.name.split('.').pop()?.toLowerCase();
     
-        if (fileExtension === 'nessus') {
-          // If the file is a .nessus file, add its name to the value array
-          value.push(file.name);
-          value = [...value]; // Ensure reactivity in Svelte
-          const reader = new FileReader();
-              reader.onload = (e) => {
-                nessusContent = e.target.result;
-                parseNessusFile(nessusContent);
-               };
-          reader.readAsText(file);
-        } else {
-          console.error('Invalid file type. Please upload a .nessus file.');
+            if (fileExtension === 'nessus') {
+                nessusFile = file;
+                console.log("File selected:", nessusFile);
+                uploadNessusFile();
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    nessusContent = e.target.result;
+                    parseNessusFile(nessusContent);
+                    isFileReady = true;  // Set to true after parsing
+                };
+                reader.readAsText(file);
+            } else {
+                console.error('Invalid file type. Please upload a .nessus file.');
+            }
         }
-      }
     };
     
     // Display the uploaded files
@@ -123,6 +117,75 @@
       concat += '...';
       return concat;
     };
+
+// Uploads the Nessus file
+  async function uploadNessusFile() {
+    if (!nessusFile) {
+      message = "Please select a file to upload.";
+      return;
+    }
+
+    isLoading = true;
+    const formData = new FormData();
+    formData.append("file", nessusFile);
+
+    try {
+      const uploadResponse = await fetch("http://localhost:5000/flask-api/nessus-upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (uploadResponse.ok) {
+        const result = await uploadResponse.json();
+        message = "File uploaded successfully: " + result.status;
+      } else {
+        message = "File upload failed. Please try again.";
+      }
+    } catch (error) {
+      message = "Upload error: " + error.message;
+    } finally {
+      isLoading = false;
+    }
+  }
+
+    async function createProject() {
+        if (!nessusFile) {
+            message = "Upload a .nessus file first.";
+            console.warn(message);
+            return;
+        }
+        if (possibleEntryPoints.length === 0) {
+            message = "No entry points found in the Nessus file. Please upload a valid file.";
+            console.warn(message);
+            return;
+        }
+
+        const projectData = {
+            folderName: nessusFile.name,
+            entryPoints: possibleEntryPoints  // Pass parsed entry points
+        };
+
+        try {
+            const response = await fetch("http://localhost:5000/flask-api/create-project", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(projectData),
+                credentials: "include"
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                message = `Project created successfully with ID: ${data.projectId}`;
+                console.log(message);
+            } else {
+                message = "Failed to create project.";
+                console.error("Project creation failed with status:", response.status);
+            }
+        } catch (error) {
+            message = "Error: " + error.message;
+            console.error("Error during project creation:", error);
+        }
+    }
     </script>
     <div class="flex flex-row items-start justify-between min-h-screen w-full">
     <div class="flex-grow">
@@ -134,31 +197,13 @@
     <P>Please select from the following to get started on your project.</P>
   
     <!-- Dropzone component for file uploads -->
-    <Dropzone
-      id="dropzone"
-      class='w-96 mb-2'
-      on:drop={dropHandle}
-      on:dragover={(event) => {
-        event.preventDefault();
-      }}
-      on:change={handleChange}>
-      <svg aria-hidden="true" class="mb-3 w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-      </svg>
-      {#if value.length === 0}
-        <p class="mb-2 text-sm text-gray-500 dark:text-gray-400"><span class="font-semibold">Click to upload</span> or drag and drop</p>
-        <p class="text-xs text-gray-500 dark:text-gray-400">Only .NESSUS files allowed</p>
-      {:else}
-        <p>{showFiles(value)}</p>
-      {/if}
-    </Dropzone>
+      <input type="file" accept=".nessus" on:change="{handleChange}" />
+
         <div class="flex flex-row justify-between w-full mt-4">
             <div class="flex flex-col mr-8">
 
                 <GradientButton class = "mb-2" color="green">Discard All</GradientButton>
-                <form on:submit|preventDefault={submit}>
-                  <GradientButton color="purple" type="submit">Create Project</GradientButton>
-                </form>
+                <GradientButton on:click={createProject}>Create Project</GradientButton>
             </div>
             <div class="flex flex-col justify-between w-full">
             <Listgroup items={simpleList} let:item class="flex-grow w-full">
