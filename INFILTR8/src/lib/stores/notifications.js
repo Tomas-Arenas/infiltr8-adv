@@ -6,16 +6,30 @@ export const notifications = writable([]);
 let currentPage = 0;
 const pageSize = 20;
 
-// Fetch the most recent notifications from Neo4j
-export async function loadNotificationsFromDB(username) {
+// Fetch notifications from the backend and append them to the store
+export async function loadNotifications() {
     const skip = currentPage * pageSize;
-    const dbNotifications = await getUserNotifications(username, skip, pageSize); // Fetch with pagination from Neo4j
-    notifications.update(n => [...n, ...dbNotifications.map(notification => ({
-        ...notification,
-        isNew: false, // Mark notifications from the DB as not new
-        isPermanent: true // Ensure all notifications from the DB are marked as permanent
-    }))]);
-    currentPage++; // Increment for pagination
+    const limit = pageSize;
+
+    try {
+        const response = await fetch(`/flask-api/get-notifications?skip=${skip}&limit=${limit}`, {
+            method: 'GET',
+            credentials: 'include', // Ensure cookies with session info are included
+        });
+        const data = await response.json();
+        if (data.notifications) {
+            notifications.update(n => [...n, ...data.notifications.map(notification => ({
+                ...notification,
+                isNew: false, // Mark as old
+                isPermanent: true // From DB, always permanent
+            }))]);
+            currentPage++; // Increment the page after successfully loading
+        } else {
+            console.error("No notifications returned from backend.");
+        }
+    } catch (error) {
+        console.error("Error fetching notifications from backend:", error);
+    }
 }
 
 // Add new notification (distinguish between temporary and permanent)
@@ -46,8 +60,28 @@ export function removeNotificationFromBackend(id) {
     // Your logic here to remove from the Neo4j backend (this will be handled in the future notification section)
 }
 
-// Dummy function to simulate writing a permanent notification to the backend
 async function writeNotificationToBackend(notification) {
-    console.log("Writing to backend:", notification);
-    // Your logic here to write to the Neo4j backend
+    try {
+        const response = await fetch('/flask-api/create-notification', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                message: notification.message,
+                isPermanent: notification.isPermanent,
+                timestamp: notification.timestamp || new Date().toISOString(),
+            }),
+            credentials: 'include' // Ensure cookies with session info are included
+        });
+
+        const data = await response.json();
+        if (data.status === 'success') {
+            console.log("Notification successfully written to backend:", data.notification);
+        } else {
+            console.error("Failed to write notification to backend:", data.error);
+        }
+    } catch (error) {
+        console.error("Error writing notification to backend:", error);
+    }
 }
