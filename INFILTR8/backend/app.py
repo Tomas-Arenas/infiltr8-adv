@@ -24,7 +24,7 @@ ALLOWED_EXTENSIONS = {'nessus'} # not used but might be
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.secret_key = os.urandom(12).hex() # Needed to sign session cookies and what not
-CORS(app) # have to have or nothing works
+CORS(app, supports_credentials=True, resources={r"/flask-api/*": {"origins": "http://localhost:5173"}}) # have to have or nothing works
 
 # Flask-Session configuration
 app.config['SECRET_KEY'] = 'your_secret_key'
@@ -61,7 +61,10 @@ def createProject():
     # projectName = data.get('projectName')
     # ips = data.get('ips')
     # exploits = data.get('exploits')
-    
+    if 'username' not in session:
+        print("User not authenticated - 'username' not in session")
+        return jsonify({'error': 'User not authenticated'}), 401  # Return a 401 Unauthorized if no username in session
+    print(f"Creating project for user: {session['username']}")
     newProId = project.createProject(driver, session['username'], 'Test Project 2', ["173.23.54.24", "173.23.54.24", "173.23.54.16"], 'All')
     session['currentProject'] = newProId
     return jsonify({'message': 'Poject has been created', 'projectId': newProId})
