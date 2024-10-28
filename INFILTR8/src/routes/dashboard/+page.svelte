@@ -99,7 +99,7 @@
                 nessusFile = file;
                 console.log("File selected:", nessusFile);
                 let fetchP = uploadNessusFile()
-                fetchP.then(function(result) {
+                fetchP.then((response) => {
                   // put error handle stuff here
                   ipList = getIPsFromBackend(nessusFile.name)
                 })
@@ -152,7 +152,7 @@
       if (uploadResponse.ok) {
         const result = await uploadResponse.json();
         message = "File uploaded successfully: " + result.message;
-        return result
+        return uploadResponse
       } else {
         message = "File upload failed. Please try again.";
       }
