@@ -1,3 +1,6 @@
+import os
+import datetime
+
 def countProjects(driver, username):
     query = "MATCH (p:Project)-[r:HAS_PROJECT]->(u:Analyst {username: $username}) RETURN count(p) as total"
 
@@ -6,7 +9,8 @@ def countProjects(driver, username):
         return numProject.single()['total']
 
 def projectParser(project):
-    return {'projectId': project['projectId'], 'projectname': project['projectName'], 'ips': project['ips'], 'exploits': project['exploits']}
+    return {'projectId': project['projectId'], 'projectname': project['projectName'], 'user': project['user'], 'status': project['status'], 
+            'fileSize': project['fileSize'], 'creation': project['creation'],'ips': project['ips'], 'exploits': project['exploits']}
 
 def allProjectInfo(driver, username):
     query = "MATCH (p:Project)-[:HAS_PROJECT]->(a:Analyst{username: $username}) RETURN p.projectId as projectId, p.projectName as projectName, p.ips as ips, p.exploits as exploits"
@@ -27,19 +31,22 @@ def getProjectInfomation(driver, username, projectId):
         project = result.single()["project"]
         return projectParser(project)
 
-def createProject(driver, username, projectName, fileName, ips, exploits):
+def createProject(driver, username, projectName, fileName, status, ips, exploits):
 
+    fileSize = int(os.path.getsize(os.getcwd()+'/nessus-drop/'+fileName) / 1000)
+    creation = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    
     query = (
         """
         MATCH (u:Analyst {username: $username})
-        CREATE (p:Project {projectId: $projectId, projectName: $projectName, file: $fileName, ips: $ips, exploits: $exploits})-[:HAS_PROJECT]->(u)
+        CREATE (p:Project {projectId: $projectId, projectName: $projectName, user: $username, status: $status, file: $fileName, fileSize: $fileSize, creation: $creation, ips: $ips, exploits: $exploits})-[:HAS_PROJECT]->(u)
         return p.projectId AS projectId
         """
         )
 
     projectId = countProjects(driver, username) + 1
     with driver.session() as session:
-        result = session.run(query, projectId=projectId, username=username, projectName=projectName, fileName=fileName, ips=ips, exploits=exploits)
+        result = session.run(query, projectId=projectId, username=username, user=username, status=status, projectName=projectName, fileName=fileName, fileSize=fileSize, creation=creation, ips=ips, exploits=exploits)
         projectId = result.single()["projectId"]
         return projectId
 
