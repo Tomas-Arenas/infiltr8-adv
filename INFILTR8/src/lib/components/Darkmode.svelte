@@ -1,46 +1,45 @@
 <script>
   import { SunSolid, MoonSolid } from 'flowbite-svelte-icons';
+  import { darkMode } from '$lib/stores.js';
   import { onMount } from 'svelte';
 
-  export let darkMode = false;  // Allow external binding for dark mode state
-  export let showIcon = true;   // Control whether to show the icon, default to true
+  export let showIcon = true;
 
-  // On component mount, load dark mode preference from localStorage
   onMount(() => {
-    if (typeof window !== 'undefined' && localStorage.getItem('color-theme') === 'dark') {
-      darkMode = true;
-      document.documentElement.classList.add('dark');
-    } else {
-      darkMode = false;
-      document.documentElement.classList.remove('dark');
+    if (typeof window !== 'undefined') {
+      const savedTheme = localStorage.getItem('color-theme');
+      if (savedTheme === 'dark') {
+        darkMode.set(true);
+      } else {
+        darkMode.set(false);
+      }
     }
   });
 
-  // Apply dark mode settings reactively and save to localStorage and cookies when darkMode changes
+  // Apply dark mode settings reactively
   $: if (typeof window !== 'undefined') {
-    if (darkMode) {
-      document.documentElement.classList.add('dark');
-      localStorage.setItem('color-theme', 'dark');
-      document.cookie = 'color-theme=dark; max-age=31536000; path=/';
-    } else {
-      document.documentElement.classList.remove('dark');
-      localStorage.setItem('color-theme', 'light');
-      document.cookie = 'color-theme=light; max-age=31536000; path=/';
-    }
+    darkMode.subscribe((value) => {
+      if (value) {
+        document.documentElement.classList.add('dark');
+        localStorage.setItem('color-theme', 'dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+        localStorage.setItem('color-theme', 'light');
+      }
+    });
   }
 
-  // Function to toggle dark mode state
   const toggleDarkMode = () => {
-    darkMode = !darkMode;
+    darkMode.update(n => !n);
   };
 </script>
 
 {#if showIcon}
   <button on:click={toggleDarkMode}>
-    {#if darkMode}
-      <SunSolid color='white' class="h-7 w-7 pointer-events-none" /> <!-- Dark mode icon -->
+    {#if $darkMode}
+      <SunSolid color='white' class="h-7 w-7 pointer-events-none" />
     {:else}
-      <MoonSolid class="h-7 w-7 pointer-events-none" /> <!-- Light mode icon -->
+      <MoonSolid class="h-7 w-7 pointer-events-none" />
     {/if}
   </button>
 {/if}
