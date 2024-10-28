@@ -246,13 +246,13 @@
 	</div>
 
 	<!-- Database test button -->
-	<div class="database-container">
+	<!-- <div class="database-container">
 		<button class="test-button" on:click={handleDataBaseTest}> Database Test </button>
 	</div>
 
 	<div>
 		<input type="file" on:change="{handleFileChange}" />
-	</div>
+	</div> -->
 </div>
 
 <style>
