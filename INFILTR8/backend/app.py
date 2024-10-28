@@ -60,15 +60,14 @@ def createProject():
     projectName = data.get('name')
     fileName = data.get('fileName')
     ips = data.get('ips')
-    print(data)
     
     if 'username' not in session:
         print("User not authenticated - 'username' not in session")
         return jsonify({'error': 'User not authenticated'}), 401  # Return a 401 Unauthorized if no username in session
     print(f"Creating project for user: {session['username']}")
-    # newProId = project.createProject(driver, session['username'], projectName, fileName, ips, 'All')
-    # session['currentProject'] = newProId
-    return jsonify({'message': 'Poject has been created', 'projectId': 1})
+    newProId = project.createProject(driver, session['username'], projectName, fileName, ips, 'All')
+    session['currentProject'] = newProId
+    return jsonify({'message': 'Poject has been created', 'projectId': newProId})
 
 @app.route("/flask-api/all-projects")
 def allProject():
@@ -85,7 +84,7 @@ def getCurrentProjectInfo():
     result = project.getProjectInfomation(driver, session['username'], session['currentProject'])
     return jsonify({'data': result})
 
-@app.route("/flask-api/get-all-project-info")
+@app.route("/flask-api/all-project-info")
 def getAllProjectsInfo():
     result = project.allProjectInfo(driver, session['username'])
     return jsonify({'data': result})

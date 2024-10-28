@@ -96,14 +96,14 @@
                 nessusFile = file;
                 console.log("File selected:", nessusFile);
                 let fetchP = uploadNessusFile()
-                // fetchP.then(ipList = getIPsFromBackend(nessusFile.name))
-                // uploadNessusFile()
-                uploadParse()
+                fetchP.then(function(result) {
+                  // put error handle stuff here
+                  ipList = getIPsFromBackend(nessusFile.name)
+                })
                 const reader = new FileReader();
                 reader.onload = (e) => {
                     nessusContent = e.target.result;
                     parseNessusFile(nessusContent);
-                    // isFileReady = true;  // Set to true after parsing
                 };
                 reader.readAsText(file);
             } else {
@@ -144,13 +144,12 @@
       const uploadResponse = await fetch("flask-api/nessus-upload", {
         method: "POST",
         body: formData,
-        credentials: "include",
       });
 
       if (uploadResponse.ok) {
         const result = await uploadResponse.json();
         message = "File uploaded successfully: " + result.message;
-        return result.message
+        return result
       } else {
         message = "File upload failed. Please try again.";
       }
