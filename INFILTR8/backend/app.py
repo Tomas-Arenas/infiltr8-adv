@@ -122,7 +122,8 @@ def rankedEntryPoints():
 def receive_ips():
     ips = request.json
     # Run analysis.py with the data as a JSON command-line argument
-    analysis.disallowed_ips = ips
+    for ip in ips:
+        analysis.disallowed_ips = ip.ip
     analysis.analyze_nessus_file()
     return jsonify({"messaage":"success", "data":ips})
 
