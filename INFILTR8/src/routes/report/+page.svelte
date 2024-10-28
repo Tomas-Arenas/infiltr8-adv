@@ -114,33 +114,6 @@
 	let exportFormat = 'Format to export';
 	let selectAll = true;
 
-<<<<<<< HEAD
-=======
-	// Toggle individual row selection
-	//function toggleSelect(row) {
-	//	row.selected = !row.selected;
-	//}
-	//function toggleSelect(row) {
-	//	if (row.selected !== selectAll) {
-	//		row.selected = !row.selected;
-	//	}
-	//}
-
-	// Toggle "Select All" functionality
-	//function toggleSelectAll() {
-	//	selectAll = !selectAll;
-	//	rows.forEach((row) => row.selected = selectAll);
-	//}
-
-	//function toggleSelectAll() {
-	//	selectAll = !selectAll;
-	//	rows.forEach((row) => {
-	//		row.selected = selectAll ? !row.selected : row.selected;
-	//	});
-
-	//	this.$set({ selectAll });
-	//}
->>>>>>> 360781e5b8d86e356be25c15a9c71576fc76aa81
 
 	// Toggle "Select All" functionality
 	function toggleSelectAll() {

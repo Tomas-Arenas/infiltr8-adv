@@ -14,18 +14,7 @@ import json
 
 
 
-#Log Manager 
-@app.route("/flask-api/log_export", methods=['POST'])
-def log_export():
-    data = request.json
-    ip_addresses = data.get("ip_addresses", [])
-    export_format = data.get("export_format", "unknown")
 
-    logger = LogManager()  # Create a LogManager instance
-    for ip in ip_addresses:
-        logger.log_action("User", "Export", f"Exporting IP: {ip} in format {export_format}")
-
-    return jsonify({"message": "Export logged successfully"}), 200
 
 
 
@@ -252,3 +241,17 @@ def check_session_route():
         return jsonify({"status": "Logged in", "logged_in": True, "username": session['username'], "session_id": session.sid})
     else:
         return jsonify({"status": "Not Logged in", "logged_in": False, "username": ''})
+
+
+#Log Manager 
+@app.route("/flask-api/log_export", methods=['POST'])
+def log_export():
+    data = request.json
+    ip_addresses = data.get("ip_addresses", [])
+    export_format = data.get("export_format", "unknown")
+
+    logger = LogManager()  # Create a LogManager instance
+    for ip in ip_addresses:
+        logger.log_action("User", "Export", f"Exporting IP: {ip} in format {export_format}")
+
+    return jsonify({"message": "Export logged successfully"}), 200 
