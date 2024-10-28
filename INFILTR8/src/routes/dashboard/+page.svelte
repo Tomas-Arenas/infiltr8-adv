@@ -11,6 +11,7 @@
     import { onMount } from 'svelte';
     import { Table, TableBody, TableBodyCell, TableBodyRow, TableHead, TableHeadCell } from 'flowbite-svelte';
     import { getIPsFromBackend } from '$lib/stores.js'
+	import { goto } from '$app/navigation';
     
     let simpleList = ['Test1'];
     let folderName = '';
@@ -202,6 +203,7 @@
           message = "Error: " + error.message;
           console.error("Error during project creation:", error);
       }
+      goto('/project')
     }
 
     </script>
