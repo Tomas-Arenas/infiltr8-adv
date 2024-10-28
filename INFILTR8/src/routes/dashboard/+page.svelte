@@ -204,6 +204,32 @@
       }
     }
 
+        async function logButtonClick(detail) {
+        console.log("Button clicked with detail:", detail);  // For debugging
+        try {
+            const response = await fetch('/flask-api/log-action', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    username: 'DummyUser',  // Dummy username for now
+                    action: 'Dashboard click',
+                    details: detail
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to log action');
+            }
+
+            const result = await response.json();
+            console.log('Action logged:', result);
+        } catch (error) {
+            console.error('Failed to log button click:', error);
+        }
+    }
+
     </script>
     <div class="flex flex-row items-start justify-between min-h-screen w-full">
     <div class="flex-grow">
@@ -224,8 +250,8 @@
         <div class="flex flex-row justify-between w-full mt-4">
             <div class="flex flex-col mr-8">
 
-                <GradientButton class = "mb-2" color="green">Discard All</GradientButton>
-                <GradientButton on:click={createProject}>Create Project</GradientButton>
+                <GradientButton class = "mb-2" color="green"on:click={() => logButtonClick('Discard All clicked')}>Discard All</GradientButton>
+                <GradientButton on:click={createProject} on:click={() => logButtonClick('Create project clicked')}>Create Project</GradientButton>
             </div>
             <div class="flex flex-col justify-between w-full">
                 {#if projectInfo}
