@@ -12,6 +12,24 @@ from flask_session import Session
 import subprocess
 import json
 
+
+
+#Log Manager 
+@app.route("/flask-api/log_export", methods=['POST'])
+def log_export():
+    data = request.json
+    ip_addresses = data.get("ip_addresses", [])
+    export_format = data.get("export_format", "unknown")
+
+    logger = LogManager()  # Create a LogManager instance
+    for ip in ip_addresses:
+        logger.log_action("User", "Export", f"Exporting IP: {ip} in format {export_format}")
+
+    return jsonify({"message": "Export logged successfully"}), 200
+
+
+
+
 # Gets all the env variables
 config = dotenv_values(".env")
 URI = config['URI']
