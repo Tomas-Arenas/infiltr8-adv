@@ -5,27 +5,6 @@ import pandas as pd
 import category_encoders as ce
 from sklearn.preprocessing import MinMaxScaler
 
-# Path to the Nessus XML file, change line 10 to match path where your NESSUS file is
-nessus_file = '/Users/carloscisneros/Desktop/Software 2 Lecture/Nessus_scan_file.nessus'
-
-# Base directory for output CSV files, change line 13 to where you want output CSVs to go
-output_base_dir = '/Users/carloscisneros/Desktop/Software 2 Lecture/'
-
-# Construct paths for output CSV files
-data_with_exploits_path = os.path.join(output_base_dir, 'data_with_exploits.csv')
-ranked_entry_points_path = os.path.join(output_base_dir, 'ranked_entry_points.csv')
-entrypoint_most_info_path = os.path.join(output_base_dir, 'entrypoint_most_info.csv')
-port_0_entries_path = os.path.join(output_base_dir, 'port_0_entries.csv')
-
-# Initialize an empty DataFrame
-df = pd.DataFrame(columns=[])
-column_names = ['file', 'name', 'ip', 'port', 'viable_exploit', 'archetype']
-have_names = False  # Flag to check if column names have been added
-
-# Parse XML file using ElementTree
-main_tree = ET.parse(nessus_file)
-
-# Function to map plugin names and families to archetypes
 def map_to_archetype(plugin_name, plugin_family):
     archetypes = {
         'Unauthenticated port bypass': ['Port Bypass', 'Network'],
