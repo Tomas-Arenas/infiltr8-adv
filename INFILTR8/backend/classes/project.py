@@ -32,7 +32,7 @@ def createProject(driver, username, projectName, fileName, ips, exploits):
     query = (
         """
         MATCH (u:Analyst {username: $username})
-        CREATE (p:Project {projectId: $projectId, projectName: $projectName, fileName: $fileName, ips: $ips, exploits: $exploits})-[:HAS_PROJECT]->(u)
+        CREATE (p:Project {projectId: $projectId, projectName: $projectName, file: $fileName, ips: $ips, exploits: $exploits})-[:HAS_PROJECT]->(u)
         return p.projectId AS projectId
         """
         )
