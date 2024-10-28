@@ -24,7 +24,7 @@ ALLOWED_EXTENSIONS = {'nessus'} # not used but might be
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.secret_key = os.urandom(12).hex() # Needed to sign session cookies and what not
-CORS(app, supports_credentials=True, resources={r"/flask-api/*": {"origins": "http://localhost:5173"}}) # have to have or nothing works
+# CORS(app, supports_credentials=True, resources={r"/flask-api/*": {"origins": "http://localhost:5173"}}) # have to have or nothing works
 
 # Flask-Session configuration
 app.config['SECRET_KEY'] = 'your_secret_key'
@@ -54,10 +54,13 @@ def test2():
 
 ### Project Routes ###
 
-@app.route("/flask-api/create-project", methods=['GET', 'POST'])
+@app.route("/flask-api/create-project", methods=['POST'])
 def createProject():
-    data = request.json
+    data = request.get_json()
+    print(data)
     projectName = data.get('name')
+    print(projectName)
+    
     if 'username' not in session:
         print("User not authenticated - 'username' not in session")
         return jsonify({'error': 'User not authenticated'}), 401  # Return a 401 Unauthorized if no username in session

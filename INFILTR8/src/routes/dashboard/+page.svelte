@@ -131,9 +131,10 @@
     formData.append("file", nessusFile);
 
     try {
-      const uploadResponse = await fetch("http://localhost:5000/flask-api/nessus-upload", {
+      const uploadResponse = await fetch("flask-api/nessus-upload", {
         method: "POST",
         body: formData,
+        credentials: "include",
       });
 
       if (uploadResponse.ok) {
@@ -162,16 +163,16 @@
       }
 
       const projectData = {
-          folderName: nessusFile.name,
-          entryPoints: possibleEntryPoints  // Pass parsed entry points
+          // folderName: nessusFile.name,
+          // entryPoints: possibleEntryPoints  // Pass parsed entry points
+          name: document.getElementById("first_name").value
       };
 
       try {
-        const response = await fetch("http://localhost:5000/flask-api/create-project", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({name: document.getElementById("first_name").value}),
-            credentials: "include",
+        const response = await fetch("/flask-api/create-project", {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'}, 
+          body: JSON.stringify(projectData)
         });
 
         if (response.ok) {
