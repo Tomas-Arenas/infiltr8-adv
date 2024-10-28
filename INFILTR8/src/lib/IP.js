@@ -1,4 +1,4 @@
-class IP {
+export class IP {
     //SRS does not specify what IP version so we will only accept ipv4 addresses
     constructor(ip, selected = false) {         
         this.ip = ip;          

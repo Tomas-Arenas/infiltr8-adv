@@ -6,9 +6,12 @@
     import { Progressbar } from 'flowbite-svelte';
     import { Listgroup } from 'flowbite-svelte';
     import { Alert } from 'flowbite-svelte';
+    import { Input } from 'flowbite-svelte';
     import { InfoCircleSolid } from 'flowbite-svelte-icons';
     import { onMount } from 'svelte';
     import { Table, TableBody, TableBodyCell, TableBodyRow, TableHead, TableHeadCell } from 'flowbite-svelte';
+    import { getIPsFromBackend } from '$lib/stores.js'
+    
     let simpleList = ['Test1'];
     let folderName = '';
     let nessusFile;
@@ -16,6 +19,8 @@
     let validEntryPoints = [];
     let nessusContent = '';
     let message = "";
+    let isLoading = true
+    let ipList = []
     let projectInfo = null;
     
     // Initialize the array to hold file names
@@ -54,7 +59,7 @@
           possibleEntryPoints.push({ ip, port, severity, pluginID, service });
         }
       }
-      console.log("Parsed entry points:", possibleEntryPoints);
+      // console.log("Parsed entry points:", possibleEntryPoints);
     }
 
     // Function to validate entry points based on open ports or severity levels
@@ -72,14 +77,14 @@
       });
     }
 
-    function submit() {
-      validateEntryPoints();
-      const requestData = {
-        folderName,
-        validEntryPoints
-      };
-      console.log('Request Data:', requestData);
-    }
+    // function submit() {
+    //   validateEntryPoints();
+    //   const requestData = {
+    //     folderName,
+    //     validEntryPoints
+    //   };
+    //   console.log('Request Data:', requestData);
+    // }
     
     // Handle input change for file uploads
     const handleChange = (event) => {
@@ -93,12 +98,15 @@
             if (fileExtension === 'nessus') {
                 nessusFile = file;
                 console.log("File selected:", nessusFile);
-                uploadNessusFile();
+                let fetchP = uploadNessusFile()
+                fetchP.then(function(result) {
+                  // put error handle stuff here
+                  ipList = getIPsFromBackend(nessusFile.name)
+                })
                 const reader = new FileReader();
                 reader.onload = (e) => {
                     nessusContent = e.target.result;
                     parseNessusFile(nessusContent);
-                    isFileReady = true;  // Set to true after parsing
                 };
                 reader.readAsText(file);
             } else {
@@ -120,6 +128,11 @@
       return concat;
     };
 
+  async function uploadParse() {
+    let fetchP = uploadNessusFile()
+    await fetchP.then(ipList = getIPsFromBackend(nessusFile.name))
+  }
+
 // Uploads the Nessus file
   async function uploadNessusFile() {
     if (!nessusFile) {
@@ -127,19 +140,19 @@
       return;
     }
 
-    isLoading = true;
     const formData = new FormData();
     formData.append("file", nessusFile);
 
     try {
-      const uploadResponse = await fetch("http://localhost:5000/flask-api/nessus-upload", {
+      const uploadResponse = await fetch("flask-api/nessus-upload", {
         method: "POST",
         body: formData,
       });
 
       if (uploadResponse.ok) {
         const result = await uploadResponse.json();
-        message = "File uploaded successfully: " + result.status;
+        message = "File uploaded successfully: " + result.message;
+        return result
       } else {
         message = "File upload failed. Please try again.";
       }
@@ -150,45 +163,47 @@
     }
   }
 
-    async function createProject() {
-        if (!nessusFile) {
-            message = "Upload a .nessus file first.";
-            console.warn(message);
-            return;
-        }
-        if (possibleEntryPoints.length === 0) {
-            message = "No entry points found in the Nessus file. Please upload a valid file.";
-            console.warn(message);
-            return;
-        }
+  async function createProject() {
+      if (!nessusFile || document.getElementById("first_name").value === "") {
+          message = "Upload a .nessus file first.";
+          console.warn(message);
+          return;
+      }
+      if (possibleEntryPoints.length === 0) {
+          message = "No entry points found in the Nessus file. Please upload a valid file.";
+          console.warn(message);
+          return;
+      }
+      let ips
+      await ipList.then(function(result){ips = result})
+      const projectData = {
+          fileName: nessusFile.name,
+          name: document.getElementById("first_name").value,
+          ips: ips
+          // entryPoints: possibleEntryPoints  // Pass parsed entry points
+      };
 
-        const projectData = {
-            folderName: nessusFile.name,
-            entryPoints: possibleEntryPoints  // Pass parsed entry points
-        };
+      try {
+        const response = await fetch("/flask-api/create-project", {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'}, 
+          body: JSON.stringify(projectData)
+        });
 
-        try {
-            const response = await fetch("http://localhost:5000/flask-api/create-project", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(projectData),
-                credentials: "include"
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                projectInfo = { id: data.projectId, name: nessusFile.name };
-                message = `Project created successfully with ID: ${data.projectId}`;
-                console.log(message);
-            } else {
-                message = "Failed to create project.";
-                console.error("Project creation failed with status:", response.status);
-            }
-        } catch (error) {
-            message = "Error: " + error.message;
-            console.error("Error during project creation:", error);
+        if (response.ok) {
+            const data = await response.json();
+            message = `Project created successfully with ID: ${data.projectId}`;
+            console.log(message);
+        } else {
+            message = "Failed to create project.";
+            console.error("Project creation failed with status:", response.status);
         }
+      } catch (error) {
+          message = "Error: " + error.message;
+          console.error("Error during project creation:", error);
+      }
     }
+
     </script>
     <div class="flex flex-row items-start justify-between min-h-screen w-full">
     <div class="flex-grow">
@@ -201,6 +216,10 @@
   
     <!-- Dropzone component for file uploads -->
       <input type="file" accept=".nessus" on:change="{handleChange}" />
+      <form>
+        <Input type="text" id="first_name" placeholder="Enter Project Name" required />
+      </form>
+      <!-- <input bind:value={name} placeholder="Enter Project Name" /> -->
 
         <div class="flex flex-row justify-between w-full mt-4">
             <div class="flex flex-col mr-8">
