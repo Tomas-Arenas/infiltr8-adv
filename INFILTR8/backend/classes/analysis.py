@@ -13,7 +13,7 @@ nessus_file = os.path.join(base_dir, "..", "output", "data_with_exploits.csv")
 output_base_dir = os.path.join(base_dir, "..", "output")
 
 # Disallowed IPS
-disallowed_ips = None
+disallowed_ips = []
 
 # Construct paths for output CSV files
 data_with_exploits_path = os.path.join(output_base_dir, 'data_with_exploits.csv')
@@ -110,6 +110,6 @@ def analyze_nessus_file():
     port_0_entries.to_csv(port_0_entries_path, index=False)
     print(f"\nPort 0 entries saved to {port_0_entries_path}")
 
-# used for testing
-# if __name__ == "__main__":
-#     analyze_nessus_file()
+## used for testing
+if __name__ == "__main__":
+    analyze_nessus_file()

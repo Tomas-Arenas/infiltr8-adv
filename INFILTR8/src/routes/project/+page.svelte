@@ -6,32 +6,11 @@
     import IP from '$lib/IP.js';
     import { Card, Button, ButtonGroup, Listgroup, ListgroupItem, Table, TableBody, TableBodyCell, TableBodyRow, TableHead, TableHeadCell } from 'flowbite-svelte';
     import { TrashBinSolid } from 'flowbite-svelte-icons';
-    import { ipsAllowed, sendIPSToBackend } from '$lib/stores.js';
+    import { ipsAllowed, sendIPSToBackend, getIPsFromBackend } from '$lib/stores.js';
     import { ipsDisallowed } from '$lib/stores.js';
     import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 
-    //should be ran once a nessus file is uploaded
-    // async function getIPsFromBackend() {
-    //     try {
-    //         const response = await fetch("/flask-api/get-all-ips", {
-    //             method: "GET",
-    //             headers: {
-    //                 "Content-Type": "application/json",
-    //             }
-    //         });
-
-    //         if (!response.ok) {
-    //             throw new Error("Network response was not ok");
-    //         }
-
-    //         const data = await response.json(); // Parse JSON response
-    //         console.log("IPs received from backend:", data);
-    //         addIPstoStore(data); // Update the store with received IPs
-    //     } catch (error) {
-    //         console.error("There was an error retrieving IPs from the backend:", error);
-    //     }
-    // }
   
     function addIPstoStore(data) {
         const ipInstances = data.map(ipAddress => new IP(ipAddress)); // Create IP instances
@@ -111,12 +90,47 @@
         console.log("Start testing")
         goto('/analysis')
     }
+
+    async function logButtonClick(detail) {
+        console.log("Button clicked with detail:", detail);  // For debugging
+        try {
+            const response = await fetch('/flask-api/log-action', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    username: 'DummyUser',  // Dummy username for now
+                    action: 'Project click',
+                    details: detail
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to log action');
+            }
+
+            const result = await response.json();
+            console.log('Action logged:', result);
+        } catch (error) {
+            console.error('Failed to log button click:', error);
+        }
+    }
+
+
 </script>
 
 <!-- Outer wrapper to center everything -->
 <div class="flex flex-col items-center justify-center">
 	<!-- Main container with both cards -->
 	<Card class="flex min-w-fit flex-row gap-5 rounded-lg bg-gray-100 p-5 shadow-md dark:bg-gray-800">
+        <!-- Show current ip list -->
+        <Card class="flex-1 rounded-lg bg-white p-5 shadow-md">
+            <h2 class="mb-4 text-lg font-semibold">Current Project IPS</h2>
+            <Listgroup class="border-none">
+				
+			</Listgroup>
+        </Card>
 		<!-- Current Project Folder Card -->
         <Card class="flex-1 rounded-lg bg-white p-5 shadow-md">
             <h2 class="mb-4 text-lg font-semibold">Current Project Folder</h2>
@@ -179,7 +193,7 @@
 			{#each projects as project}
 				<div
 					class="mb-4 flex cursor-pointer items-center justify-between rounded-lg bg-gray-100 p-4 shadow dark:bg-gray-800 mb-4"
-					on:click={() => loadProject(project)}
+					on:click={() => loadProject(project)} on:click={() => logButtonClick(`${project.name} clicked`)}
 				>
 					<div class="flex items-center gap-3">
 						<!-- Font Awesome folder icon -->
