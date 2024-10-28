@@ -19,9 +19,9 @@
 	<!-- Notifications Bell -->
 	<Notifications />
 	<!-- Darkmode Toggle -->
-	<Darkmode />
-	<!-- Colorblind Mode Toggle -->
-  	<Colorblind />
+	<Darkmode showIcon={true} />
+	<!-- Colorblind Toggle -->
+	<Colorblind showIcon={true} />
 </div>
 
 <div class="app flex h-screen bg-gray-50 dark:bg-gray-600">
