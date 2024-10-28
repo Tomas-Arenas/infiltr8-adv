@@ -9,16 +9,10 @@
     let tableData = [];
     let series = [0, 0, 0]; 
 
-
     onMount(() => {
         const intervalId = setInterval(async () => {
-            tableData = await getTableData2();
-            //tableData = getTableData();
-            getChartSeries();
-
-        }, 500);
-
-        onDestroy(() => clearInterval(intervalId));
+            await getTableData();
+        }, 500); 
     });
 
     async function logButtonClick(detail) {
@@ -70,32 +64,7 @@
         }
     }
 
-    async function getChartSeries() {
-        series = [0, 0, 0];
-        tableData.forEach(row => {
-            if (row.progress === 'Reports') {
-                series[2]++;
-            } else if (row.progress === 'Scheduled') {
-                series[1]++;
-            } else {
-                series[0]++;
-            }
-        });
-        return series;
-    }
-
-    function getTableData() {
-        return [
-            { date: '9/13/2024 - 10:00:00 AM', analyst: 'John Doe', fileSize: '--', progress: 'Scheduled' },
-            { date: '9/14/2024 - 10:00:00 AM', analyst: 'John Doe', fileSize: '--', progress: 'Scheduled' },
-            { date: '9/12/2024 - 10:00:00 AM', analyst: 'John Doe', fileSize: '2.1 mb', progress: 43 },
-            { date: '9/10/2024 - 10:43:21 AM', analyst: 'John Doe', fileSize: '3.2 mb', progress: 'Reports' },
-            { date: '9/09/2024 - 10:05:21 AM', analyst: 'John Doe', fileSize: '3.2 mb', progress: 'Reports' },
-            { date: '9/07/2024 - 9:43:21 AM', analyst: 'John Doe', fileSize: '3.9 mb', progress: 'Reports' }
-        ];
-    }
-
-    async function getTableData2(){
+    async function getTableData(){
         try {
             const response = await fetch("/flask-api/get-all-project-info", {
                 method: "GET",
@@ -109,7 +78,20 @@
             }
 
             const data = await response.json();
-            console.log("Data received from backend:", data);
+            tableData = Object.values(data).flatMap(Object.values);
+            tableData = tableData.filter(row => row.status !== null);
+
+            series = [0, 0, 0];
+            tableData.forEach(row => {
+                if (row.status === 'reports') {
+                    series[2]++;
+                } else if (row.status === 'scheduled') {
+                    series[1]++;
+                } else {
+                    series[0]++;
+                }
+            });
+
         } catch (error) {
             console.error("There was an error retrieving data from the backend:", error);
         }
@@ -150,14 +132,14 @@
                     <TableBody>
                         {#each tableData as row}
                             <TableBodyRow>
-                                <TableBodyCell>{row.date}</TableBodyCell>
-                                <TableBodyCell>{row.analyst}</TableBodyCell>
+                                <TableBodyCell>{row.creation}</TableBodyCell>
+                                <TableBodyCell>{row.user}</TableBodyCell>
                                 <TableBodyCell>{row.fileSize}</TableBodyCell>
                                 <TableBodyCell>
-                                    {#if typeof row.progress === 'number'}
-                                        <Progressbar progress={row.progress} labelInside />
+                                    {#if typeof row.status === 'number'}
+                                        <Progressbar progress={row.status} labelInside />
                                     {:else}
-                                        <button class="border-2 py-2 px-2 shadow-lg rounded-2xl self-center">{row.progress}</button>
+                                        <button class="border-2 py-2 px-2 shadow-lg rounded-2xl self-center">{row.status}</button>
                                     {/if}
                                 </TableBodyCell>
                             </TableBodyRow>
