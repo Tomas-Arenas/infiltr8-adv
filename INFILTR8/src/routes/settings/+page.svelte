@@ -1,59 +1,62 @@
 <script>
-  import { SystemInfo } from '../../lib/SystemInfo.js';
+  import { onMount } from 'svelte';
   import { Table, TableBody, TableBodyCell, TableBodyRow, TableHead, TableHeadCell } from 'flowbite-svelte';
   import { Label, Select, Button } from 'flowbite-svelte';
-  import { onMount } from 'svelte';
-  import { session, checkSession } from '$lib/stores/session.js';
-  import Colorblind from '$lib/components/Colorblind.svelte';
-  import Darkmode from '$lib/components/Darkmode.svelte';
+  import { darkMode } from '$lib/stores.js'; // Import dark mode store
 
-  onMount(() => {
-      checkSession(); // Check session on page load
-      const savedFontSize = localStorage.getItem("font-size");
-      if (savedFontSize) applyFontSize(savedFontSize); // Apply saved font size on page load
-  });
-
-  const sysInfo = new SystemInfo();
   let selectedColorMode = "normal"; // Default colorblind mode
+  let selectedFontSize = "Regular"; // Default font size
+  let selectedTheme = "light"; // Default theme selection
+
   const colorModes = [
     { value: 'normal', name: "Normal" },
     { value: 'protanopia', name: "Protanopia" },
     { value: 'deuteranopia', name: "Deuteranopia" },
   ];
 
-  let selectedFontSize = "Regular"; // Default font size
   const fontSizes = [
-    { value: 'small', name: "Small" },
-    { value: 'regular', name: "Regular" },
-    { value: 'large', name: "Large" },
+    { value: 'Small', name: "Small" },
+    { value: 'Regular', name: "Regular" },
+    { value: 'Large', name: "Large" },
   ];
-
-  let selectedTheme = "Light"; // Default theme selection
-  let darkMode = false; // Initial dark mode state
 
   const themes = [
-    { value: 'light', name: "Light" },
-    { value: 'dark', name: "Dark" },
+    { value: 'Light', name: "Light" },
+    { value: 'Dark', name: "Dark" },
   ];
 
-  // Function to update both selectedTheme and darkMode without cyclical dependency
-  function updateTheme(theme) {
-    selectedTheme = theme;
-    darkMode = theme === "dark";
+  onMount(() => {
+    if (typeof window !== 'undefined') {
+      // Fetch and apply font size from localStorage
+      const savedFontSize = localStorage.getItem("font-size") || "Regular";
+      applyFontSize(savedFontSize);
+      selectedFontSize = savedFontSize;
+
+      // Fetch and apply theme from localStorage
+      const savedTheme = localStorage.getItem('color-theme') || "Light";
+      selectedTheme = savedTheme.charAt(0).toUpperCase() + savedTheme.slice(1); // Capitalize first letter
+    }
+
+    // Subscribe to the darkMode store to sync selectedTheme when dark mode is toggled
+    darkMode.subscribe((value) => {
+      selectedTheme = value ? 'Dark' : 'Light';
+    });
+  });
+
+  function applyFontSize(size) {
+    if (typeof document !== 'undefined') {
+      const root = document.documentElement;
+      if (size === "Small") {
+        root.style.fontSize = "14px";
+      } else if (size === "Large") {
+        root.style.fontSize = "18px";
+      } else {
+        root.style.fontSize = "16px";
+      }
+      localStorage.setItem("font-size", size);
+    }
   }
 
-  // Function to apply font size to the root element and save to localStorage
-  function applyFontSize(size) {
-    const root = document.documentElement;
-    if (size === "small") {
-      root.style.fontSize = "14px"; // Smaller font size
-    } else if (size === "large") {
-      root.style.fontSize = "18px"; // Larger font size
-    } else {
-      root.style.fontSize = "16px"; // Regular font size
-    }
-    localStorage.setItem("font-size", size); // Save preference
-  }
 
   async function logButtonClick(detail) {
         console.log("Button clicked with detail:", detail);  // For debugging
@@ -82,75 +85,82 @@
     }
 
   // Function to reset all settings to their defaults
+  function updateTheme(theme) {
+    selectedTheme = theme;
+    darkMode.set(theme === 'Dark');
+    localStorage.setItem('color-theme', theme.toLowerCase()); // Save the selected theme
+  }
+
   function resetSettings() {
-    // Reset dropdown selections
     selectedColorMode = "normal";
     selectedFontSize = "Regular";
     selectedTheme = "Light";
-    darkMode = false;
+    darkMode.set(false); // Reset to light mode
 
-    // Clear saved preferences in localStorage
-    localStorage.removeItem("font-size");
-    localStorage.removeItem("color-theme");
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem("font-size");
+      localStorage.removeItem("color-theme");
+    }
 
-    // Apply default font size and theme
     applyFontSize("Regular");
     updateTheme("Light");
   }
 
-  // Reactively update font size when selectedFontSize changes
   $: applyFontSize(selectedFontSize);
 </script>
 
 <main>
   <h1 class="font-bold text-xl dark:text-white">Accessibility Options</h1>
   <div>
-      <div id="left" class="float-left w-9/12 h-flex ">
-          <div id="table" class="my-6">
-              <Table noborder={true}>
-                  <TableHead class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-gray-900 dark:text-gray-400 ">
-                    <TableHeadCell>Setting</TableHeadCell>
-                    <TableHeadCell>Description</TableHeadCell>
-                    <TableHeadCell class="text-right px-6" style="width: 30%;">Option</TableHeadCell>
-                  </TableHead>
-                  <TableBody>
-                      <TableBodyRow>
-                          <TableBodyCell>Color mode:</TableBodyCell>
-                          <TableHeadCell>Colorblind options</TableHeadCell>
-                          <TableBodyCell class="text-right px-6" style="width: 30%;">
-                            <Label>
-                              Select an option
-                              <Select items={colorModes} bind:value={selectedColorMode} on:change={() => logButtonClick('Color mode click')}/>
-                            </Label>
-                          </TableBodyCell>
-                      </TableBodyRow>
-                      <TableBodyRow>
-                        <TableBodyCell>Text size:</TableBodyCell>
-                        <TableHeadCell>Size of the font on the website</TableHeadCell>
-                        <TableBodyCell class="text-right px-6" style="width: 30%;">
-                          <Label>
-                            Select an option
-                            <Select items={fontSizes} bind:value={selectedFontSize} on:change={() => applyFontSize(selectedFontSize)} on:change={() => logButtonClick('Font size click')}  />
-                          </Label>
-                        </TableBodyCell>
-                      </TableBodyRow>
-                      <TableBodyRow>
-                        <TableBodyCell>Theme:</TableBodyCell>
-                        <TableHeadCell>Light mode or dark mode</TableHeadCell>
-                        <TableBodyCell class="text-right px-6" style="width: 30%;">
-                          <Label>
-                            Select an option
-                            <Select items={themes} bind:value={selectedTheme} on:change={() => updateTheme(selectedTheme)} on:change={() => logButtonClick('Theme click')} />
-                          </Label>
-                        </TableBodyCell>
-                      </TableBodyRow>
-                  </TableBody>
-              </Table>
-          </div>    
-      </div>
-  </div> 
-  <Button class="mt-5" color="danger" on:click={resetSettings}>Reset</Button>
+    <div id="left" class="float-left w-9/12 h-flex">
+      <div id="table" class="my-6">
+        <Table noborder={true}>
+          <TableHead class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-gray-900 dark:text-gray-400">
+            <TableHeadCell>Setting</TableHeadCell>
+            <TableHeadCell>Description</TableHeadCell>
+            <TableHeadCell class="text-right px-6" style="width: 30%;">Option</TableHeadCell>
+          </TableHead>
 
-  <Colorblind bind:colorblindMode={selectedColorMode} showIcon={false} />
-  <Darkmode bind:darkMode={darkMode} showIcon={false} />
+          <TableBody>
+            <!-- Colorblind Option -->
+            <TableBodyRow>
+              <TableBodyCell>Color mode:</TableBodyCell>
+              <TableHeadCell>Colorblind options</TableHeadCell>
+              <TableBodyCell class="text-right px-6" style="width: 30%;">
+                <Label>
+                  Select an option
+                  <Select items={colorModes} bind:value={selectedColorMode} on:change={() => logButtonClick('Color mode click')}/>
+                </Label>
+              </TableBodyCell>
+            </TableBodyRow>
+
+            <!-- Font Size Option -->
+            <TableBodyRow>
+              <TableBodyCell>Text size:</TableBodyCell>
+              <TableHeadCell>Size of the font on the website</TableHeadCell>
+              <TableBodyCell class="text-right px-6" style="width: 30%;">
+                <Label>
+                  Select an option
+                  <Select items={fontSizes} bind:value={selectedFontSize} on:change={() => applyFontSize(selectedFontSize)} on:change={() => logButtonClick('Font size click')} />
+                </Label>
+              </TableBodyCell>
+            </TableBodyRow>
+
+            <!-- Theme Option -->
+            <TableBodyRow>
+              <TableBodyCell>Theme:</TableBodyCell>
+              <TableHeadCell>Light mode or Dark mode</TableHeadCell>
+              <TableBodyCell class="text-right px-6" style="width: 30%;">
+                <Label>
+                  Select an option
+                  <Select items={themes} bind:value={selectedTheme} on:change={() => updateTheme(selectedTheme)} on:change={() => logButtonClick('Theme click')} />
+                </Label>
+              </TableBodyCell>
+            </TableBodyRow>
+          </TableBody>
+        </Table>
+      </div>    
+    </div>
+  </div> 
+  <Button class="mt-5" color="danger" on:click={resetSettings} on:click={() => logButtonClick('Reset click')}>Reset</Button>
 </main>
