@@ -164,7 +164,7 @@
   }
 
   async function createProject() {
-      if (!nessusFile && document.getElementById("first_name").value === "") {
+      if (!nessusFile || document.getElementById("first_name").value === "") {
           message = "Upload a .nessus file first.";
           console.warn(message);
           return;
