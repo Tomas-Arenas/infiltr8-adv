@@ -56,3 +56,18 @@ export const sendIPSToBackend = async () => {
     console.log(ipInstances)
     ipsDisallowed.set(ipInstances); // Update the store with IP instances
 }
+
+// DARK MODE LOGIC
+// Load dark mode preference from localStorage, defaulting to 'light' mode
+const savedTheme = (typeof window !== 'undefined' && localStorage.getItem("color-theme")) || "light";
+
+// Create a writable store for dark mode state based on saved preference
+export const darkMode = writable(savedTheme === "dark");
+
+// Subscribe to darkMode store to watch for changes and sync with localStorage
+darkMode.subscribe((value) => {
+  if (typeof window !== "undefined") {
+    localStorage.setItem("color-theme", value ? "dark" : "light");
+    document.documentElement.classList.toggle("dark", value);
+  }
+});
