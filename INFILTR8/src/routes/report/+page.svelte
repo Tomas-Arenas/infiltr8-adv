@@ -114,30 +114,6 @@
 	let exportFormat = 'Format to export';
 	let selectAll = true;
 
-	// Toggle individual row selection
-	//function toggleSelect(row) {
-	//	row.selected = !row.selected;
-	//}
-	//function toggleSelect(row) {
-	//	if (row.selected !== selectAll) {
-	//		row.selected = !row.selected;
-	//	}
-	//}
-
-	// Toggle "Select All" functionality
-	//function toggleSelectAll() {
-	//	selectAll = !selectAll;
-	//	rows.forEach((row) => row.selected = selectAll);
-	//}
-
-	//function toggleSelectAll() {
-	//	selectAll = !selectAll;
-	//	rows.forEach((row) => {
-	//		row.selected = selectAll ? !row.selected : row.selected;
-	//	});
-
-	//	this.$set({ selectAll });
-	//}
 
 	// Toggle "Select All" functionality
 	function toggleSelectAll() {
@@ -158,20 +134,54 @@
 		exportFormat = event.target.value;
 	}
 
-	function handleExport() {
+	//function handleExport() {
+	//	if (exportFormat === 'Format to export') {
+	//		alert('Please select a format to export.');
+	//		return;
+	//	}
+
+		// Log the export request and the selected rows
+	//	const selectedRows = rows.filter((row) => row.selected);
+	//	console.log('Export Request:', exportFormat, selectedRows);
+
+		// Simulate export process (you can replace this with actual logic)
+	//	alert(`Exporting ${selectedRows.length} rows in ${exportFormat}`);
+		// Redirect or handle export logic here
+	//}
+
+	async function handleExport() {
 		if (exportFormat === 'Format to export') {
 			alert('Please select a format to export.');
 			return;
 		}
 
-		// Log the export request and the selected rows
 		const selectedRows = rows.filter((row) => row.selected);
+		const selectedIPs = selectedRows.map(row => row.ipAddress); // Get the selected IP addresses
+
 		console.log('Export Request:', exportFormat, selectedRows);
 
-		// Simulate export process (you can replace this with actual logic)
+		// Send the selected IPs and format to the backend for logging
+		try {
+			const response = await fetch("http://127.0.0.1:5000/flask-api/log_export", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ ip_addresses: selectedIPs, export_format: exportFormat })
+			});
+
+			if (response.ok) {
+				console.log("Export logged successfully");
+				// Proceed with the export logic here if needed
+			} else {
+				console.error("Failed to log export");
+			}
+		} catch (error) {
+			console.error("Error logging export:", error);
+		}
+
 		alert(`Exporting ${selectedRows.length} rows in ${exportFormat}`);
-		// Redirect or handle export logic here
 	}
+
+
 
 	onMount(() => {
 		// Call testGet when component mounts
