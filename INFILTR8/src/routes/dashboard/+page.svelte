@@ -8,7 +8,8 @@
     import { Alert } from 'flowbite-svelte';
     import { Input } from 'flowbite-svelte';
     import { InfoCircleSolid } from 'flowbite-svelte-icons';
-    import { onMount } from 'svelte';
+    import { getIPsFromBackend } from '$lib/stores.js';
+
     let simpleList = ['Test1'];
     let folderName = '';
     let nessusFile;
@@ -17,6 +18,7 @@
     let nessusContent = '';
     let message = "";
     let isLoading = true
+    let ipList = []
     
     // Initialize the array to hold file names
     let value = [];
@@ -93,7 +95,10 @@
             if (fileExtension === 'nessus') {
                 nessusFile = file;
                 console.log("File selected:", nessusFile);
-                uploadNessusFile();
+                let fetchP = uploadNessusFile()
+                // fetchP.then(ipList = getIPsFromBackend(nessusFile.name))
+                // uploadNessusFile()
+                uploadParse()
                 const reader = new FileReader();
                 reader.onload = (e) => {
                     nessusContent = e.target.result;
@@ -120,6 +125,11 @@
       return concat;
     };
 
+  async function uploadParse() {
+    let fetchP = uploadNessusFile()
+    await fetchP.then(ipList = getIPsFromBackend(nessusFile.name))
+  }
+
 // Uploads the Nessus file
   async function uploadNessusFile() {
     if (!nessusFile) {
@@ -139,7 +149,8 @@
 
       if (uploadResponse.ok) {
         const result = await uploadResponse.json();
-        message = "File uploaded successfully: " + result.status;
+        message = "File uploaded successfully: " + result.message;
+        return result.message
       } else {
         message = "File upload failed. Please try again.";
       }
@@ -150,7 +161,7 @@
     }
   }
 
-    async function createProject() {
+  async function createProject() {
       if (!nessusFile && document.getElementById("first_name").value === "") {
           message = "Upload a .nessus file first.";
           console.warn(message);
@@ -161,11 +172,13 @@
           console.warn(message);
           return;
       }
-
+      let ips
+      await ipList.then(function(result){ips = result})
       const projectData = {
-          // folderName: nessusFile.name,
+          fileName: nessusFile.name,
+          name: document.getElementById("first_name").value,
+          ips: ips
           // entryPoints: possibleEntryPoints  // Pass parsed entry points
-          name: document.getElementById("first_name").value
       };
 
       try {

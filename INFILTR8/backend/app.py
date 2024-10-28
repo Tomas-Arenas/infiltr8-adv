@@ -57,17 +57,18 @@ def test2():
 @app.route("/flask-api/create-project", methods=['POST'])
 def createProject():
     data = request.get_json()
-    print(data)
     projectName = data.get('name')
-    print(projectName)
+    fileName = data.get('fileName')
+    ips = data.get('ips')
+    print(data)
     
     if 'username' not in session:
         print("User not authenticated - 'username' not in session")
         return jsonify({'error': 'User not authenticated'}), 401  # Return a 401 Unauthorized if no username in session
     print(f"Creating project for user: {session['username']}")
-    newProId = project.createProject(driver, session['username'], projectName, [], 'All')
-    session['currentProject'] = newProId
-    return jsonify({'message': 'Poject has been created', 'projectId': newProId})
+    # newProId = project.createProject(driver, session['username'], projectName, fileName, ips, 'All')
+    # session['currentProject'] = newProId
+    return jsonify({'message': 'Poject has been created', 'projectId': 1})
 
 @app.route("/flask-api/all-projects")
 def allProject():
@@ -102,13 +103,14 @@ def nessusFileUpload():
     # Checks that a file was upload (could be removed becase frontend handles this)
     if file.filename == '':
         print('No selected file')
-        return jsonify({'info':'no file'})
+        return jsonify({'message':'no file'})
     if file:
         # security stuff
         filename = secure_filename(file.filename)
         # Saves it based on the give file path and uses the upload file name
         file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-        return jsonify({'status':'file was sent and has been saved on server'})
+        print(os.path.exists(app.config['UPLOAD_FOLDER']+'/'+filename))
+        return jsonify({'message':'file was sent and has been saved on server'})
 
 @app.route("/flask-api/process-nessus")
 def processNessus():
@@ -129,10 +131,12 @@ def receive_ips():
     analysis.analyze_nessus_file()
     return jsonify({"messaage":"success", "data":ips})
 
-@app.route("/flask-api/get-all-ips", methods=['GET'])
+@app.route("/flask-api/get-all-ips", methods=['POST'])
 def get_all_ips():
+    data = request.get_json()
+    fileName = data.get('name')
     try:
-        all_ips = parser.unique_ips
+        all_ips = parser.parserFile(fileName)
         print("All IPs:", all_ips)  # Debugging print
         return jsonify(all_ips.tolist())
     except Exception as e:

@@ -27,19 +27,19 @@ def getProjectInfomation(driver, username, projectId):
         project = result.single()["project"]
         return projectParser(project)
 
-def createProject(driver, username, projectName, ips, exploits):
+def createProject(driver, username, projectName, fileName, ips, exploits):
 
     query = (
         """
         MATCH (u:Analyst {username: $username})
-        CREATE (p:Project {projectId: $projectId, projectName: $projectName, ips: $ips, exploits: $exploits})-[:HAS_PROJECT]->(u)
+        CREATE (p:Project {projectId: $projectId, projectName: $projectName, fileName: $fileName, ips: $ips, exploits: $exploits})-[:HAS_PROJECT]->(u)
         return p.projectId AS projectId
         """
         )
 
     projectId = countProjects(driver, username) + 1
     with driver.session() as session:
-        result = session.run(query, projectId=projectId, username=username, projectName=projectName, ips=ips, exploits=exploits)
+        result = session.run(query, projectId=projectId, username=username, projectName=projectName, fileName=fileName, ips=ips, exploits=exploits)
         projectId = result.single()["projectId"]
         return projectId
 
