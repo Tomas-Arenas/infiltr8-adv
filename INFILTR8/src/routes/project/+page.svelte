@@ -7,8 +7,9 @@
     import { Card, Button, ButtonGroup, Listgroup, ListgroupItem, Table, TableBody, TableBodyCell, TableBodyRow, TableHead, TableHeadCell } from 'flowbite-svelte';
     import { TrashBinSolid } from 'flowbite-svelte-icons';
     import { ipsAllowed } from '$lib/stores.js';
-    import { ipsDisallowed } from '$lib/stores.js';
+    import { ipsDisallowed, sendIPSToBackend } from '$lib/stores.js';
     import { onMount } from 'svelte';
+	import { goto } from '$app/navigation';
 
     //should be ran once a nessus file is uploaded
     async function getIPsFromBackend() {
@@ -41,6 +42,12 @@
     onMount(() => {
         getIPsFromBackend();
     });
+
+    async function startAnalysis(){
+        await sendIPSToBackend();
+        console.log("Start Testing")
+        goto('/analysis')
+    }
 
     let exploitsAllowed = [
         { id: 1, name: 'SQL Injection', selected: false },
@@ -192,6 +199,6 @@
 	<!-- Start Testing button placed below the layout -->
 	<button
 		class="mt-6 rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white hover:bg-blue-700"
-		on:click={() => console.log('Start Testing')}>Start Testing</button
+		on:click={startAnalysis}>Start Testing</button
 	>
 </div>
