@@ -1,41 +1,38 @@
 <script>
   import { EyeSolid } from 'flowbite-svelte-icons';
   import { onMount } from 'svelte';
-  
-  let colorblindMode = "normal";  // Default: No colorblind simulation
+
+  export let colorblindMode = "normal"; // Allow external binding
+  export let showIcon = true; // Control whether to show the icon, default to true
 
   onMount(() => {
-    colorblindMode = localStorage.getItem('colorblind-mode') || 'normal';  // Load colorblind mode from localStorage if available
+    if (typeof window !== 'undefined' && localStorage.getItem('colorblind-mode')) {
+      colorblindMode = localStorage.getItem('colorblind-mode');
+    }
     applyColorblindFilter();
   });
 
-  let toggleColorblindMode = () => {
-    if (colorblindMode === 'normal') {
-      colorblindMode = 'protanopia';  // Simulate Protanopia
-    } else if (colorblindMode === 'protanopia') {
-      colorblindMode = 'deuteranopia';  // Simulate Deuteranopia
-    } else {
-      colorblindMode = 'normal';  // Go back to normal mode
-    }
-    localStorage.setItem('colorblind-mode', colorblindMode);  // Save the mode in localStorage
-    applyColorblindFilter();  // Apply the filter based on the mode
-  };
-
-  let applyColorblindFilter = () => {
+  const applyColorblindFilter = () => {
     const root = document.documentElement;
-
-    // Reset filters for normal vision
     if (colorblindMode === 'normal') {
       root.style.filter = 'none';
-    } 
-    // Apply protanopia filter
-    else if (colorblindMode === 'protanopia') {
+    } else if (colorblindMode === 'protanopia') {
       root.style.filter = 'url(#protanopia-filter)';
-    } 
-    // Apply deuteranopia filter
-    else if (colorblindMode === 'deuteranopia') {
+    } else if (colorblindMode === 'deuteranopia') {
       root.style.filter = 'url(#deuteranopia-filter)';
     }
+  };
+
+  // Update colorblind mode and save to localStorage
+  $: if (typeof window !== 'undefined') {
+    localStorage.setItem('colorblind-mode', colorblindMode);
+    applyColorblindFilter();
+  }
+
+  const toggleColorblindMode = () => {
+    colorblindMode = colorblindMode === 'normal' ? 'protanopia' :
+                     colorblindMode === 'protanopia' ? 'deuteranopia' :
+                     'normal';
   };
 </script>
 
@@ -49,13 +46,16 @@
   </filter>
 </svg>
 
-<!-- Button to toggle between normal, protanopia, and deuteranopia modes -->
-<button on:click={toggleColorblindMode}>
-  {#if colorblindMode === 'normal'}
-    <EyeSolid color='black' class="h-7 w-7 pointer-events-none" />  <!-- Normal mode icon -->
-  {:else if colorblindMode === 'protanopia'}
-    <EyeSolid color='#ff4c4c' class="h-7 w-7 pointer-events-none" />  <!-- Protanopia mode icon -->
-  {:else if colorblindMode === 'deuteranopia'}
-    <EyeSolid color='#4caf50' class="h-7 w-7 pointer-events-none" />  <!-- Deuteranopia mode icon -->
-  {/if}
-</button>
+<!-- Conditionally render the icon if showIcon is true -->
+{#if showIcon}
+  <button on:click={toggleColorblindMode}>
+    {#if colorblindMode === 'normal'}
+      <EyeSolid color='black' class="h-7 w-7 pointer-events-none" /> <!-- Normal mode icon -->
+    {:else if colorblindMode === 'protanopia'}
+      <EyeSolid color='#ff4c4c' class="h-7 w-7 pointer-events-none" /> <!-- Protanopia mode icon -->
+    {:else if colorblindMode === 'deuteranopia'}
+      <EyeSolid color='#4caf50' class="h-7 w-7 pointer-events-none" /> <!-- Deuteranopia mode icon -->
+    {/if}
+  </button>
+{/if}
+
