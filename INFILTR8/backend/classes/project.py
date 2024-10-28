@@ -27,7 +27,7 @@ def getProjectInfomation(driver, username, projectId):
         project = result.single()["project"]
         return projectParser(project)
 
-def createProject(driver,username, projectName, ips, exploits):
+def createProject(driver, username, projectName, ips, exploits):
 
     query = (
         """

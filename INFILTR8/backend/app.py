@@ -56,16 +56,13 @@ def test2():
 
 @app.route("/flask-api/create-project", methods=['GET', 'POST'])
 def createProject():
-    # will set up later
-    # data = request.get_json()
-    # projectName = data.get('projectName')
-    # ips = data.get('ips')
-    # exploits = data.get('exploits')
+    data = request.json
+    projectName = data.get('name')
     if 'username' not in session:
         print("User not authenticated - 'username' not in session")
         return jsonify({'error': 'User not authenticated'}), 401  # Return a 401 Unauthorized if no username in session
     print(f"Creating project for user: {session['username']}")
-    newProId = project.createProject(driver, session['username'], 'Test Project 2', ["173.23.54.24", "173.23.54.24", "173.23.54.16"], 'All')
+    newProId = project.createProject(driver, session['username'], projectName, [], 'All')
     session['currentProject'] = newProId
     return jsonify({'message': 'Poject has been created', 'projectId': newProId})
 
