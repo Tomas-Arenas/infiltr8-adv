@@ -45,7 +45,7 @@
 	// Fetch data to mimic fetching a file
 	async function testGet() {
 		try {
-			const response = await fetch('http://127.0.0.1:5000/flask-api/test2', { method: 'GET' });
+			const response = await fetch('/flask-api/test2', {method: 'GET',});
 			if (!response.ok) {
 				const errorText = await response.text();
 				throw new Error('Failed to fetch data');

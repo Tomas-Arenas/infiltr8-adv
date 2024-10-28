@@ -8,8 +8,8 @@
     import { Alert } from 'flowbite-svelte';
     import { Input } from 'flowbite-svelte';
     import { InfoCircleSolid } from 'flowbite-svelte-icons';
-    import { onMount } from 'svelte';
-    import { Table, TableBody, TableBodyCell, TableBodyRow, TableHead, TableHeadCell } from 'flowbite-svelte';
+    import { getIPsFromBackend } from '$lib/stores.js';
+
     let simpleList = ['Test1'];
     let folderName = '';
     let nessusFile;
@@ -17,7 +17,8 @@
     let validEntryPoints = [];
     let nessusContent = '';
     let message = "";
-    let projectInfo = null;
+    let isLoading = true
+    let ipList = []
     
     // Initialize the array to hold file names
     let value = [];
@@ -94,12 +95,15 @@
             if (fileExtension === 'nessus') {
                 nessusFile = file;
                 console.log("File selected:", nessusFile);
-                uploadNessusFile();
+                let fetchP = uploadNessusFile()
+                fetchP.then(function(result) {
+                  // put error handle stuff here
+                  ipList = getIPsFromBackend(nessusFile.name)
+                })
                 const reader = new FileReader();
                 reader.onload = (e) => {
                     nessusContent = e.target.result;
                     parseNessusFile(nessusContent);
-                    // isFileReady = true;  // Set to true after parsing
                 };
                 reader.readAsText(file);
             } else {
@@ -121,6 +125,11 @@
       return concat;
     };
 
+  async function uploadParse() {
+    let fetchP = uploadNessusFile()
+    await fetchP.then(ipList = getIPsFromBackend(nessusFile.name))
+  }
+
 // Uploads the Nessus file
   async function uploadNessusFile() {
     if (!nessusFile) {
@@ -135,12 +144,12 @@
       const uploadResponse = await fetch("flask-api/nessus-upload", {
         method: "POST",
         body: formData,
-        credentials: "include",
       });
 
       if (uploadResponse.ok) {
         const result = await uploadResponse.json();
-        message = "File uploaded successfully: " + result.status;
+        message = "File uploaded successfully: " + result.message;
+        return result
       } else {
         message = "File upload failed. Please try again.";
       }
@@ -151,7 +160,7 @@
     }
   }
 
-    async function createProject() {
+  async function createProject() {
       if (!nessusFile && document.getElementById("first_name").value === "") {
           message = "Upload a .nessus file first.";
           console.warn(message);
@@ -162,11 +171,13 @@
           console.warn(message);
           return;
       }
-
+      let ips
+      await ipList.then(function(result){ips = result})
       const projectData = {
-          // folderName: nessusFile.name,
+          fileName: nessusFile.name,
+          name: document.getElementById("first_name").value,
+          ips: ips
           // entryPoints: possibleEntryPoints  // Pass parsed entry points
-          name: document.getElementById("first_name").value
       };
 
       try {

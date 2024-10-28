@@ -1,4 +1,6 @@
 import { writable, get } from "svelte/store";
+import { IP } from "$lib/IP.js"
+import { json } from "@sveltejs/kit";
 
 //Menu Stuff
 export const menuOpen = writable(false);
@@ -27,13 +29,12 @@ export const sendIPSToBackend = async () => {
 };
 
   //should be ran once a nessus file is uploaded
-  export async function getIPsFromBackend() {
+  export async function getIPsFromBackend(fileName) {
     try {
         const response = await fetch("/flask-api/get-all-ips", {
-            method: "GET",
-            headers: {
-                "Content-Type": "application/json",
-            }
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({name: fileName})
         });
 
         if (!response.ok) {
@@ -42,7 +43,9 @@ export const sendIPSToBackend = async () => {
 
         const data = await response.json(); // Parse JSON response
         console.log("IPs received from backend:", data);
+        console.log(typeof(data))
         addIPstoStore(data); // Update the store with received IPs
+        return data
     } catch (error) {
         console.error("There was an error retrieving IPs from the backend:", error);
     }
