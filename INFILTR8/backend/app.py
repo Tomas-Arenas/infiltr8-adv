@@ -70,8 +70,10 @@ def createProject():
 
 @app.route("/flask-api/all-projects")
 def allProject():
-    result = project.getAllProjectIds(driver, session['username'])
+    result = project.allProjectInfo(driver, session['username'])
+    print("Projects fetched from database:", result)
     return jsonify({'data': result})
+
 
 @app.route("/flask-api/total-project")
 def something():
