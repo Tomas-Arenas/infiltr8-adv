@@ -9,6 +9,7 @@ from logs.logmanager import LogManager
 from classes import user_service, project, nessus_upload
 import bcrypt
 from flask_session import Session
+from datetime import datetime, timezone
 
 
 # Gets all the env variables
@@ -139,6 +140,9 @@ def log_action():
 # Download logs 
 @app.route("/flask-api/download-logs/<date>", methods=['GET'])
 def download_logs(date):
+    current_utc_date = datetime.now(timezone.utc).strftime('%Y-%m-%d')
+    print(f"Server's current UTC date: {current_utc_date}")
+    
     log_file_path = os.path.join(app.root_path, 'logs', f'logs_{date}.txt')
     print(f"Looking for log file at: {log_file_path}")  # Debug
 
