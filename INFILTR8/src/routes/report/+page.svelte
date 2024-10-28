@@ -45,7 +45,7 @@
 	// Fetch data to mimic fetching a file
 	async function testGet() {
 		try {
-			const response = await fetch('http://127.0.0.1:5000/flask-api/test2', {method: 'GET',});
+			const response = await fetch('http://127.0.0.1:5000/flask-api/test2', { method: 'GET' });
 			if (!response.ok) {
 				const errorText = await response.text();
 				throw new Error('Failed to fetch data');
@@ -54,15 +54,15 @@
 			data = jsonData; // Ensure jsonData is actually an array if this assignment is made
 			console.log(data);
 		} catch (err) {
-			console.log('Error fetching data:',err);
+			console.log('Error fetching data:', err);
 		}
 	}
 
 	async function sendFile(file) {
-		const formData = new FormData()
-		formData.append('file', file)
-		console.log(formData)
-		const response = await fetch("/flask-api/nessus-upload", {
+		const formData = new FormData();
+		formData.append('file', file);
+		console.log(formData);
+		const response = await fetch('/flask-api/nessus-upload', {
 			method: 'POST',
 			body: formData
 		});
@@ -112,16 +112,16 @@
 	];
 
 	let exportFormat = 'Format to export';
-	let selectAll = true ;
+	let selectAll = true;
 
 	// Toggle individual row selection
 	//function toggleSelect(row) {
 	//	row.selected = !row.selected;
 	//}
 	//function toggleSelect(row) {
-  	//	if (row.selected !== selectAll) {
-    //		row.selected = !row.selected;
-  	//	}
+	//	if (row.selected !== selectAll) {
+	//		row.selected = !row.selected;
+	//	}
 	//}
 
 	// Toggle "Select All" functionality
@@ -131,19 +131,18 @@
 	//}
 
 	//function toggleSelectAll() {
-  	//	selectAll = !selectAll;
-  	//	rows.forEach((row) => {
-    //		row.selected = selectAll ? !row.selected : row.selected;
-  	//	});
+	//	selectAll = !selectAll;
+	//	rows.forEach((row) => {
+	//		row.selected = selectAll ? !row.selected : row.selected;
+	//	});
 
 	//	this.$set({ selectAll });
 	//}
 
-
 	// Toggle "Select All" functionality
 	function toggleSelectAll() {
 		selectAll = !selectAll;
-		rows = rows.map(row => ({
+		rows = rows.map((row) => ({
 			...row,
 			selected: selectAll
 		}));
@@ -153,7 +152,7 @@
 	function toggleSelect(row) {
 		row.selected = !row.selected;
 		// Check if all rows are selected after toggling
-		selectAll = rows.every(row => row.selected);
+		selectAll = rows.every((row) => row.selected);
 	}
 	function handleExportFormatChange(event) {
 		exportFormat = event.target.value;
@@ -196,11 +195,7 @@
 		<TableHead>
 			<TableHeadCell padding="px-4 py-3">
 				<!-- Select All Checkbox -->
-				<input 
-					type="checkbox" 
-					checked={selectAll} 
-					on:change={toggleSelectAll} 
-				/>
+				<input type="checkbox" checked={selectAll} on:change={toggleSelectAll} />
 			</TableHeadCell>
 			<TableHeadCell padding="px-4 py-3">IP Address</TableHeadCell>
 			<TableHeadCell padding="px-4 py-3">Device</TableHeadCell>
@@ -213,11 +208,7 @@
 				<TableBodyRow>
 					<TableBodyCell>
 						<!-- Individual Row Checkbox -->
-						<input
-							type="checkbox"
-							checked={row.selected}
-							on:change={() => toggleSelect(row)}
-						/>
+						<input type="checkbox" checked={row.selected} on:change={() => toggleSelect(row)} />
 					</TableBodyCell>
 					<TableBodyCell>{row.ipAddress}</TableBodyCell>
 					<TableBodyCell>{row.device}</TableBodyCell>
@@ -251,7 +242,7 @@
 	</div>
 
 	<div>
-		<input type="file" on:change="{handleFileChange}" />
+		<input type="file" on:change={handleFileChange} />
 	</div>
 </div>
 
