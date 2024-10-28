@@ -3,11 +3,22 @@
     import { Table, TableBody, TableBodyCell, TableBodyRow, TableHead, TableHeadCell } from 'flowbite-svelte';
     import { Chart, Card, A, Button, Dropdown, DropdownItem, Popover, Tooltip, Progressbar } from 'flowbite-svelte';
     import { InfoCircleSolid, ArrowDownToBracketOutline, ChevronDownOutline, ChevronRightOutline, PenSolid, DownloadSolid, ShareNodesSolid } from 'flowbite-svelte-icons';
-    import { onMount } from 'svelte';
+    import { onMount, onDestroy } from 'svelte';
     import { session, checkSession } from '$lib/stores/session.js';
 
+    let tableData = [];
+    let series = [0, 0, 0]; 
+
+
     onMount(() => {
-        checkSession();
+        const intervalId = setInterval(async () => {
+            tableData = await getTableData2();
+            //tableData = getTableData();
+            getChartSeries();
+
+        }, 500);
+
+        onDestroy(() => clearInterval(intervalId));
     });
 
     async function logButtonClick(detail) {
@@ -59,8 +70,8 @@
         }
     }
 
-    function getChartSeries() {
-        let series = [0, 0, 0];
+    async function getChartSeries() {
+        series = [0, 0, 0];
         tableData.forEach(row => {
             if (row.progress === 'Reports') {
                 series[2]++;
@@ -84,8 +95,26 @@
         ];
     }
 
-    let tableData = getTableData();
-    let series = getChartSeries(); 
+    async function getTableData2(){
+        try {
+            const response = await fetch("/flask-api/get-all-project-info", {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error("Network response was not ok");
+            }
+
+            const data = await response.json();
+            console.log("Data received from backend:", data);
+        } catch (error) {
+            console.error("There was an error retrieving data from the backend:", error);
+        }
+    }
+
     const sysInfo = new SystemInfo()
     var timestamp = sysInfo.getCurrentTimestamp()
     var date =  sysInfo.getFormattedDate()
