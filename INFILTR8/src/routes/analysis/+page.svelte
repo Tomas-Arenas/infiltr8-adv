@@ -9,37 +9,6 @@
     onMount(() => {
         checkSession();
     });
-    function getTableData() {
-        return [
-            { date: '9/13/2024 - 10:00:00 AM', analyst: 'John Doe', fileSize: '--', progress: 'Scheduled' },
-            { date: '9/14/2024 - 10:00:00 AM', analyst: 'John Doe', fileSize: '--', progress: 'Scheduled' },
-            { date: '9/12/2024 - 10:00:00 AM', analyst: 'John Doe', fileSize: '2.1 mb', progress: 43 },
-            { date: '9/10/2024 - 10:43:21 AM', analyst: 'John Doe', fileSize: '3.2 mb', progress: 'Reports' },
-            { date: '9/09/2024 - 10:05:21 AM', analyst: 'John Doe', fileSize: '3.2 mb', progress: 'Reports' },
-            { date: '9/07/2024 - 9:43:21 AM', analyst: 'John Doe', fileSize: '3.9 mb', progress: 'Reports' }
-        ];
-    }
-
-    // Function to calculate series for the chart
-    function getChartSeries() {
-        let series = [0, 0, 0];
-        tableData.forEach(row => {
-            if (row.progress === 'Reports') {
-                series[2]++;
-            } else if (row.progress === 'Scheduled') {
-                series[1]++;
-            } else {
-                series[0]++;
-            }
-        });
-        return series;
-    }
-
-    let tableData = getTableData();
-    let series = getChartSeries(); 
-    const sysInfo = new SystemInfo()
-    var timestamp = sysInfo.getCurrentTimestamp()
-    var date =  sysInfo.getFormattedDate()
 
     async function logButtonClick(detail) {
         console.log("Button clicked with detail:", detail);  // For debugging
@@ -89,6 +58,37 @@
             console.error('Failed to download logs:', error);
         }
     }
+
+    function getChartSeries() {
+        let series = [0, 0, 0];
+        tableData.forEach(row => {
+            if (row.progress === 'Reports') {
+                series[2]++;
+            } else if (row.progress === 'Scheduled') {
+                series[1]++;
+            } else {
+                series[0]++;
+            }
+        });
+        return series;
+    }
+
+    function getTableData() {
+        return [
+            { date: '9/13/2024 - 10:00:00 AM', analyst: 'John Doe', fileSize: '--', progress: 'Scheduled' },
+            { date: '9/14/2024 - 10:00:00 AM', analyst: 'John Doe', fileSize: '--', progress: 'Scheduled' },
+            { date: '9/12/2024 - 10:00:00 AM', analyst: 'John Doe', fileSize: '2.1 mb', progress: 43 },
+            { date: '9/10/2024 - 10:43:21 AM', analyst: 'John Doe', fileSize: '3.2 mb', progress: 'Reports' },
+            { date: '9/09/2024 - 10:05:21 AM', analyst: 'John Doe', fileSize: '3.2 mb', progress: 'Reports' },
+            { date: '9/07/2024 - 9:43:21 AM', analyst: 'John Doe', fileSize: '3.9 mb', progress: 'Reports' }
+        ];
+    }
+
+    let tableData = getTableData();
+    let series = getChartSeries(); 
+    const sysInfo = new SystemInfo()
+    var timestamp = sysInfo.getCurrentTimestamp()
+    var date =  sysInfo.getFormattedDate()
 
 </script>
 
