@@ -4,6 +4,9 @@
     import { Label, Select, Button } from 'flowbite-svelte';
     import { onMount } from 'svelte';
     import { session, checkSession } from '$lib/stores/session.js';
+    import Colorblind from '$lib/components/Colorblind.svelte';
+    import Darkmode from '$lib/components/Darkmode.svelte';
+
 
     onMount(() => {
         checkSession(); // Check session on page load
@@ -13,14 +16,13 @@
     let selectedColorMode = "Normal";
     const colorModes = [
       {value: 'normal', name: "Normal"},
-      {value: 'red-green', name: "Red-Green"},
-      {value: 'blue-yellow', name: "Blue-Yellow"},
-      {value: 'monochrome', name: "Monochrome"},
+      {value: 'protanopia', name: "protanopia"},
+      {value: 'deuteranopia', name: "deuteranopia"},
     ];
 
     let selectedFonzSize = "Regular";
     const fontSizes = [
-      {value: 'small', name: "Small"},
+      {value: 'mall', name: "Small"},
       {value: 'regular', name: "Regular"},
       {value: 'large', name: "Large"},
     ];
