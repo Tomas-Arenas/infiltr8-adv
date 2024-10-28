@@ -91,6 +91,32 @@
         goto('/analysis')
     }
 
+    async function logButtonClick(detail) {
+        console.log("Button clicked with detail:", detail);  // For debugging
+        try {
+            const response = await fetch('/flask-api/log-action', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    username: 'DummyUser',  // Dummy username for now
+                    action: 'Project click',
+                    details: detail
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to log action');
+            }
+
+            const result = await response.json();
+            console.log('Action logged:', result);
+        } catch (error) {
+            console.error('Failed to log button click:', error);
+        }
+    }
+
 
 </script>
 
@@ -167,7 +193,7 @@
 			{#each projects as project}
 				<div
 					class="mb-4 flex cursor-pointer items-center justify-between rounded-lg bg-gray-100 p-4 shadow dark:bg-gray-800 mb-4"
-					on:click={() => loadProject(project)}
+					on:click={() => loadProject(project)} on:click={() => logButtonClick(`${project.name} clicked`)}
 				>
 					<div class="flex items-center gap-3">
 						<!-- Font Awesome folder icon -->
