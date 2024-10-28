@@ -48,7 +48,7 @@
     }
 
     async function downloadLogs() {
-        const date = new Date().toISOString().slice(0, 10);  // Get today's date in 'YYYY-MM-DD' format
+        const date = getFormattedDate(); 
         try {
             const response = await fetch(`/flask-api/download-logs/${date}`);
             if (!response.ok) {
@@ -113,6 +113,15 @@
         } catch (error) {
             console.error("There was an error retrieving data from the backend:", error);
         }
+    }
+
+
+    function getFormattedDate() {
+        const date = new Date();
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are 0-based
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
     }
 
     const sysInfo = new SystemInfo()
