@@ -57,6 +57,34 @@
     }
   }
 
+
+  async function logButtonClick(detail) {
+        console.log("Button clicked with detail:", detail);  // For debugging
+        try {
+            const response = await fetch('/flask-api/log-action', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    username: 'DummyUser',  // Dummy username for now
+                    action: 'Settings click',
+                    details: detail
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to log action');
+            }
+
+            const result = await response.json();
+            console.log('Action logged:', result);
+        } catch (error) {
+            console.error('Failed to log button click:', error);
+        }
+    }
+
+  // Function to reset all settings to their defaults
   function updateTheme(theme) {
     selectedTheme = theme;
     darkMode.set(theme === 'Dark');
@@ -101,7 +129,7 @@
               <TableBodyCell class="text-right px-6" style="width: 30%;">
                 <Label>
                   Select an option
-                  <Select items={colorModes} bind:value={selectedColorMode} />
+                  <Select items={colorModes} bind:value={selectedColorMode} on:change={() => logButtonClick('Color mode click')}/>
                 </Label>
               </TableBodyCell>
             </TableBodyRow>
@@ -113,7 +141,7 @@
               <TableBodyCell class="text-right px-6" style="width: 30%;">
                 <Label>
                   Select an option
-                  <Select items={fontSizes} bind:value={selectedFontSize} on:change={() => applyFontSize(selectedFontSize)} />
+                  <Select items={fontSizes} bind:value={selectedFontSize} on:change={() => applyFontSize(selectedFontSize)} on:change={() => logButtonClick('Font size click')} />
                 </Label>
               </TableBodyCell>
             </TableBodyRow>
@@ -125,7 +153,7 @@
               <TableBodyCell class="text-right px-6" style="width: 30%;">
                 <Label>
                   Select an option
-                  <Select items={themes} bind:value={selectedTheme} on:change={() => updateTheme(selectedTheme)} />
+                  <Select items={themes} bind:value={selectedTheme} on:change={() => updateTheme(selectedTheme)} on:change={() => logButtonClick('Theme click')} />
                 </Label>
               </TableBodyCell>
             </TableBodyRow>
@@ -134,5 +162,5 @@
       </div>    
     </div>
   </div> 
-  <Button class="mt-5" color="danger" on:click={resetSettings}>Reset</Button>
+  <Button class="mt-5" color="danger" on:click={resetSettings} on:click={() => logButtonClick('Reset click')}>Reset</Button>
 </main>
