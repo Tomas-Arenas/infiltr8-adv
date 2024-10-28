@@ -1,98 +1,19 @@
 <script>
-    import { SystemInfo } from '../../lib/SystemInfo.js'
-    import  { Progressbar } from 'flowbite-svelte';
+    import { SystemInfo } from '../../lib/SystemInfo.js';
     import { Table, TableBody, TableBodyCell, TableBodyRow, TableHead, TableHeadCell } from 'flowbite-svelte';
-    import { Chart, Card, A, Button, Dropdown, DropdownItem, Popover, Tooltip } from 'flowbite-svelte';
+    import { Chart, Card, A, Button, Dropdown, DropdownItem, Popover, Tooltip, Progressbar } from 'flowbite-svelte';
     import { InfoCircleSolid, ArrowDownToBracketOutline, ChevronDownOutline, ChevronRightOutline, PenSolid, DownloadSolid, ShareNodesSolid } from 'flowbite-svelte-icons';
-    import { onMount } from 'svelte';
+    import { onMount, onDestroy } from 'svelte';
     import { session, checkSession } from '$lib/stores/session.js';
 
+    let tableData = [];
+    let series = [0, 0, 0]; 
+
     onMount(() => {
-        checkSession(); // Check session on page load
+        const intervalId = setInterval(async () => {
+            await getTableData();
+        }, 500); 
     });
-
-    // pie chart
-    const options = {
-        series: [1, 1, 3],
-        colors: ['#1C64F2', '#16BDCA', '#FDBA8C'],
-        chart: {height: 280,width: '100%',type: 'donut'},
-        stroke: {colors: ['transparent'],lineCap: ''},
-        plotOptions: {
-        pie: {
-            donut: {
-            labels: {
-                show: true,
-                name: {
-                show: true,
-                fontFamily: 'Inter, sans-serif',
-                offsetY: 20
-                },
-                total: {
-                showAlways: true,
-                show: true,
-                label: 'Projects',
-                fontFamily: 'Inter, sans-serif',
-                formatter: function (w) {
-                    const sum = w.globals.seriesTotals.reduce((a, b) => {
-                    return a + b;
-                    }, 0);
-                    return `${sum}`;
-                }
-                },
-                value: {
-                show: true,
-                fontFamily: 'Inter, sans-serif',
-                offsetY: -20,
-                formatter: function (value) {
-                    return value + 'k';
-                }
-                }
-            },
-            size: '80%'
-            }
-        }
-        },
-        grid: {padding: {top: -2}},
-        labels: [
-        '<span class="text-analyzing dark:text-white ">Analyzing</span>',
-        '<span class="text-scheduled dark:text-white">Scheduled</span>',
-        '<span class="text-completed dark:text-white">Completed</span>',
-    ],
-        dataLabels: {enabled: false},
-        legend: {position: 'bottom', fontFamily: 'Inter, sans-serif dark:text-white'},
-        yaxis: {
-        labels: {
-            formatter: function (value) {
-            return value + 'k';
-            }
-        }
-        },
-        xaxis: {
-        labels: {
-            formatter: function (value) {
-            return value + 'k';
-            }
-        },
-        axisTicks: {
-            show: false
-        },
-        axisBorder: {
-            show: false
-        }
-        }
-    };
-
-    const sysInfo = new SystemInfo()
-    var timestamp = sysInfo.getCurrentTimestamp()
-    var date =  sysInfo.getFormattedDate()
-
-    function getFormattedDate() {
-        const date = new Date();
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are 0-based
-        const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-}
 
     async function logButtonClick(detail) {
         console.log("Button clicked with detail:", detail);  // For debugging
@@ -142,13 +63,55 @@
             console.error('Failed to download logs:', error);
         }
     }
-   
+
+    async function getTableData(){
+        try {
+            const response = await fetch("/flask-api/get-all-project-info", {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error("Network response was not ok");
+            }
+
+            const data = await response.json();
+            tableData = Object.values(data).flatMap(Object.values);
+            tableData = tableData.filter(row => row.status !== null);
+
+            series = [0, 0, 0];
+            tableData.forEach(row => {
+                if (row.status === 'reports') {
+                    series[2]++;
+                } else if (row.status === 'scheduled') {
+                    series[1]++;
+                } else {
+                    series[0]++;
+                }
+            });
+
+        } catch (error) {
+            console.error("There was an error retrieving data from the backend:", error);
+        }
+    }
+
+
+    function getFormattedDate() {
+        const date = new Date();
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are 0-based
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+
+    const sysInfo = new SystemInfo()
+    var timestamp = sysInfo.getCurrentTimestamp()
+    var date =  sysInfo.getFormattedDate()
+
 </script>
 
-
-
-
-<!-- whole page -->
 <main>
     
     <h1 class="font-bold text-xl dark:text-white">Analysis</h1>
@@ -161,45 +124,29 @@
             <div id="table" class="my-6">
                 <Table noborder={true}>
                     <TableHead class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-gray-900 dark:text-gray-400 ">
-                    <TableHeadCell>Date</TableHeadCell>
-                    <TableHeadCell>Analyst</TableHeadCell>
-                    <TableHeadCell>File Size</TableHeadCell>
-                    <TableHeadCell>Progress</TableHeadCell>
+                        <TableHeadCell>Date</TableHeadCell>
+                        <TableHeadCell>Analyst</TableHeadCell>
+                        <TableHeadCell>File Size</TableHeadCell>
+                        <TableHeadCell>Progress</TableHeadCell>
                     </TableHead>
                     <TableBody>
-                    <TableBodyRow class=" " on:click>
-                        <TableBodyCell>9/13/2024 - 10:00:00 AM</TableBodyCell>
-                        <TableBodyCell>John Doe</TableBodyCell>
-                        <TableBodyCell>--</TableBodyCell>
-                        <TableBodyCell><button class="border-2 shadow-gray-400 py-2 px-2 shadow-lg rounded-2xl self-center">Scheduled</button></TableBodyCell>
-                    </TableBodyRow>
-                    <TableBodyRow>
-                        <TableBodyCell>9/12/2024 - 10:00:00 AM</TableBodyCell>
-                        <TableBodyCell>John Doe</TableBodyCell>
-                        <TableBodyCell>2.1 mb</TableBodyCell>
-                        <TableBodyCell><Progressbar progress="43" labelInside /></TableBodyCell>
-                    </TableBodyRow>
-                    <TableBodyRow>
-                        <TableBodyCell>9/10/2024 - 10:43:21 AM</TableBodyCell>
-                        <TableBodyCell>John Doe</TableBodyCell>
-                        <TableBodyCell>3.2 mb</TableBodyCell>
-                        <TableBodyCell><button class="border-2 py-2 px-2 shadow-lg rounded-2xl self-center">Reports</button></TableBodyCell>
-                    </TableBodyRow>
-                    <TableBodyRow>
-                        <TableBodyCell>9/09/2024 - 10:05:21 AM</TableBodyCell>
-                        <TableBodyCell>John Doe</TableBodyCell>
-                        <TableBodyCell>3.2 mb</TableBodyCell>
-                        <TableBodyCell><button class="border-2 py-2 px-2 shadow-lg rounded-2xl self-center">Reports</button></TableBodyCell>
-                    </TableBodyRow>
-                    <TableBodyRow>
-                        <TableBodyCell>9/07/2024 - 9:43:21 AM</TableBodyCell>
-                        <TableBodyCell>John Doe</TableBodyCell>
-                        <TableBodyCell>3.2 mb</TableBodyCell>
-                        <TableBodyCell><button class="border-2 py-2 px-2 shadow-lg rounded-2xl self-center">Reports</button></TableBodyCell>
-                    </TableBodyRow>
+                        {#each tableData as row}
+                            <TableBodyRow>
+                                <TableBodyCell>{row.creation}</TableBodyCell>
+                                <TableBodyCell>{row.user}</TableBodyCell>
+                                <TableBodyCell>{row.fileSize}</TableBodyCell>
+                                <TableBodyCell>
+                                    {#if typeof row.status === 'number'}
+                                        <Progressbar progress={row.status} labelInside />
+                                    {:else}
+                                        <button class="border-2 py-2 px-2 shadow-lg rounded-2xl self-center">{row.status}</button>
+                                    {/if}
+                                </TableBodyCell>
+                            </TableBodyRow>
+                        {/each}
                     </TableBody>
                 </Table>
-              </div>    
+            </div>
         </div>
 
         <!-- start of the right column  and Anaysis Progress-->
@@ -207,28 +154,50 @@
             <!-- start of the pie chart -->
             <div id="topChart">
                 <Card>
-                    <div class="flex justify-between items-start w-full">
-                      <div class="flex-col items-center">
-                        <div class="flex items-center mb-1">
-                          <h5 class="text-xl font-bold leading-none text-gray-900 dark:text-gray-400 me-1">Analysis progress</h5>
-                          <InfoCircleSolid id="donut1" class="w-3.5 h-3.5 text-gray-500 dark:text-white hover:text-gray-900 dark:hover:text-white cursor-pointer ms-1" />
-                          <Popover triggeredBy="#donut1" class="text-sm text-gray-500 bg-white border border-gray-200 rounded-lg shadow-sm w-72 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-400 z-10">
-                            <div class="p-3 space-y-2">
-                              <h3 class="font-semibold te dark:text-white">Progress Chart</h3>
-                              <p>Shows the amount of projects that are completed, scheduled and are currently being analyzed</p>
-                            </div>
-                          </Popover>
-                        </div>
-                      </div>
-                    </div> 
-                    <Chart {options} class="py-6" />
-                  </Card>
+                    <h5 class="text-xl font-bold leading-none text-gray-900 dark:text-gray-400 mb-2">Analysis Progress</h5>
+                    <Chart
+                        options={{
+                            chart: { type: 'donut', height: 280, width: '100%' },
+                            series: series,
+                            colors: ['#1C64F2', '#16BDCA', '#FDBA8C'],
+                            stroke: { colors: ['transparent'], lineCap: '' },
+                            plotOptions: {
+                                pie: {
+                                    donut: {
+                                        labels: {
+                                            show: true,
+                                            name: { show: true, fontFamily: 'Inter, sans-serif', offsetY: 20 },
+                                            total: {
+                                                showAlways: true,
+                                                show: true,
+                                                label: 'Projects',
+                                                fontFamily: 'Inter, sans-serif',
+                                                formatter: (w) => w.globals.seriesTotals.reduce((a, b) => a + b, 0)
+                                            },
+                                            value: { show: true, fontFamily: 'Inter, sans-serif', offsetY: -20 }
+                                        },
+                                        size: '80%'
+                                    }
+                                }
+                            },
+                            labels: [
+                                '<span class="text-analyzing dark:text-white">Analyzing</span>',
+                                '<span class="text-scheduled dark:text-white">Scheduled</span>',
+                                '<span class="text-completed dark:text-white">Completed</span>'
+                            ],
+                            legend: { position: 'bottom', fontFamily: 'Inter, sans-serif' },
+                            dataLabels: { enabled: false },
+                            grid: { padding: { top: -2 } }
+                        }}
+                        class="py-6"
+                    />
+                </Card>
             </div>
             
             <!-- start of current project settings -->
             <div id="bottomSettings" class=" py-6 rounded-md shadow-2xl  ">
                 <h2 class="text-center font-bold  font-bold leading-none text-gray-900 dark:text-gray-400  me-1 dark:bg-gray-900">Current Test</h2>
-                
+            
                 <div class="px-2 dark:text-white dark:bg-gray-700">
                     <p>Project Name: Test Run</p>
                     <p>Analyst: John Doe</p>
@@ -241,7 +210,7 @@
                     <button on:click={downloadLogs}>Download Logs</button>
                     <p> {timestamp}</p>
                 </div>
-            
+        
             </div>
 
             <!-- Entry Points dropdown section -->
@@ -266,7 +235,7 @@
 
         <div id="middle" class="flex-top float-left  w-8/12  py-0">
             <!-- start of Summary-->
-            <div id="bottomSettings" class="py-8 shadow-2xl dark:bg-gray-900"> 
+            <div id="bottomSettings" class="py-8 shadow-2xl dark:bg-gray-900">
                 <h2 class="text-center font-bold text-xl leading-none text-gray-900 dark:text-white me-1 dark:bg-gray-900" >Summary</h2>
                 <div class="overflow-y-auto h-11  max-w-2xs lg:h-[calc(100vh-30rem)] lg:block dark:bg-gray-800 lg:me-0 lg:sticky top-2 px-2 dark:text-white">
                     <p>Current Testing</p>
@@ -315,7 +284,7 @@
         </div>
         
             
-    </div> 
+    </div>
      
     
 </main>
