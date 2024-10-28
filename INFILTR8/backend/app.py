@@ -124,13 +124,14 @@ def processNessus():
 def rankedEntryPoints():
     return
 
-@app.route("/flask-api/get-ips", methods=["POST"])
+@app.route("/flask-api/get-ips", methods=['POST'])
 def receive_ips():
     ips = request.json
-    analysis.disallowed_ips = []
+    analysis.disallowed_ips=[]
     # Run analysis.py with the data as a JSON command-line argument
     for ip in ips:
         analysis.disallowed_ips.append(ip['ip'])
+    
     analysis.analyze_nessus_file()
     return jsonify({"messaage":"success", "data":ips})
 
@@ -165,6 +166,9 @@ def log_action():
 # Download logs 
 @app.route("/flask-api/download-logs/<date>", methods=['GET'])
 def download_logs(date):
+    current_utc_date = datetime.now(timezone.utc).strftime('%Y-%m-%d')
+    print(f"Server's current UTC date: {current_utc_date}")
+    
     log_file_path = os.path.join(app.root_path, 'logs', f'logs_{date}.txt')
     print(f"Looking for log file at: {log_file_path}")  # Debug
 

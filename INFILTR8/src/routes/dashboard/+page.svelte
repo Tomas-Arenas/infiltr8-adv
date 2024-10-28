@@ -8,8 +8,10 @@
     import { Alert } from 'flowbite-svelte';
     import { Input } from 'flowbite-svelte';
     import { InfoCircleSolid } from 'flowbite-svelte-icons';
-    import { getIPsFromBackend } from '$lib/stores.js';
-
+    import { onMount } from 'svelte';
+    import { Table, TableBody, TableBodyCell, TableBodyRow, TableHead, TableHeadCell } from 'flowbite-svelte';
+    import { getIPsFromBackend } from '$lib/stores.js'
+    
     let simpleList = ['Test1'];
     let folderName = '';
     let nessusFile;
@@ -19,6 +21,7 @@
     let message = "";
     let isLoading = true
     let ipList = []
+    let projectInfo = null;
     
     // Initialize the array to hold file names
     let value = [];
@@ -96,7 +99,7 @@
                 nessusFile = file;
                 console.log("File selected:", nessusFile);
                 let fetchP = uploadNessusFile()
-                fetchP.then(function(result) {
+                fetchP.then((response) => {
                   // put error handle stuff here
                   ipList = getIPsFromBackend(nessusFile.name)
                 })
@@ -149,7 +152,7 @@
       if (uploadResponse.ok) {
         const result = await uploadResponse.json();
         message = "File uploaded successfully: " + result.message;
-        return result
+        return uploadResponse
       } else {
         message = "File upload failed. Please try again.";
       }
@@ -161,7 +164,7 @@
   }
 
   async function createProject() {
-      if (!nessusFile && document.getElementById("first_name").value === "") {
+      if (!nessusFile || document.getElementById("first_name").value === "") {
           message = "Upload a .nessus file first.";
           console.warn(message);
           return;
@@ -187,19 +190,18 @@
           body: JSON.stringify(projectData)
         });
 
-            if (response.ok) {
-                const data = await response.json();
-                projectInfo = { id: data.projectId, name: nessusFile.name };
-                message = `Project created successfully with ID: ${data.projectId}`;
-                console.log(message);
-            } else {
-                message = "Failed to create project.";
-                console.error("Project creation failed with status:", response.status);
-            }
-        } catch (error) {
-            message = "Error: " + error.message;
-            console.error("Error during project creation:", error);
+        if (response.ok) {
+            const data = await response.json();
+            message = `Project created successfully with ID: ${data.projectId}`;
+            console.log(message);
+        } else {
+            message = "Failed to create project.";
+            console.error("Project creation failed with status:", response.status);
         }
+      } catch (error) {
+          message = "Error: " + error.message;
+          console.error("Error during project creation:", error);
+      }
     }
 
     </script>

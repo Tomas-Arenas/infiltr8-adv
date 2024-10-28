@@ -242,8 +242,8 @@
 	</div>
 
 	<div>
-		<input type="file" on:change={handleFileChange} />
-	</div>-->
+		<input type="file" on:change="{handleFileChange}" />
+	</div> -->
 </div>
 
 <style>

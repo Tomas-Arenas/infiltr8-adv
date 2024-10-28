@@ -6,32 +6,32 @@
     import IP from '$lib/IP.js';
     import { Card, Button, ButtonGroup, Listgroup, ListgroupItem, Table, TableBody, TableBodyCell, TableBodyRow, TableHead, TableHeadCell } from 'flowbite-svelte';
     import { TrashBinSolid } from 'flowbite-svelte-icons';
-    import { ipsAllowed } from '$lib/stores.js';
-    import { ipsDisallowed, sendIPSToBackend } from '$lib/stores.js';
+    import { ipsAllowed, sendIPSToBackend } from '$lib/stores.js';
+    import { ipsDisallowed } from '$lib/stores.js';
     import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 
     //should be ran once a nessus file is uploaded
-    async function getIPsFromBackend() {
-        try {
-            const response = await fetch("/flask-api/get-all-ips", {
-                method: "GET",
-                headers: {
-                    "Content-Type": "application/json",
-                }
-            });
+    // async function getIPsFromBackend() {
+    //     try {
+    //         const response = await fetch("/flask-api/get-all-ips", {
+    //             method: "GET",
+    //             headers: {
+    //                 "Content-Type": "application/json",
+    //             }
+    //         });
 
-            if (!response.ok) {
-                throw new Error("Network response was not ok");
-            }
+    //         if (!response.ok) {
+    //             throw new Error("Network response was not ok");
+    //         }
 
-            const data = await response.json(); // Parse JSON response
-            console.log("IPs received from backend:", data);
-            addIPstoStore(data); // Update the store with received IPs
-        } catch (error) {
-            console.error("There was an error retrieving IPs from the backend:", error);
-        }
-    }
+    //         const data = await response.json(); // Parse JSON response
+    //         console.log("IPs received from backend:", data);
+    //         addIPstoStore(data); // Update the store with received IPs
+    //     } catch (error) {
+    //         console.error("There was an error retrieving IPs from the backend:", error);
+    //     }
+    // }
   
     function addIPstoStore(data) {
         const ipInstances = data.map(ipAddress => new IP(ipAddress)); // Create IP instances
@@ -39,15 +39,9 @@
         ipsDisallowed.set(ipInstances); // Update the store with IP instances
     }
 
-    onMount(() => {
-        getIPsFromBackend();
-    });
-
-    async function startAnalysis(){
-        await sendIPSToBackend();
-        console.log("Start Testing")
-        goto('/analysis')
-    }
+    // onMount(() => {
+    //     getIPsFromBackend();
+    // });
 
     let exploitsAllowed = [
         { id: 1, name: 'SQL Injection', selected: false },
@@ -110,6 +104,12 @@
     function loadProject(project) {
         selectedProject = project;
         console.log(`Project ${project.name} loaded.`);
+    }
+
+    async function startAnalysis(){
+        await sendIPSToBackend()
+        console.log("Start testing")
+        goto('/analysis')
     }
 </script>
 
