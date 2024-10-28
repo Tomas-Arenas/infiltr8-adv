@@ -124,11 +124,14 @@ def processNessus():
 def rankedEntryPoints():
     return
 
-@app.route("/flask-api/get-ips")
+@app.route("/flask-api/get-ips", methods=['POST'])
 def receive_ips():
     ips = request.json
+    analysis.disallowed_ips=[]
     # Run analysis.py with the data as a JSON command-line argument
-    analysis.disallowed_ips = ips
+    for ip in ips:
+        analysis.disallowed_ips.append(ip['ip'])
+    
     analysis.analyze_nessus_file()
     return jsonify({"messaage":"success", "data":ips})
 

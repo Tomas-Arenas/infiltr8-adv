@@ -8,8 +8,10 @@
     import { Alert } from 'flowbite-svelte';
     import { Input } from 'flowbite-svelte';
     import { InfoCircleSolid } from 'flowbite-svelte-icons';
-    import { getIPsFromBackend } from '$lib/stores.js';
-
+    import { onMount } from 'svelte';
+    import { Table, TableBody, TableBodyCell, TableBodyRow, TableHead, TableHeadCell } from 'flowbite-svelte';
+    import { getIPsFromBackend } from '$lib/stores.js'
+    
     let simpleList = ['Test1'];
     let folderName = '';
     let nessusFile;
@@ -19,6 +21,7 @@
     let message = "";
     let isLoading = true
     let ipList = []
+    let projectInfo = null;
     
     // Initialize the array to hold file names
     let value = [];
