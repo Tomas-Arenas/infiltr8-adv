@@ -10,7 +10,8 @@
     import { InfoCircleSolid } from 'flowbite-svelte-icons';
     import { onMount } from 'svelte';
     import { Table, TableBody, TableBodyCell, TableBodyRow, TableHead, TableHeadCell } from 'flowbite-svelte';
-    
+    import { getIPsFromBackend } from '$lib/stores'
+
     let simpleList = ['Test1'];
     let folderName = '';
     let nessusFile;
@@ -163,7 +164,7 @@
   }
 
   async function createProject() {
-      if (!nessusFile && document.getElementById("first_name").value === "") {
+      if (!nessusFile || document.getElementById("first_name").value === "") {
           message = "Upload a .nessus file first.";
           console.warn(message);
           return;

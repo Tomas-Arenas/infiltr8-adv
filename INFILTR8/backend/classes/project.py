@@ -13,7 +13,7 @@ def projectParser(project):
             'fileSize': project['fileSize'], 'creation': project['creation'],'ips': project['ips'], 'exploits': project['exploits']}
 
 def allProjectInfo(driver, username):
-    query = "MATCH (p:Project)-[:HAS_PROJECT]->(a:Analyst{username: $username}) RETURN p.projectId as projectId, p.projectName as projectName, p.ips as ips, p.exploits as exploits"
+    query = "MATCH (p:Project)-[:HAS_PROJECT]->(a:Analyst{username: $username}) RETURN p.projectId as projectId, p.projectName as projectName, p.user as user, p.status as status, p.fileSize as fileSize, p.creation as creation, p.ips as ips, p.exploits as exploits"
 
     with driver.session() as session:
         result = session.run(query, username=username)
