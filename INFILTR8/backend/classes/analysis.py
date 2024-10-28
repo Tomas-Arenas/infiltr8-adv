@@ -4,12 +4,13 @@ import pandas as pd
 import category_encoders as ce
 from sklearn.preprocessing import MinMaxScaler
 
+base_dir = os.path.dirname(os.path.abspath(__file__))
 
 # Path to the Nessus XML file, change line 10 to match path where your NESSUS file is
-nessus_file = '../output/data_with_exploits.csv'
+nessus_file = os.path.join(base_dir, "..", "output", "data_with_exploits.csv")
 
 # Base directory for output CSV files, change line 13 to where you want output CSVs to go
-output_base_dir = '../output'
+output_base_dir = os.path.join(base_dir, "..", "output")
 
 # Disallowed IPS
 disallowed_ips = None
