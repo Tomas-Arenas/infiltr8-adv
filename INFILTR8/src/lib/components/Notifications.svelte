@@ -1,12 +1,16 @@
 <script>
 	import { BellSolid } from 'flowbite-svelte-icons';
-	import { notifications } from '$lib/stores/notifications.js';
+	import { notifications, loadNotifications } from '$lib/stores/notifications.js';
 	import { onMount } from 'svelte';
 
+	onMount(() => {
+    	//loadNotifications(); // Assuming the username is managed in session
+	});
+
 	let isOpen = false;
-	let unreadCount = 0;
-	$: notificationMessages = $notifications;
-	$: unreadCount = notificationMessages.filter((n) => n.isNew).length;
+	
+	// Automatically react to changes in the notifications store
+	$: unreadCount = $notifications.filter((n) => n.isNew).length;
 
 	function toggleNotifications() {
 		isOpen = !isOpen;

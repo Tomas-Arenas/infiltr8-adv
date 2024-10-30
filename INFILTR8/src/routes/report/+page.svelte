@@ -45,7 +45,7 @@
 	// Fetch data to mimic fetching a file
 	async function testGet() {
 		try {
-			const response = await fetch('http://127.0.0.1:5000/flask-api/test2', {method: 'GET',});
+			const response = await fetch('/flask-api/test2', {method: 'GET',});
 			if (!response.ok) {
 				const errorText = await response.text();
 				throw new Error('Failed to fetch data');
@@ -54,18 +54,15 @@
 			data = jsonData; // Ensure jsonData is actually an array if this assignment is made
 			console.log(data);
 		} catch (err) {
-			console.log('Error fetching data:',err);
-			console.log(err)
+			console.log('Error fetching data:', err);
 		}
 	}
 
 	async function sendFile(file) {
-		const formData = new FormData()
-		// Have to give the first parameter 'file' to the formData
-		formData.append('file', file)
-		console.log(formData)
-		// Make sure to use the post method here and to include the formData in the body
-		const response = await fetch("/flask-api/nessus-upload", {
+		const formData = new FormData();
+		formData.append('file', file);
+		console.log(formData);
+		const response = await fetch('/flask-api/nessus-upload', {
 			method: 'POST',
 			body: formData
 		});
@@ -76,7 +73,7 @@
 
 	function handleDataBaseTest() {
 		testGet();
-		sendFile(selectedFile)
+		sendFile(selectedFile);
 	}
 
 	let rows = [
@@ -107,7 +104,7 @@
 		{
 			id: 4,
 			ipAddress: '11.27.177.103',
-			device: 'Device 42',
+			device: 'Device 462',
 			vulnerability: 'CVE-2024-6066 (Remote Code Execution in API Endpoint)',
 			status: 'Exploited',
 			selected: false
@@ -115,36 +112,76 @@
 	];
 
 	let exportFormat = 'Format to export';
+	let selectAll = true;
 
-	function toggleSelect(row) {
-		row.selected = !row.selected;
-	}
 
-	let selectAll = false;
-
+	// Toggle "Select All" functionality
 	function toggleSelectAll() {
 		selectAll = !selectAll;
-		rows.forEach((row) => (row.selected = selectAll));
+		rows = rows.map((row) => ({
+			...row,
+			selected: selectAll
+		}));
 	}
 
+	// Toggle individual row selection and update "Select All" checkbox if needed
+	function toggleSelect(row) {
+		row.selected = !row.selected;
+		// Check if all rows are selected after toggling
+		selectAll = rows.every((row) => row.selected);
+	}
 	function handleExportFormatChange(event) {
 		exportFormat = event.target.value;
 	}
 
-	function handleExport() {
+	//function handleExport() {
+	//	if (exportFormat === 'Format to export') {
+	//		alert('Please select a format to export.');
+	//		return;
+	//	}
+
+		// Log the export request and the selected rows
+	//	const selectedRows = rows.filter((row) => row.selected);
+	//	console.log('Export Request:', exportFormat, selectedRows);
+
+		// Simulate export process (you can replace this with actual logic)
+	//	alert(`Exporting ${selectedRows.length} rows in ${exportFormat}`);
+		// Redirect or handle export logic here
+	//}
+
+	async function handleExport() {
 		if (exportFormat === 'Format to export') {
 			alert('Please select a format to export.');
 			return;
 		}
 
-		// Log the export request and the selected rows
 		const selectedRows = rows.filter((row) => row.selected);
+		const selectedIPs = selectedRows.map(row => row.ipAddress); // Get the selected IP addresses
+
 		console.log('Export Request:', exportFormat, selectedRows);
 
-		// Simulate export process (you can replace this with actual logic)
+		// Send the selected IPs and format to the backend for logging
+		try {
+			const response = await fetch("http://127.0.0.1:5000/flask-api/log_export", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ ip_addresses: selectedIPs, export_format: exportFormat })
+			});
+
+			if (response.ok) {
+				console.log("Export logged successfully");
+				// Proceed with the export logic here if needed
+			} else {
+				console.error("Failed to log export");
+			}
+		} catch (error) {
+			console.error("Error logging export:", error);
+		}
+
 		alert(`Exporting ${selectedRows.length} rows in ${exportFormat}`);
-		// Redirect or handle export logic here
 	}
+
+
 
 	onMount(() => {
 		// Call testGet when component mounts
@@ -167,7 +204,8 @@
 	<Table class="shadow-md sm:rounded-lg">
 		<TableHead>
 			<TableHeadCell padding="px-4 py-3">
-				<input type="checkbox" bind:checked={selectAll} on:change={toggleSelectAll} />
+				<!-- Select All Checkbox -->
+				<input type="checkbox" checked={selectAll} on:change={toggleSelectAll} />
 			</TableHeadCell>
 			<TableHeadCell padding="px-4 py-3">IP Address</TableHeadCell>
 			<TableHeadCell padding="px-4 py-3">Device</TableHeadCell>
@@ -176,14 +214,11 @@
 		</TableHead>
 
 		<TableBody class="divide-y">
-			{#each rows as row}
+			{#each rows as row (row.id)}
 				<TableBodyRow>
 					<TableBodyCell>
-						<input
-							type="checkbox"
-							bind:checked={row.selected}
-							on:change={() => toggleSelect(row)}
-						/>
+						<!-- Individual Row Checkbox -->
+						<input type="checkbox" checked={row.selected} on:change={() => toggleSelect(row)} />
 					</TableBodyCell>
 					<TableBodyCell>{row.ipAddress}</TableBodyCell>
 					<TableBodyCell>{row.device}</TableBodyCell>
@@ -212,13 +247,13 @@
 	</div>
 
 	<!-- Database test button -->
-	<div class="database-container">
+	<!-- <div class="database-container">
 		<button class="test-button" on:click={handleDataBaseTest}> Database Test </button>
 	</div>
 
 	<div>
 		<input type="file" on:change="{handleFileChange}" />
-	</div>
+	</div> -->
 </div>
 
 <style>

@@ -1,3 +1,6 @@
+import os
+import datetime
+
 def countProjects(driver, username):
     query = "MATCH (p:Project)-[r:HAS_PROJECT]->(u:Analyst {username: $username}) RETURN count(p) as total"
 
@@ -26,19 +29,22 @@ def getProjectInfomation(driver, username, projectId):
         project = result.single()["project"]
         return projectParser(project)
 
-def createProject(driver,username, projectName, ips, exploits):
+def createProject(driver, username, projectName, fileName, status, ips, exploits):
 
+    fileSize = int(os.path.getsize(os.getcwd()+'/nessus-drop/'+fileName) / 1000)
+    creation = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    
     query = (
         """
         MATCH (u:Analyst {username: $username})
-        CREATE (p:Project {projectId: $projectId, projectName: $projectName, ips: $ips, exploits: $exploits})-[:HAS_PROJECT]->(u)
+        CREATE (p:Project {projectId: $projectId, projectName: $projectName, user: $username, status: $status, file: $fileName, fileSize: $fileSize, creation: $creation, ips: $ips, exploits: $exploits})-[:HAS_PROJECT]->(u)
         return p.projectId AS projectId
         """
         )
 
     projectId = countProjects(driver, username) + 1
     with driver.session() as session:
-        result = session.run(query, projectId=projectId, username=username, projectName=projectName, ips=ips, exploits=exploits)
+        result = session.run(query, projectId=projectId, username=username, user=username, status=status, projectName=projectName, fileName=fileName, fileSize=fileSize, creation=creation, ips=ips, exploits=exploits)
         projectId = result.single()["projectId"]
         return projectId
 

@@ -11,45 +11,51 @@
 	import { menuOpen } from '$lib/stores.js';
 	import { session, checkSession } from '$lib/stores/session';
 
-
-	let loggedIn = false
+	let loggedIn = false;
 
 	onMount(async () => {
 		checkSession();
 	});
 
 	$: $session = session.subscribe(($session) => {
-        loggedIn = $session.logged_in;
-        userInitials = $session.logged_in ? $session.username[0].toUpperCase() : 'U';
-    });
+		loggedIn = $session.logged_in;
+		userInitials = $session.logged_in ? $session.username[0].toUpperCase() : 'U';
+	});
 
-	
 	export let open = $menuOpen || false;
 	let slideMenu = false;
 
 	export let userInitials = 'U';
 
-	
-	
-
 	// Reactive statement to track current page path
 	$: currentPath = $page.url.pathname;
 
-	
-
 	// Sidebar item data: each item has text, href (link), and an icon key
 	const sidebarItems = [
-		{ text: 'Dashboard', href: '/dashboard', icon: Icon.GlobeSolid },
+		{
+			text: 'Dashboard',
+			href: '/dashboard',
+			icon: Icon.GlobeSolid
+		},
 		{
 			text: 'Report',
 			href: '/report',
 			icon: Icon.NewspaperSolid
 		},
-		{ text: 'Analysis', href: '/analysis', icon: Icon.BookSolid },
+		{
+			text: 'Analysis',
+			href: '/analysis',
+			icon: Icon.BookSolid
+		},
 		{
 			text: 'Project',
 			href: '/project',
 			icon: Icon.DatabaseSolid
+		},
+		{
+			text: 'Settings',
+			href: '/settings',
+			icon: Icon.UserSettingsSolid
 		}
 	];
 
@@ -118,7 +124,7 @@
 				<Icon.CaretLeftSolid size="lg" class="h-5 w-5 text-gray-500 dark:text-gray-400" />
 			</button>
 		</div>
-		<hr class="mb-2"/>
+		<hr class="mb-2" />
 		<div class="flex h-full flex-col overflow-y-auto bg-slate-100 dark:bg-gray-800">
 			<!-- List of navigation items -->
 			<ul class="space-y-2 font-medium">
@@ -127,7 +133,7 @@
 						<!-- Navigation link -->
 						<a
 							href={item.href}
-							class="group flex items-center rounded-lg p-2 text-gray-900 hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700 "
+							class="group flex items-center rounded-lg p-2 text-gray-900 hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700"
 						>
 							<!-- Dynamic icon rendering using svelte:component -->
 
@@ -136,12 +142,16 @@
 								class="pointer-events-none h-5 w-5 flex-shrink-0 text-gray-500 transition duration-75 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white"
 							/>
 							<!-- Text label for the navigation item -->
-							<span class="ms-3 flex-1 whitespace-nowrap {currentPath == item.href ? 'text-primary-800 dark:text-primary-800' : ''}">{item.text}</span>
+							<span
+								class="ms-3 flex-1 whitespace-nowrap {currentPath == item.href
+									? 'text-primary-800 dark:text-primary-800'
+									: ''}">{item.text}</span
+							>
 						</a>
 					</li>
 				{/each}
 			</ul>
-			<hr class="mt-2" />
+			<hr class="my-2" />
 			{#if loggedIn}
 				<a
 					data-sveltekit-preload-data="tap"
@@ -190,7 +200,11 @@
 			>
 				<div class="flex flex-row items-start">
 					<a href="/">
-						<img src={favicon} alt="INFILTR8" class="mb-4 ml-2 mr-auto w-8 rounded drop-shadow-xl" />
+						<img
+							src={favicon}
+							alt="INFILTR8"
+							class="mb-4 ml-2 mr-auto w-8 rounded drop-shadow-xl"
+						/>
 					</a>
 					<h1
 						class="oswald ml-2 mr-auto flex-grow text-2xl font-bold text-gray-900 dark:text-white"
@@ -229,7 +243,7 @@
 						</Popover>
 					{/if}
 				</div>
-				<hr class="mb-2"/>
+				<hr class="mb-2" />
 				<!-- List of navigation items -->
 				<ul class="space-y-2 font-medium">
 					{#each sidebarItems as item}
@@ -245,12 +259,16 @@
 									class="pointer-events-none h-5 w-5 flex-shrink-0 text-gray-500 transition duration-75 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white"
 								/>
 								<!-- Text label for the navigation item -->
-								<span class="ms-3 flex-1 whitespace-nowrap {currentPath == item.href ? 'text-primary-800 dark:text-primary-800' : ''}">{item.text}</span>
+								<span
+									class="ms-3 flex-1 whitespace-nowrap {currentPath == item.href
+										? 'text-primary-800 dark:text-primary-800'
+										: ''}">{item.text}</span
+								>
 							</a>
 						</li>
 					{/each}
 				</ul>
-				<hr class="mt-2" />
+				<hr class="my-2" />
 				{#if loggedIn}
 					<a
 						data-sveltekit-preload-data="tap"

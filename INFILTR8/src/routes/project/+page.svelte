@@ -1,14 +1,26 @@
 <!--TODO add store for exploits allowed -->
 <!--visual planning-->
-<!--THIS PAGE EXPECTS DATA FROM THE NESSUS FILE LIKE IPS AND ENTRY POINTS  -->
+
 
 <script>
     import IP from '$lib/IP.js';
     import { Card, Button, ButtonGroup, Listgroup, ListgroupItem, Table, TableBody, TableBodyCell, TableBodyRow, TableHead, TableHeadCell } from 'flowbite-svelte';
     import { TrashBinSolid } from 'flowbite-svelte-icons';
-    import { ipsAllowed } from '$lib/stores.js';
+    import { ipsAllowed, sendIPSToBackend, getIPsFromBackend } from '$lib/stores.js';
     import { ipsDisallowed } from '$lib/stores.js';
+    import { onMount } from 'svelte';
+	import { goto } from '$app/navigation';
 
+  
+    function addIPstoStore(data) {
+        const ipInstances = data.map(ipAddress => new IP(ipAddress)); // Create IP instances
+        console.log(ipInstances)
+        ipsDisallowed.set(ipInstances); // Update the store with IP instances
+    }
+
+    // onMount(() => {
+    //     getIPsFromBackend();
+    // });
 
     let exploitsAllowed = [
         { id: 1, name: 'SQL Injection', selected: false },
@@ -42,22 +54,6 @@
        // logger.logUserAction(testuser,"Deleted item", `at index ${index}. New list:`, newList );
     }
 
-    function addIP(updateList) {
-        let ipAddress = prompt("Enter the IPv4 address:"); 
-        if (ipAddress) {
-            if (isValidIPv4(ipAddress)) {
-                let newIP = new IP(ipAddress); 
-                updateList(newIP); // Call the callback to update the list
-                //logger.logUserAction(testuser,"Created IP", newIP.getDescription()); 
-            } else {
-                alert("Please enter a valid IPv4 address.");
-            }
-        } else {
-            alert("IP address cannot be empty.");
-        }
-    }
-
-
     function moveUp(list, index) {
         if (index > 0) {
             [list[index - 1], list[index]] = [list[index], list[index - 1]];
@@ -88,12 +84,53 @@
         selectedProject = project;
         console.log(`Project ${project.name} loaded.`);
     }
+
+    async function startAnalysis(){
+        await sendIPSToBackend()
+        console.log("Start testing")
+        goto('/analysis')
+    }
+
+    async function logButtonClick(detail) {
+        console.log("Button clicked with detail:", detail);  // For debugging
+        try {
+            const response = await fetch('/flask-api/log-action', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    username: 'DummyUser',  // Dummy username for now
+                    action: 'Project click',
+                    details: detail
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to log action');
+            }
+
+            const result = await response.json();
+            console.log('Action logged:', result);
+        } catch (error) {
+            console.error('Failed to log button click:', error);
+        }
+    }
+
+
 </script>
 
 <!-- Outer wrapper to center everything -->
 <div class="flex flex-col items-center justify-center">
 	<!-- Main container with both cards -->
 	<Card class="flex min-w-fit flex-row gap-5 rounded-lg bg-gray-100 p-5 shadow-md dark:bg-gray-800">
+        <!-- Show current ip list -->
+        <Card class="flex-1 rounded-lg bg-white p-5 shadow-md">
+            <h2 class="mb-4 text-lg font-semibold">Current Project IPS</h2>
+            <Listgroup class="border-none">
+				
+			</Listgroup>
+        </Card>
 		<!-- Current Project Folder Card -->
         <Card class="flex-1 rounded-lg bg-white p-5 shadow-md">
             <h2 class="mb-4 text-lg font-semibold">Current Project Folder</h2>
@@ -156,7 +193,7 @@
 			{#each projects as project}
 				<div
 					class="mb-4 flex cursor-pointer items-center justify-between rounded-lg bg-gray-100 p-4 shadow dark:bg-gray-800 mb-4"
-					on:click={() => loadProject(project)}
+					on:click={() => loadProject(project)} on:click={() => logButtonClick(`${project.name} clicked`)}
 				>
 					<div class="flex items-center gap-3">
 						<!-- Font Awesome folder icon -->
@@ -176,6 +213,6 @@
 	<!-- Start Testing button placed below the layout -->
 	<button
 		class="mt-6 rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white hover:bg-blue-700"
-		on:click={() => console.log('Start Testing')}>Start Testing</button
+		on:click={startAnalysis}>Start Testing</button
 	>
 </div>
