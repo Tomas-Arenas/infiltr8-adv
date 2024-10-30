@@ -1,28 +1,28 @@
 <script>
     // Drag and drop
     import { Dropzone } from 'flowbite-svelte';
-    import { Heading, P, Span } from 'flowbite-svelte';
-    import { GradientButton } from 'flowbite-svelte';
     import { Progressbar } from 'flowbite-svelte';
     import { Listgroup } from 'flowbite-svelte';
     import { Alert } from 'flowbite-svelte';
     import { Input } from 'flowbite-svelte';
     import { InfoCircleSolid } from 'flowbite-svelte-icons';
-    import { onMount } from 'svelte';
+    import { Heading, P, Span, GradientButton } from 'flowbite-svelte';
     import { Table, TableBody, TableBodyCell, TableBodyRow, TableHead, TableHeadCell } from 'flowbite-svelte';
     import { getIPsFromBackend } from '$lib/stores.js'
-	  import { goto } from '$app/navigation';
+	import { goto } from '$app/navigation';
+    import { onMount } from 'svelte';
     
     let simpleList = ['Test1'];
     let folderName = '';
+    
     let nessusFile;
-    let possibleEntryPoints = [];
-    let validEntryPoints = [];
-    let nessusContent = '';
     let message = "";
     let isLoading = true
     let ipList = []
     let projectInfo = null;
+    let possibleEntryPoints = [];
+    let validEntryPoints = [];
+    let projects = [];
     
     // Initialize the array to hold file names
     let value = [];
@@ -77,17 +77,31 @@
         return isHighSeverity && isValidPort;
       });
     }
-
-    // function submit() {
-    //   validateEntryPoints();
-    //   const requestData = {
-    //     folderName,
-    //     validEntryPoints
-    //   };
-    //   console.log('Request Data:', requestData);
-    // }
     
-    // Handle input change for file uploads
+    // Handle input change for file upload
+    
+    async function fetchProjects() {
+        try {
+            const response = await fetch('http://localhost:5173/flask-api/all-projects', {
+                credentials: 'include'
+            });
+            if (response.ok) {
+                const data = await response.json();
+                projects = data.data; 
+            } else {
+                message = "Failed to fetch projects";
+                console.error("Fetch error:", response.status);
+            }
+        } catch (error) {
+            message = "Error fetching projects";
+            console.error("Error fetching projects:", error);
+        }
+    }
+
+    onMount(() => {
+        fetchProjects();
+    });
+
     const handleChange = (event) => {
         const target = event.target;
         const files = target?.files;
@@ -134,35 +148,32 @@
     await fetchP.then(ipList = getIPsFromBackend(nessusFile.name))
   }
 
-// Uploads the Nessus file
-  async function uploadNessusFile() {
-    if (!nessusFile) {
-      message = "Please select a file to upload.";
-      return;
+
+    async function uploadNessusFile() {
+        if (!nessusFile) {
+            message = "Please select a file to upload.";
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append("file", nessusFile);
+
+        try {
+            const uploadResponse = await fetch("http://localhost:5173/flask-api/nessus-upload", {
+                method: "POST",
+                body: formData,
+            });
+
+            if (uploadResponse.ok) {
+                const result = await uploadResponse.json();
+                message = "File uploaded successfully: " + result.status;
+            } else {
+                message = "File upload failed. Please try again.";
+            }
+        } catch (error) {
+            message = "Upload error: " + error.message;
+        }
     }
-
-    const formData = new FormData();
-    formData.append("file", nessusFile);
-
-    try {
-      const uploadResponse = await fetch("flask-api/nessus-upload", {
-        method: "POST",
-        body: formData,
-      });
-
-      if (uploadResponse.ok) {
-        const result = await uploadResponse.json();
-        message = "File uploaded successfully: " + result.message;
-        return uploadResponse
-      } else {
-        message = "File upload failed. Please try again.";
-      }
-    } catch (error) {
-      message = "Upload error: " + error.message;
-    } finally {
-      isLoading = false;
-    }
-  }
 
   async function createProject() {
       if (!nessusFile || document.getElementById("first_name").value === "") {
@@ -184,17 +195,21 @@
           // entryPoints: possibleEntryPoints  // Pass parsed entry points
       };
 
-      try {
-        const response = await fetch("/flask-api/create-project", {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'}, 
-          body: JSON.stringify(projectData)
-        });
+        try {
+            const response = await fetch("http://localhost:5173/flask-api/create-project", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(projectData),
+                credentials: "include"
+            });
 
         if (response.ok) {
             const data = await response.json();
+            projectInfo = { id: data.projectId, name: nessusFile.name };
+
             message = `Project created successfully with ID: ${data.projectId}`;
             console.log(message);
+            fetchProjects(); 
         } else {
             message = "Failed to create project.";
             console.error("Project creation failed with status:", response.status);
@@ -232,50 +247,68 @@
         }
     }
 
-    </script>
-    <div class="flex flex-row items-start justify-between min-h-screen w-full">
+</script>
+    
+<div class="flex flex-row items-start justify-between min-h-screen w-full">
     <div class="flex-grow">
+        <div class="flex flex-col items-center min-h-screen w-full p-6">
+            <Heading tag="h1" class="mb-4 text-3xl font-extrabold text-center md:text-5xl lg:text-6xl">
+            <Span gradient>WELCOME TO INFILTR8</Span>
+            </Heading>
+            <P>Please select from the following to get started on your project.</P>
+            <!-- Dropzone component for file uploads -->
+            <input type="file" accept=".nessus" on:change="{handleChange}" />
+            <form>
+                <Input type="text" id="first_name" placeholder="Enter Project Name" required />
+            </form>
+            <!-- <input bind:value={name} placeholder="Enter Project Name" /> -->
+            <div class="flex flex-row justify-between w-full mt-4">
+                <div class="flex flex-col mr-8">
+                    <div class="relative w-90 ml-8">
+                        <P class="text-center mb-8">Please select from the following to get started on your project.</P>
 
-  <div class="flex flex-col items-center justify-center w-full">
-    <Heading tag="h1" class="mb-4" customSize="text-3xl text-center font-extrabold  md:text-5xl lg:text-6xl">
-      <Span gradient>WELCOME TO INFILTR8</Span>
-    </Heading>
-    <P>Please select from the following to get started on your project.</P>
-  
-    <!-- Dropzone component for file uploads -->
-      <input type="file" accept=".nessus" on:change="{handleChange}" />
-      <form>
-        <Input type="text" id="first_name" placeholder="Enter Project Name" required />
-      </form>
-      <!-- <input bind:value={name} placeholder="Enter Project Name" /> -->
 
-        <div class="flex flex-row justify-between w-full mt-4">
-            <div class="flex flex-col mr-8">
-
-                <GradientButton class = "mb-2" color="green"on:click={() => logButtonClick('Discard All clicked')}>Discard All</GradientButton>
-                <GradientButton on:click={createProject} on:click={() => logButtonClick('Create project clicked')}>Create Project</GradientButton>
-            </div>
-            <div class="flex flex-col justify-between w-full">
-                {#if projectInfo}
-                        <Table color="blue" hoverable={true}>
-                            <TableHead>
-                                <TableHeadCell>Project Name</TableHeadCell>
-                                <TableHeadCell>Project ID</TableHeadCell>
-                            </TableHead>
-                            <TableBody>
-                                <TableBodyRow>
-                                    <TableBodyCell>{projectInfo.name}</TableBodyCell>
-                                    <TableBodyCell>{projectInfo.id}</TableBodyCell>
-                                </TableBodyRow>
-                            </TableBody>
-                        </Table>
-                      {/if}
-                </div>            
+                        <div class="flex flex-col items-center mb-8 w-full">
+                            <GradientButton class = "mb-2" color="green"on:click={() => logButtonClick('Discard All clicked')}>Discard All</GradientButton>
+                            <GradientButton on:click={() => { logButtonClick('Create project clicked'); createProject(); }}>Create Project</GradientButton>           
+                        </div>
+                    </div>
+                    <div class="w-full">
+                        <h2 class="text-2xl font-semibold mb-4 text-center">Project List</h2>
+        
+                        {#if projects.length > 0}
+                            <Table hoverable={true} class="w-full">
+                                <TableHead>
+                                    <TableHeadCell>Project Name</TableHeadCell>
+                                    <TableHeadCell>Project ID</TableHeadCell>
+                                    <TableHeadCell>IPs</TableHeadCell>
+                                    <TableHeadCell>Exploits</TableHeadCell>
+                                </TableHead>
+                                <TableBody>
+                                    {#each projects as project}
+                                        <TableBodyRow>
+                                        <TableBodyCell>{project.projectname}</TableBodyCell>
+                                        <TableBodyCell>{project.projectId}</TableBodyCell>
+                                        <TableBodyCell>{project.ips ? project.ips.join(', ') : ''}</TableBodyCell>
+                                        <TableBodyCell>
+                                        {#if Array.isArray(project.exploits)}
+                                            {project.exploits.join(', ')}
+                                        {:else}
+                                            {project.exploits} <!-- Displays the string if it's not an array -->
+                                        {/if}
+                                    </TableBodyCell> 
+                                    </TableBodyRow>
+                                    {/each}
+                                </TableBody>
+                            </Table>
+                        {:else if message}
+                            <p class="text-center text-red-500">{message}</p>
+                        {:else}
+                            <p class="text-center">Loading projects...</p>
+                        {/if}
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-    <div class="relative w-90 ml-8">
-    </div>
-  </div>
-
-    
+</div>
