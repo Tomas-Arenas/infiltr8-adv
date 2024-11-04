@@ -1,5 +1,6 @@
 <script>
   import { EyeSolid } from 'flowbite-svelte-icons';
+  import { darkMode } from '$lib/stores.js';
   import { onMount } from 'svelte';
 
   export let colorblindMode = "normal"; // Allow external binding
@@ -50,7 +51,7 @@
 {#if showIcon}
   <button on:click={toggleColorblindMode}>
     {#if colorblindMode === 'normal'}
-      <EyeSolid color='black' class="h-7 w-7 pointer-events-none" /> <!-- Normal mode icon -->
+      <EyeSolid color={`${$darkMode ? 'white' : 'black'}`} class="h-7 w-7 pointer-events-none" /> <!-- Normal mode icon -->
     {:else if colorblindMode === 'protanopia'}
       <EyeSolid color='#ff4c4c' class="h-7 w-7 pointer-events-none" /> <!-- Protanopia mode icon -->
     {:else if colorblindMode === 'deuteranopia'}
