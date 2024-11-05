@@ -203,7 +203,7 @@
             
             <!-- start of current project settings -->
             <div id="bottomSettings" class=" py-6 rounded-md shadow-2xl  ">
-                <h2 class="text-center font-bold  font-bold leading-none text-gray-900 dark:text-gray-400  me-1 dark:bg-gray-900">Current Test</h2>
+                <h2 class="text-center font-bold leading-none text-gray-900 dark:text-gray-400  me-1 dark:bg-gray-900">Current Test</h2>
             
                 <div class="px-2 dark:text-white dark:bg-gray-700">
                     <p>Project Name: Test Run</p>

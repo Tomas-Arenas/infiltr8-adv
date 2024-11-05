@@ -89,7 +89,7 @@
 			<h1 class="oswald ml-2 mr-auto flex-grow text-2xl font-bold text-gray-900 dark:text-white">
 				INFILTR8
 			</h1>
-			{#if userInitials != undefined}
+			{#if loggedIn}
 				<button class="mr-1 rounded-lg bg-blue-100 p-2" aria-label="" in:fade={{ duration: 500 }}>
 					<h1 class="text-sm font-bold text-blue-600 dark:text-blue-400">
 						{userInitials}
@@ -211,7 +211,7 @@
 					>
 						INFILTR8
 					</h1>
-					{#if userInitials != undefined}
+					{#if loggedIn }
 						<button
 							class="ml-4 mr-1 rounded-lg bg-blue-100 p-2"
 							aria-label=""

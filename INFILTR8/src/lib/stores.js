@@ -1,6 +1,5 @@
 import { writable, get } from "svelte/store";
 import { IP } from "$lib/IP.js"
-import { json } from "@sveltejs/kit";
 
 //Menu Stuff
 export const menuOpen = writable(false);
