@@ -12,7 +12,7 @@
     onMount(() => {
         const intervalId = setInterval(async () => {
             await getTableData();
-        }, 500); 
+        }, 1000); 
     });
 
     async function logButtonClick(detail) {
@@ -79,8 +79,7 @@
 
             const data = await response.json();
             tableData = Object.values(data).flatMap(Object.values);
-            tableData = tableData.filter(row => row.status !== null);
-
+            tableData = tableData.filter(row => row.status != null);
             series = [0, 0, 0];
             tableData.forEach(row => {
                 if (row.status === 'reports') {
@@ -130,20 +129,28 @@
                         <TableHeadCell>Progress</TableHeadCell>
                     </TableHead>
                     <TableBody>
-                        {#each tableData as row}
+                        {#if tableData.length > 0}
+                            {#each tableData as row}
+                                <TableBodyRow>
+                                    <TableBodyCell>{row.creation}</TableBodyCell>
+                                    <TableBodyCell>{row.user}</TableBodyCell>
+                                    <TableBodyCell>{row.fileSize}</TableBodyCell>
+                                    <TableBodyCell>
+                                        {#if typeof row.status === 'number'}
+                                            <Progressbar progress={row.status} labelInside />
+                                        {:else}
+                                            <button class="border-2 py-2 px-2 shadow-lg rounded-2xl self-center">{row.status}</button>
+                                        {/if}
+                                    </TableBodyCell>
+                                </TableBodyRow>
+                            {/each}
+                        {:else}
                             <TableBodyRow>
-                                <TableBodyCell>{row.creation}</TableBodyCell>
-                                <TableBodyCell>{row.user}</TableBodyCell>
-                                <TableBodyCell>{row.fileSize}</TableBodyCell>
-                                <TableBodyCell>
-                                    {#if typeof row.status === 'number'}
-                                        <Progressbar progress={row.status} labelInside />
-                                    {:else}
-                                        <button class="border-2 py-2 px-2 shadow-lg rounded-2xl self-center">{row.status}</button>
-                                    {/if}
+                                <TableBodyCell colspan="4" class="text-center">
+                                    No existing projects
                                 </TableBodyCell>
                             </TableBodyRow>
-                        {/each}
+                        {/if}
                     </TableBody>
                 </Table>
             </div>
