@@ -9,15 +9,35 @@ def countProjects(driver, username):
         return numProject.single()['total']
 
 def projectParser(project):
-    print("Project record:", project)
-    return {'projectId': project['projectId'], 'projectname': project['projectname'], 'ips': project['ips'], 'exploits': project['exploits']}
+    return {
+        'projectId': project['projectId'],
+        'projectName': project['projectName'],  # Corrected key name
+        'ips': project['ips'],
+        'exploits': project['exploits'],
+        'file': project['file'],
+        'fileSize': project['fileSize'],
+        'user': project['user'],
+        'creation': project['creation'],
+        'status': project['status']
+    }
 
 def allProjectInfo(driver, username):
-    query = "MATCH (p:Project)-[:HAS_PROJECT]->(a:Analyst {username: $username}) RETURN p.projectId AS projectId, p.projectName AS projectname, p.ips AS ips, p.exploits AS exploits"
+    query = """
+        MATCH (p:Project)-[:HAS_PROJECT]->(a:Analyst {username: $username}) 
+        RETURN 
+            p.projectId AS projectId, 
+            p.projectName AS projectName, 
+            p.ips AS ips, 
+            p.exploits AS exploits, 
+            p.file AS file, 
+            p.fileSize AS fileSize, 
+            p.user AS user, 
+            p.creation AS creation, 
+            p.status AS status
+    """
     with driver.session() as session:
         result = session.run(query, username=username)
         all_projects = [projectParser(record) for record in result]
-        print("All projects:", all_projects) 
         return all_projects
 
 
