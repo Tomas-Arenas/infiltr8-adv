@@ -126,7 +126,7 @@
     <div>
         <!-- start of the left column -->   
           
-        <div id="middle" class="float-left  w-8/12 h-flex   ">
+        <div id="left" class="float-left  w-8/12 h-flex   ">
             <!-- table section -->
             <div id="table" class="my-6">
                 <Table noborder={true}>
@@ -249,9 +249,9 @@
                 <button type="button" class="w-full bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50">
                     View Results
                 </button>
-            </div>
-        </div> -->
+            </div> -->
 
+        </div>
         <div id="middle" class="flex-top float-left  w-8/12  py-0">
             <!-- start of Summary-->
             <div id="bottomSettings" class="py-8 shadow-2xl dark:bg-gray-900">
