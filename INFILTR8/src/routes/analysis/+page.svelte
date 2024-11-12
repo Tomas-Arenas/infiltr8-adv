@@ -8,6 +8,7 @@
 
     let tableData = [];
     let series = [0, 0, 0]; 
+    let latestProject = null;
 
     onMount(() => {
         const intervalId = setInterval(async () => {
@@ -91,6 +92,13 @@
                 }
             });
 
+            // Get the latest project by date
+            if (tableData.length > 0) {
+                latestProject = tableData.reduce((latest, current) => 
+                    new Date(current.creation) > new Date(latest.creation) ? current : latest
+                );
+            }
+
         } catch (error) {
             console.error("There was an error retrieving data from the backend:", error);
         }
@@ -118,7 +126,7 @@
     <div>
         <!-- start of the left column -->   
           
-        <div id="left" class="float-left  w-8/12 h-flex   ">
+        <div id="middle" class="float-left  w-8/12 h-flex   ">
             <!-- table section -->
             <div id="table" class="my-6">
                 <Table noborder={true}>
@@ -205,22 +213,27 @@
             <div id="bottomSettings" class=" py-6 rounded-md shadow-2xl  ">
                 <h2 class="text-center font-bold leading-none text-gray-900 dark:text-gray-400  me-1 dark:bg-gray-900">Current Test</h2>
             
-                <div class="px-2 dark:text-white dark:bg-gray-700">
-                    <p>Project Name: Test Run</p>
-                    <p>Analyst: John Doe</p>
-                    <p>File Location: /Path/goes/here/</p>
-                    <p>Scheduled?: Yes</p>
-                    <p>IPs Excluded?: Yes</p>
-                    <p>Time Started: 10:00:00 AM - 9/12/2024</p>
-                    <p>Time Completed: </p>
-                    <button on:click={() => logButtonClick('Dummy button clicked')}>Click Me</button>
-                    <button on:click={downloadLogs}>Download Logs</button>
-                    <p> {timestamp}</p>
-                </div>
-        
+                {#if latestProject}
+                    <div class="px-2 dark:text-white dark:bg-gray-700">
+                        <p>Project Name: {latestProject.projectName}</p>
+                        <p>Analyst: {latestProject.user}</p>
+                        <p>File Size: {latestProject.fileSize}</p>
+                        <p>Status: {latestProject.status}</p>
+                        <p>Time Started: {latestProject.creation}</p>
+                        <button 
+                            on:click={() => logButtonClick('Dummy button clicked')}
+                            on:click={downloadLogs} 
+                            class="w-full bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50"                            >
+                            Download Logs
+                        </button>
+                    </div>
+                {:else}
+                    <p class="text-center">No current test available.</p>
+                {/if}
+            
             </div>
 
-            <!-- Entry Points dropdown section -->
+            <!-- Entry Points dropdown section
             <div id="entryPoints" class="my-6 ">
                 <label for="entry-point-type" class=" dark:text-white block text-sm font-medium text-gray-700">Entry Points</label>
                 <select id="entry-point-type" name="entry-point-type" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
@@ -232,13 +245,12 @@
                     <option value="weak-passwords">Weak Passwords</option>
                 </select>
             </div>
-            <!-- View Results button -->
             <div id="viewResults" class="my-6">
                 <button type="button" class="w-full bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50">
                     View Results
                 </button>
             </div>
-        </div>
+        </div> -->
 
         <div id="middle" class="flex-top float-left  w-8/12  py-0">
             <!-- start of Summary-->
