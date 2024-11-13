@@ -39,7 +39,7 @@
     {#if $darkMode}
       <SunSolid color='white' class="h-7 w-7 pointer-events-none" />
     {:else}
-      <MoonSolid class="h-7 w-7 pointer-events-none" />
+      <MoonSolid class="h-6 w-6 pointer-events-none" />
     {/if}
   </button>
 {/if}

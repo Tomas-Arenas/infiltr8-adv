@@ -9,19 +9,37 @@ def countProjects(driver, username):
         return numProject.single()['total']
 
 def projectParser(project):
-    return {'projectId': project['projectId'], 'projectname': project['projectName'], 'user': project['user'], 'status': project['status'], 
-            'fileSize': project['fileSize'], 'creation': project['creation'],'ips': project['ips'], 'exploits': project['exploits']}
+    return {
+        'projectId': project['projectId'],
+        'projectName': project['projectName'],  # Corrected key name
+        'ips': project['ips'],
+        'exploits': project['exploits'],
+        'file': project['file'],
+        'fileSize': project['fileSize'],
+        'user': project['user'],
+        'creation': project['creation'],
+        'status': project['status']
+    }
 
 def allProjectInfo(driver, username):
-    query = "MATCH (p:Project)-[:HAS_PROJECT]->(a:Analyst{username: $username}) RETURN p.projectId as projectId, p.projectName as projectName, p.user as user, p.status as status, p.fileSize as fileSize, p.creation as creation, p.ips as ips, p.exploits as exploits"
-
+    query = """
+        MATCH (p:Project)-[:HAS_PROJECT]->(a:Analyst {username: $username}) 
+        RETURN 
+            p.projectId AS projectId, 
+            p.projectName AS projectName, 
+            p.ips AS ips, 
+            p.exploits AS exploits, 
+            p.file AS file, 
+            p.fileSize AS fileSize, 
+            p.user AS user, 
+            p.creation AS creation, 
+            p.status AS status
+    """
     with driver.session() as session:
         result = session.run(query, username=username)
-        allProject = {}
-        for index, project in enumerate(result):
-            projectName = "project"+str(project['projectId'])
-            allProject[projectName] = projectParser(project)
-        return allProject
+        all_projects = [projectParser(record) for record in result]
+        return all_projects
+
 
 def getProjectInfomation(driver, username, projectId):
     query = "MATCH (p:Project {projectId: $projectId})-[r:HAS_PROJECT]->(u:Analyst {username: $username}) RETURN p as project"
