@@ -133,8 +133,8 @@ def processNessus():
 @app.route("/flask-api/ranked-entry-points")
 def rankedEntryPoints():
     return
-
-@app.route("/flask-api/get-ips", methods=['POST'])
+#gets ips from the analysis
+@app.route('/flask-api/get-ips', methods=['POST'])
 def receive_ips():
     ips = request.json
     analysis.disallowed_ips=[]
@@ -143,8 +143,40 @@ def receive_ips():
         analysis.disallowed_ips.append(ip['ip'])
     
     analysis.analyze_nessus_file(driver, session['currentProject'] ,session['username'])
-    return jsonify({"messaage":"success", "data":ips})
 
+    try:
+        data = request.get_json(force=True)
+        if data is None or not isinstance(data, dict):
+            return jsonify({"error": "Invalid JSON format"}), 400
+
+        # Check for required fields
+        project_id = data.get("project_id")
+        ips = data.get("ips")
+        exploits = data.get("exploits")
+
+        # Validate types of each field
+        if not isinstance(project_id, int):
+            return jsonify({"error": "Invalid project_id: must be an integer"}), 400
+        if not isinstance(ips, str):
+            return jsonify({"error": "Invalid ips: must be a string"}), 400
+        if not isinstance(exploits, list):
+            return jsonify({"error": "Invalid exploits: must be a list"}), 400
+
+        ip_list = ips.split(",") if ips else []
+
+        response_data = {
+            "project_id": project_id,
+            "ips_count": len(ip_list),
+            "exploits_count": len(exploits),
+            "status": "Analysis started"
+        }
+        return jsonify(response_data), 200
+
+    except Exception as e:
+        print(f"Error in /get-ips: {e}")
+        return jsonify({"error": str(e)}), 500
+
+#gets unqiue ips from the file
 @app.route("/flask-api/get-all-ips", methods=['POST'])
 def get_all_ips():
     data = request.get_json()
