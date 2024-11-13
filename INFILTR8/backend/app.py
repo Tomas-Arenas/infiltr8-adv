@@ -125,7 +125,7 @@ def nessusFileUpload():
 
 @app.route("/flask-api/process-nessus")
 def processNessus():
-    result = nessus_upload.processAndUpload(driver, session['username'], session['currentProject'], 'INFILTR8/backend/output/ranked_entry_points.csv')
+    result = nessus_upload.processAndUpload(driver, session['currentProject'],  session['username'])
     return jsonify({'message': 'File has been uploaded'})
     
 
@@ -136,6 +136,15 @@ def rankedEntryPoints():
 #gets ips from the analysis
 @app.route('/flask-api/get-ips', methods=['POST'])
 def receive_ips():
+    ips = request.json
+    analysis.disallowed_ips=[]
+    # Run analysis.py with the data as a JSON command-line argument
+    for ip in ips:
+        analysis.disallowed_ips.append(ip['ip'])
+    
+    analysis.analyze_nessus_file(driver, session['currentProject'] ,session['username'])
+    return jsonify({"messaage":"success", "data":ips})
+
     try:
         data = request.get_json(force=True)
         if data is None or not isinstance(data, dict):
