@@ -23,9 +23,7 @@
 		// Check session state when the component mounts
 		checkSession();
 	});
-
-	$: console.log('Current Route is: ', $page.route.id);
-
+	
 </script>
 
 <svelte:head>
