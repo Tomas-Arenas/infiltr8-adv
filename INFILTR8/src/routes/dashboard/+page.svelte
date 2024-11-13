@@ -283,7 +283,7 @@
                                 <TableBody>
                                     {#each projects as project}
                                         <TableBodyRow>
-                                        <TableBodyCell>{project.projectname}</TableBodyCell>
+                                        <TableBodyCell>{project.projectName}</TableBodyCell>
                                         <TableBodyCell>{project.projectId}</TableBodyCell>
                                         <TableBodyCell>{project.ips ? project.ips.join(', ') : ''}</TableBodyCell>
                                         <TableBodyCell>
