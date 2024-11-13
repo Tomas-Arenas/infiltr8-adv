@@ -70,3 +70,22 @@ darkMode.subscribe((value) => {
     document.documentElement.classList.toggle("dark", value);
   }
 });
+
+// Colorblind Mode Logic
+const savedColorMode = (typeof window !== 'undefined' && localStorage.getItem("colorblind-mode")) || "Normal";
+export const colorblindMode = writable(savedColorMode);
+
+colorblindMode.subscribe((value) => {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem("colorblind-mode", value);
+
+    // Apply the appropriate colorblind filter
+    const root = document.documentElement;
+    root.style.filter = 'none';
+    if (value === 'Protanopia') {
+      root.style.filter = 'url(#protanopia-filter)';
+    } else if (value === 'Deuteranopia') {
+      root.style.filter = 'url(#deuteranopia-filter)';
+    }
+  }
+});
