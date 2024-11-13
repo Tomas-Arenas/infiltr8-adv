@@ -29,11 +29,15 @@
 </svelte:head>
 
 <!-- Toast notifications for temporary alerts -->
-<Toast />
+{#if $session.logged_in}
+	<Toast />
+{/if}
 
 <div class="fixed right-0 z-50 flex items-center justify-items-center gap-3 pr-3 pt-2">
 	<!-- Notifications Bell -->
+	{#if $session.logged_in}
 	<Notifications />
+	{/if}
 	<!-- Darkmode Toggle -->
 	<Darkmode showIcon={true} />
 	<!-- Colorblind Toggle -->
