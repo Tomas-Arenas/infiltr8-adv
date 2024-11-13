@@ -11,22 +11,43 @@ export const ipsDisallowed = writable([]);
 
 // Function to send store data to the backend
 export const sendIPSToBackend = async () => {
-    const data = get(ipsDisallowed);  
-    try {
-      const response = await fetch('/flask-api/get-ips', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-      });
-      const result = await response.json();
-      console.log('Data sent to backend:', result);
-    } catch (error) {
-      console.error('Error sending data:', error);
-    }
-};
+  const disallowedData = get(ipsDisallowed).map(ipInstance => ipInstance.ip);
+  const payload = {
+      ips: disallowedData.join(","), // Comma-separated string of disallowed IPs
+  };
 
+  // Log payload to confirm data being sent
+  console.log('Sending disallowed IPs to backend:', payload);
+
+  try {
+      const response = await fetch('/flask-api/get-ips', {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(payload)
+      });
+
+      const result = await response.json();
+      console.log('Data sent to backend successfully:', result);
+  } catch (error) {
+      console.error('Error sending data to backend:', error);
+  }
+};
+export function updateAllowedAndDisallowedIPs(allIps, selectedIps) {
+  // Filter to find selected and disallowed IPs
+  const selectedIpInstances = allIps
+      .filter(ip => selectedIps.includes(ip.ip))
+      .map(ip => new IP(ip));
+
+  const disallowedIpInstances = allIps
+      .filter(ip => !selectedIps.includes(ip.ip))
+      .map(ip => new IP(ip));
+
+  // Update the stores
+  ipsAllowed.set(selectedIpInstances);
+  ipsDisallowed.set(disallowedIpInstances);
+}
   //should be ran once a nessus file is uploaded
   export async function getIPsFromBackend(fileName) {
     const ipData = get(ipsDisallowed).map(ipInstance => ipInstance.ip);  // Assuming IP has an `ip` property

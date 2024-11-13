@@ -1,9 +1,10 @@
 <script>
     import IP from '$lib/IP.js';
     import { Card, Button, ButtonGroup, Listgroup, ListgroupItem } from 'flowbite-svelte';
-    import { ipsAllowed, ipsDisallowed, sendIPSToBackend, getIPsFromBackend } from '$lib/stores.js';
     import { onMount } from 'svelte';
     import { goto } from '$app/navigation';
+    import { sendIPSToBackend, ipsAllowed, ipsDisallowed } from "$lib/stores.js"; // Import stores
+
 
     let projects = [];
     let selectedProject = null;
@@ -74,7 +75,16 @@
             // If not selected, add it
             selectedIps = [...selectedIps, ip];
         }
+        const allowedIPInstances = selectedIps.map(ipAddress => new IP(ipAddress));
+        const disallowedIPInstances = allIps
+        .filter(ipAddress => !selectedIps.includes(ipAddress))
+        .map(ipAddress => new IP(ipAddress));
+
+        ipsAllowed.set(allowedIPInstances);
+        ipsDisallowed.set(disallowedIPInstances);
+
         console.log("Selected IPs for scope:", selectedIps);
+        console.log("Disallowed IPs:", disallowedIPInstances.map(ip => ip.ip));
     }
 
     function addIPstoStore(data) {
@@ -172,7 +182,8 @@
 
     onMount(() => {
         fetchProjects();
-        getIPsFromBackend();
+        //getIPsFromBackend();
+        sendIPSToBackend();
     });
 </script>
 
@@ -212,8 +223,20 @@
 
         <!-- Project Scope with Exploits Allowed -->
         <Card class="flex-1 rounded-lg bg-white p-5 shadow-md">
-            <h2 class="mb-4 text-lg font-semibold">Project Scope</h2>
-            <div class="mt-6">
+        <h2 class="mb-4 text-lg font-semibold">Project Scope</h2>
+
+        <!-- Selected IPs in Scope -->
+        <div class="mt-6">
+            <h3 class="mb-2 text-lg font-semibold">Selected IPs</h3>
+            <Listgroup class="border-none">
+                {#each selectedIps as ip}
+                    <ListgroupItem class="flex items-center gap-3 justify-between rounded-lg bg-gray-100 p-4 shadow dark:bg-gray-800 mb-4">
+                        <span>{ip}</span>
+                    </ListgroupItem>
+                {/each}
+            </Listgroup>
+        </div>            
+        <div class="mt-6">
                 <h3 class="mb-2 text-lg font-semibold">Exploits Allowed</h3>
                 <Listgroup class="border-none">
                     {#each exploitsAllowed as exploit, index}
