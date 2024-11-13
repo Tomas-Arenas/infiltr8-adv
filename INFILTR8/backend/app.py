@@ -143,7 +143,6 @@ def receive_ips():
         analysis.disallowed_ips.append(ip['ip'])
     
     analysis.analyze_nessus_file(driver, session['currentProject'] ,session['username'])
-    return jsonify({"messaage":"success", "data":ips})
 
     try:
         data = request.get_json(force=True)

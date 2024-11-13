@@ -23,12 +23,16 @@
         try {
             const response = await fetch('/flask-api/all-projects');
             const data = await response.json();
-            projects = data.data; // Assuming data.data is the list of projects
-            console.log("fetching:", projects);
+            projects = data.data.map(project => ({
+                ...project,
+                id: project.projectId // Map projectId to id
+            }));
+            console.log("Projects fetched:", projects);
         } catch (error) {
             console.error('Failed to fetch projects:', error);
         }
     }
+
     async function fetchProjectIps(fileName) {
         try {
             const response = await fetch('/flask-api/get-all-ips', {
@@ -56,7 +60,7 @@
             return;
         }
         selectedProject = project;
-        console.log(`Project ${project.name} loaded.`);
+        console.log(`Project ${project.name} loaded.`, selectedProject);
     }
 
     function addIPstoStore(data) {
@@ -95,29 +99,26 @@
     }
 
     async function startAnalysis() {
-        if (!selectedProject) {
-            alert("Please select a project before starting testing.");
+        if (!selectedProject || !selectedProject.id) {
+            alert("Please select a project with a valid ID before starting testing.");
             return;
         }
-
-        // Send project and exploit data to backend
+    
         const selectedExploits = exploitsAllowed.filter(exp => exp.selected).map(exp => exp.name);
-        
+    
         try {
-            // Send request to `/flask-api/get-ips` to initiate analysis with selected project details
             const response = await fetch('/flask-api/get-ips', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    project_id: selectedProject.id, // Send the selected project ID
-                    ips: allIps,                    // Send the allowed IPs for the project
-                    exploits: selectedExploits       // Send the selected exploits
+                    project_id: selectedProject.id,         // Ensure this is defined
+                    ips: allIps.join(','),                  // Convert array to comma-separated string if needed
+                    exploits: selectedExploits              // Send selected exploits
                 })
             });
-
+    
             if (!response.ok) throw new Error("Failed to start project analysis.");
+            
             const result = await response.json();
             console.log("Project analysis started:", result);
         } catch (error) {
@@ -200,7 +201,7 @@
             {/if}
         </Card>
 
-        <!-- Allowed Exploits -->
+        <!-- Project Scope with Exploits Allowed -->
         <Card class="flex-1 rounded-lg bg-white p-5 shadow-md">
             <h2 class="mb-4 text-lg font-semibold">Project Scope</h2>
             <div class="mt-6">
@@ -232,7 +233,7 @@
                         <i class="fas fa-folder text-lg"></i>
                         <div>
                             <span class="block font-medium">{project.name}</span>
-                            <span class="text-sm text-gray-500">{project.fileSize} items • {project.file}</span> <!-- Adjust fields as per `project` properties -->
+                            <span class="text-sm text-gray-500">{project.fileSize} items • {project.file}</span> <!-- Adjust fields as per project properties -->
                         </div>
                     </div>
                     <span class="text-gray-500">⋮</span>
