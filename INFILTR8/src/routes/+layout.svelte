@@ -29,30 +29,36 @@
 </svelte:head>
 
 <!-- Toast notifications for temporary alerts -->
-<Toast />
+{#if $session.logged_in}
+	<Toast />
+{/if}
 
 <div class="fixed right-0 z-50 flex items-center justify-items-center gap-3 pr-3 pt-2">
 	<!-- Notifications Bell -->
+	{#if $session.logged_in}
 	<Notifications />
+	{/if}
 	<!-- Darkmode Toggle -->
 	<Darkmode showIcon={true} />
 	<!-- Colorblind Toggle -->
 	<Colorblind showIcon={true} />
 </div>
 
-<div class="app flex h-screen bg-gray-50 dark:bg-gray-600">
+<div class="app flex h-screen bg-gradient-to-r bg-white dark:from-gray-600 dark:to-slate-800">
 	<Navbar />
-	<div class={`flex-1 bg-gray-50 p-4 dark:bg-gray-600 ${$menuOpen ? 'ml-64' : ''} mt-10`}>
+	<div class={`flex-1 p-4 transition-all duration-300 ${$session.logged_in && $menuOpen ? 'ml-64' : ''} mt-10`}>
 		<main>
 			<slot />
 		</main>
 	</div>
 </div>
 
+
+
 <style>
 	.app {
 		display: flex;
 		flex-direction: column;
-		min-height: 300vh;
+		min-height: fit-content;
 	}
 </style>
