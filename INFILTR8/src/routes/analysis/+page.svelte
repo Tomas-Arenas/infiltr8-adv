@@ -13,7 +13,7 @@
     onMount(() => {
         const intervalId = setInterval(async () => {
             await getTableData();
-        }, 1000); 
+        }, 500); 
     });
 
     async function logButtonClick(detail) {

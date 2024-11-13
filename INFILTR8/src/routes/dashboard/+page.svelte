@@ -181,11 +181,7 @@
           console.warn(message);
           return;
       }
-      if (possibleEntryPoints.length === 0) {
-          message = "No entry points found in the Nessus file. Please upload a valid file.";
-          console.warn(message);
-          return;
-      }
+
       let ips
       await ipList.then(function(result){ips = result})
       const projectData = {
@@ -288,7 +284,7 @@
                                 <TableBody>
                                     {#each projects as project}
                                         <TableBodyRow>
-                                        <TableBodyCell>{project.projectname}</TableBodyCell>
+                                        <TableBodyCell>{project.projectName}</TableBodyCell>
                                         <TableBodyCell>{project.projectId}</TableBodyCell>
                                         <TableBodyCell class="text-wrap">{project.ips ? project.ips.join(', ') : ''}</TableBodyCell>
                                         <TableBodyCell>

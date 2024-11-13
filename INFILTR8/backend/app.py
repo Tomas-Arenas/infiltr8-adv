@@ -125,7 +125,7 @@ def nessusFileUpload():
 
 @app.route("/flask-api/process-nessus")
 def processNessus():
-    result = nessus_upload.processAndUpload(driver, session['username'], session['currentProject'], 'INFILTR8/backend/output/ranked_entry_points.csv')
+    result = nessus_upload.processAndUpload(driver, session['currentProject'],  session['username'])
     return jsonify({'message': 'File has been uploaded'})
     
 
@@ -142,7 +142,7 @@ def receive_ips():
     for ip in ips:
         analysis.disallowed_ips.append(ip['ip'])
     
-    analysis.analyze_nessus_file()
+    analysis.analyze_nessus_file(driver, session['currentProject'] ,session['username'])
     return jsonify({"messaage":"success", "data":ips})
 
 @app.route("/flask-api/get-all-ips", methods=['POST'])
