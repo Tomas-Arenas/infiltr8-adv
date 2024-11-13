@@ -8,6 +8,7 @@
     let projects = [];
     let selectedProject = null;
     let allIps = [];
+    let selectedIps = [];
     
     let exploitsAllowed = [
         { id: 1, name: 'SQL Injection', selected: false },
@@ -60,7 +61,20 @@
             return;
         }
         selectedProject = project;
+        allIps = project.ips || [];
+        selectedIps = [];
         console.log(`Project ${project.name} loaded.`, selectedProject);
+    }
+
+    function toggleIpSelection(ip) {
+        if (selectedIps.includes(ip)) {
+            // If already selected, remove it
+            selectedIps = selectedIps.filter(selectedIp => selectedIp !== ip);
+        } else {
+            // If not selected, add it
+            selectedIps = [...selectedIps, ip];
+        }
+        console.log("Selected IPs for scope:", selectedIps);
     }
 
     function addIPstoStore(data) {
@@ -170,16 +184,11 @@
         <Card class="flex-1 rounded-lg bg-white p-5 shadow-md">
             <h2 class="mb-4 text-lg font-semibold">Current Project IPS</h2>
             <Listgroup class="border-none">
-                <!-- Render IPs here -->
-                {#each $ipsAllowed as ip, index}
-                    <ListgroupItem class="flex items-center gap-3 justify-between rounded-lg bg-gray-100 p-4 shadow dark:bg-gray-800 mb-4">                  
-                        <input type="checkbox" bind:checked={ip.selected} />
-                        <span>{ip.ip}</span>
-                        <ButtonGroup class="*:!ring-primary-700">
-                            <Button size="sm mr-2" on:click={() => moveUp($ipsAllowed, index)}>⬆</Button>
-                            <Button size="sm mr-2" on:click={() => moveDown($ipsAllowed, index)}>⬇</Button>             
-                        </ButtonGroup >						
-                    </ListgroupItem>
+                        {#each allIps as ip, index}
+                            <ListgroupItem class="flex items-center gap-3 justify-between rounded-lg bg-gray-100 p-4 shadow dark:bg-gray-800 mb-4">
+                                <input type="checkbox" on:change={() => toggleIpSelection(ip)} />
+                                <span>{ip}</span>
+                        </ListgroupItem>
                 {/each}
             </Listgroup>
         </Card>
