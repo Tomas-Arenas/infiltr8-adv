@@ -42,7 +42,7 @@
 
 <div class="app flex h-screen bg-gradient-to-r bg-white dark:from-gray-600 dark:to-slate-800">
 	<Navbar />
-	<div class={`flex-1 p-4 transition-all duration-300 ${$menuOpen ? 'ml-64' : ''} mt-10`}>
+	<div class={`flex-1 p-4 transition-all duration-300 ${$session.logged_in && $menuOpen ? 'ml-64' : ''} mt-10`}>
 		<main>
 			<slot />
 		</main>
