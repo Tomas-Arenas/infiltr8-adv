@@ -2,19 +2,46 @@
     import { SystemInfo } from '../../lib/SystemInfo.js';
     import { Table, TableBody, TableBodyCell, TableBodyRow, TableHead, TableHeadCell } from 'flowbite-svelte';
     import { Chart, Card, A, Button, Dropdown, DropdownItem, Popover, Tooltip, Progressbar } from 'flowbite-svelte';
-    import { InfoCircleSolid, ArrowDownToBracketOutline, ChevronDownOutline, ChevronRightOutline, PenSolid, DownloadSolid, ShareNodesSolid } from 'flowbite-svelte-icons';
+    import { InfoCircleSolid, ArrowDownToBracketOutline, ChevronDownOutline, ChevronRightOutline, PenSolid, DownloadSolid, ShareNodesSolid, ShareNodesOutline } from 'flowbite-svelte-icons';
     import { onMount, onDestroy } from 'svelte';
-    import { session, checkSession } from '$lib/stores/session.js';
 
     let tableData = [];
     let series = [0, 0, 0]; 
     let latestProject = null;
+    let username = "";
+    
+    async function checkSession(){
+        try{
+            const response = await fetch('/flask-api/check_session',{
+                method: 'GET',
+                credentials: 'include'
+            });
+            if (response.ok){
+                const sessionData = await response.json();
+                if (sessionData.logged_in){
+                    username = sessionData.username;
+                }else{
+                    console.error("User is not logged in");
+                }
+            } else{
+                console.error("Failed to fetch session data");
+            }
+
+        }catch (error){
+            console.error("Error checking session:", error);
+        }
+    }
 
     onMount(() => {
-        const intervalId = setInterval(async () => {
-            await getTableData();
-        }, 500); 
+        const initialize = async () => {
+            await checkSession();
+            setInterval(async () => {
+                await getTableData();
+            }, 500);
+        }
+        initialize();
     });
+
 
     async function logButtonClick(detail) {
         console.log("Button clicked with detail:", detail);  // For debugging
@@ -25,7 +52,7 @@
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    username: 'DummyUser',  // Dummy username for now
+                    username: username || 'Anonymous',  // Dummy username for now
                     action: 'ButtonClick',
                     details: detail
                 })
@@ -55,7 +82,7 @@
             const a = document.createElement('a');
             a.style.display = 'none';
             a.href = url;
-            a.download = `logs_${date}.txt`;
+            a.download = `logs_${date}.log`;
             document.body.appendChild(a);
             a.click();
             window.URL.revokeObjectURL(url);
