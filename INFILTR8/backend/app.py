@@ -136,13 +136,6 @@ def rankedEntryPoints():
 #gets ips from the analysis
 @app.route('/flask-api/get-ips', methods=['POST'])
 def receive_ips():
-    ips = request.json
-    analysis.disallowed_ips=[]
-    # Run analysis.py with the data as a JSON command-line argument
-    for ip in ips:
-        analysis.disallowed_ips.append(ip['ip'])
-    
-    analysis.analyze_nessus_file(driver, session['currentProject'] ,session['username'])
 
     try:
         data = request.get_json(force=True)
