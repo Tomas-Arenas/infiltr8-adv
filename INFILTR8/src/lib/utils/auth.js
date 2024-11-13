@@ -15,11 +15,11 @@ export async function protectRoute(fetch) {
         if (typeof window === 'undefined') {
             return {
                 status: 302,
-                redirect: '/login'
+                redirect: '/'
             };
         } else {
             // Client-side redirection
-            goto('/login');
+            goto('/');
             return;
         }
     }
