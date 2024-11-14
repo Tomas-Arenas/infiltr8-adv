@@ -80,7 +80,7 @@
         selectedProject = project;
         allIps = project.ips || [];
         selectedIps = [];
-        console.log(`Project ${project.name} loaded.`, selectedProject);
+        console.log(`Project ${project.projectName} loaded.`, selectedProject);
     }
 
     function toggleIpSelection(ip) {
@@ -226,7 +226,7 @@
             </Listgroup>
         </Card>
 
-        <!-- Archetypes Allowed -->
+
         <Card class="flex-1 rounded-lg bg-white p-5 shadow-md">
             <h2 class="mb-4 text-lg font-semibold text-center">Archetypes Allowed</h2>           
                 <Listgroup class="border-none">
@@ -241,6 +241,7 @@
                         </ListgroupItem>
                     {/each}
                 </Listgroup>
+
         </Card>
     </Card>
 
