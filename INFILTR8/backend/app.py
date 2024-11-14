@@ -117,12 +117,16 @@ def nessusFileUpload():
         print(os.path.exists(app.config['UPLOAD_FOLDER']+'/'+filename))
         return jsonify({'message':'file was sent and has been saved on server'})
 
-@app.route("/flask-api/process-nessus")
+@app.route("/flask-api/process-nessus", methods=["POST"])
 def processNessus():
     data = request.json
+    if not data:
+        return jsonify({'message': 'No data provided'}), 400
+    
     disallowedIps = data.get("disallowedIps")
-    analysis.disallowed_ips = disallowedIps
     archetypesAllowed = data.get("archetypes")
+    
+    analysis.disallowed_ips = disallowedIps
     analysis.analyze_nessus_file(driver, session['currentProject'], session['username'])
     nessus_upload.processAndUpload(driver, session['username'], session['currentProject'])
     return jsonify({'message': 'Result files have been uploaded'})
