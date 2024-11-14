@@ -230,24 +230,24 @@ def create_user_route():
     password = data['password']
 
     # Generate a secure, random key for account recovery
-    recovery_key = secrets.token_urlsafe(16)  # Generates a 16-byte secure token
+    recovery_key = secrets.token_urlsafe(16)
 
     # Hash the password
     hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
 
     with driver.session() as session:
-        session.write_transaction(
+        user_exists = session.write_transaction(
             user_service.create_user, 
             username, 
             hashed_password.decode('utf-8'), 
             recovery_key
         )
     
-    # Return the recovery key to the client for displaying to the user
-    return jsonify({
-        "status": "User created successfully",
-        "recovery_key": recovery_key
-    })
+    if user_exists:
+        return jsonify({"error": "User already exists"}), 409  # Conflict status
+    else:
+        return jsonify({"status": "User created successfully", "recovery_key": recovery_key}), 201
+
 
 # checks login information 
 @app.route('/flask-api/login', methods=['POST'])
