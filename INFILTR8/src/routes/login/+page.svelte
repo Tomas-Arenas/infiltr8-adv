@@ -16,6 +16,7 @@
   let createPassword = '';
   let createErrorMessage = '';
   let createSuccessMessage = '';
+  let recoveryKey = ''; // Store the recovery key to display
 
   // Forgot Password Form Variables
   let accountKey = '';
@@ -69,10 +70,9 @@
   async function createUser() {
     createErrorMessage = '';
     createSuccessMessage = '';
+    recoveryKey = '';  // Reset recovery key each time the form is submitted
 
     const payload = {
-      first_name: firstName,
-      last_name: lastName,
       username: createUsername,
       password: createPassword,
     };
@@ -88,8 +88,7 @@
 
       if (response.ok) {
         createSuccessMessage = 'User created successfully!';
-        firstName = '';
-        lastName = '';
+        recoveryKey = data.recovery_key;  // Capture the recovery key
         createUsername = '';
         createPassword = '';
       } else {
@@ -168,8 +167,20 @@
         <!-- Create Account Button -->
         <button type="submit" class="w-full px-4 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-500 dark:hover:bg-blue-600 dark:focus:ring-blue-700">Create Account</button>
       </form>
+
+      <!-- Display the Recovery Key if Available -->
+      {#if recoveryKey}
+        <div class="mt-4 p-4 bg-yellow-100 dark:bg-yellow-700 rounded-lg">
+          <h4 class="font-semibold text-yellow-800 dark:text-yellow-300">Important: Save Your Recovery Key</h4>
+          <p class="mt-2 text-sm text-gray-700 dark:text-gray-200">
+            This key is required to reset your password if needed. Please store it in a secure location.
+          </p>
+          <div class="mt-2 text-lg font-mono text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-800 p-2 rounded-md">
+            {recoveryKey}
+          </div>
+        </div>
+      {/if}
   
-      <!-- Close Button -->
       <div class="mt-4">
         <button class="w-full px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 focus:ring-4 focus:outline-none focus:ring-gray-300 dark:bg-gray-600 dark:text-gray-300 dark:hover:bg-gray-700 dark:focus:ring-gray-700" on:click={handleModalClose}>Close</button>
       </div>
