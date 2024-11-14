@@ -104,27 +104,21 @@
         const selectedExploits = exploitsAllowed.filter(exp => exp.selected).map(exp => exp.name);
     
         try {
-            const response = await fetch('/flask-api/get-ips', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    project_id: selectedProject.projectId,         // Ensure this is defined
-                    ips: selectedIps.join(','),                  // Convert array to comma-separated string if needed
-                    exploits: selectedExploits              // Send selected exploits
-                })
-            });
-    
-            if (!response.ok) throw new Error("Failed to start project analysis.");
+            const response = await fetch('/flask-api/process-nessus');
             
-            const result = await response.json();
-            console.log("Project analysis started:", result);
+            // Check if the response is OK (status 200)
+            if (!response.ok) {
+                throw new Error(`Error: ${response.statusText}`);
+            }
+            
+            // Parse the JSON response
+            const data = await response.json();
+            
+            // Handle the response data
+            console.log(data.message);  // or update the UI as needed
+            alert(data.message);  // Show a message to the user
         } catch (error) {
-            console.error('Error starting analysis:', error);
-            console.log("Data sent to /flask-api/get-ips:", {
-                project_id: selectedProject.projectId,
-                ips: selectedIps,
-                exploits: selectedExploits
-            });
+            console.error('Error calling /flask-api/process-nessus:', error);
         }
     }
 
