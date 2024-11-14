@@ -13,13 +13,6 @@ import subprocess
 import json
 from datetime import datetime, timezone
 
-
-
-
-
-
-
-
 # Gets all the env variables
 config = dotenv_values(".env")
 URI = config['URI']
