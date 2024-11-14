@@ -119,6 +119,10 @@ def nessusFileUpload():
 
 @app.route("/flask-api/process-nessus")
 def processNessus():
+    data = request.json
+    disallowedIps = data.get("disallowedIps")
+    analysis.disallowed_ips = disallowedIps
+    archetypesAllowed = data.get("archetypes")
     analysis.analyze_nessus_file(driver, session['currentProject'], session['username'])
     nessus_upload.processAndUpload(driver, session['username'], session['currentProject'])
     return jsonify({'message': 'Result files have been uploaded'})
@@ -145,7 +149,7 @@ def portZeroEntries():
     return jsonify({'message': 'success', 'data': zeroEntries})
 
 #gets ips from the analysis
-@app.route('/flask-api/get-ips', methods=['POST'])
+@app.route('/flask-api/get-scope', methods=['POST'])
 def receive_ips():
 
     try:

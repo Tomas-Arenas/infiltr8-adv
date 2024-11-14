@@ -3,6 +3,7 @@
     import { Card, Button, ButtonGroup, Listgroup, ListgroupItem } from 'flowbite-svelte';
     import { onMount } from 'svelte';
     import { goto } from '$app/navigation';
+    import { get } from 'svelte/store';
     import { ipsAllowed, ipsDisallowed } from "$lib/stores.js"; // Import stores
 
 
@@ -32,8 +33,7 @@
             selectedIps = data.data.ips 
             allIps = data.data.ips
             selectedProject = data.data;
-            console.log(selectedProject);
-           
+            console.log(selectedProject);    
 
         } catch (error) {
             console.error("Failed to fetch current project info", error);
@@ -100,11 +100,17 @@
             alert("Please select a project with a valid ID before starting testing.");
             return;
         }
-    
         const selectedExploits = exploitsAllowed.filter(exp => exp.selected).map(exp => exp.name);
-    
         try {
-            const response = await fetch('/flask-api/process-nessus');
+            const response = await fetch('/flask-api/process-nessus' ,{
+               method:'POST',
+               headers: { 'Content-Type': 'application/json' },
+               body: JSON.stringify({
+                projectId: selectedProject.projectId,
+                disallowedIps: get(ipsDisallowed).map(item => item.ip),
+                archetypes: exploitsAllowed
+               }) 
+            });
             
             // Check if the response is OK (status 200)
             if (!response.ok) {
@@ -115,8 +121,8 @@
             const data = await response.json();
             
             // Handle the response data
-            console.log(data.message);  // or update the UI as needed
-            alert(data.message);  // Show a message to the user
+            console.log(data.message);  // or update the UI as needed  
+            console.log("process-nessus called and sent disallowed ips:",get(ipsDisallowed).map(item => item.ip));
         } catch (error) {
             console.error('Error calling /flask-api/process-nessus:', error);
         }
