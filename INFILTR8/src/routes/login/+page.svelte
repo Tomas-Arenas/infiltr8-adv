@@ -26,8 +26,12 @@
   // Reactive variable to control autocomplete
   let autocomplete = 'on';
 
-  onMount(() => {
-    checkSession(); // Check session on page load
+  // Redirect authenticated users to the main route
+  onMount(async () => {
+    await checkSession(); // Ensure session is up-to-date
+    if ($session.logged_in) {
+      goto('/'); // Redirect if user is already authenticated
+    }
   });
 
   // Disable autocomplete when modals are opened by changing the reactive variable
