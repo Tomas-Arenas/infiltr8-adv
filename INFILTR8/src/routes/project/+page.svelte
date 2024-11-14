@@ -7,7 +7,7 @@
 
 
     let projects = [];
-    let selectedProject = null;
+    let selectedProjectName = null;
     let allIps = [];
     let selectedIps = [];
     
@@ -19,6 +19,26 @@
         { id: 5, name: 'Unauthenticated Port Bypass', selected: false },
         { id: 6, name: 'Weak Passwords', selected: false }
     ];
+
+    async function fetchProjectInfo(){
+        try {
+            const response = await fetch('http://localhost:5173/flask-api/current-project-info');
+        
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            console.log(data.data.projectName); // Access projectName correctly
+            selectedProjectName = data.data.projectName
+            selectedIps = data.data.ips 
+            allIps = data.data.ips
+            console.log(data.data.ips)
+        
+        } catch (error) {
+            console.error("Failed to fetch current project info", error);
+        }
+    }
 
     // Fetch projects from the backend on component mount
     async function fetchProjects() {
@@ -182,6 +202,7 @@
 
     onMount(() => {
         fetchProjects();
+        fetchProjectInfo()
         //getIPsFromBackend();
         sendIPSToBackend();
     });
@@ -189,42 +210,29 @@
 
 <!-- Outer wrapper to center everything -->
 <div class="flex flex-col items-center justify-center">
+    {#if selectedProjectName === null}
+    <h1 class="text-2xl font-bold mb-6 text-red-700"> No Project Selected </h1>
+    {:else}
+    <h1 class="text-2xl font-bold mb-6 text-white"> {selectedProjectName} </h1>
+    {/if}
 	<!-- Main container with cards -->
-	<Card class="flex min-w-fit flex-row gap-5 rounded-lg bg-gray-100 p-5 shadow-md dark:bg-gray-800">
+	<Card class="flex min-w-fit flex-row gap-5 rounded-lg bg-gray-100 p-5 shadow-md dark:bg-gray-800"> 
         <!-- Show current IP list -->
         <Card class="flex-1 rounded-lg bg-white p-5 shadow-md">
-            <h2 class="mb-4 text-lg font-semibold">Current Project IPS</h2>
+            <h2 class="mb-4 text-lg font-semibold text-center">Current Project IPS</h2>
             <Listgroup class="border-none">
                         {#each allIps as ip, index}
                             <ListgroupItem class="flex items-center gap-3 justify-between rounded-lg bg-gray-100 p-4 shadow dark:bg-gray-800 mb-4">
-                                <input type="checkbox" on:change={() => toggleIpSelection(ip)} />
+                                <input type="checkbox" checked on:change={() => toggleIpSelection(ip)} />
                                 <span>{ip}</span>
                         </ListgroupItem>
                 {/each}
             </Listgroup>
         </Card>
 
-        <!-- Current Project Folder Card -->
+        <!-- Archetypes Allowed -->
         <Card class="flex-1 rounded-lg bg-white p-5 shadow-md">
-            <h2 class="mb-4 text-lg font-semibold">Current Project Folder</h2>
-            {#if selectedProject}
-                <div class="flex items-center justify-between rounded-lg bg-gray-100 p-4 shadow">
-                    <div class="flex items-center gap-3">
-                        <i class="fas fa-folder text-lg"></i>
-                        <div>
-                            <span class="block font-medium">{selectedProject.name}</span>
-                            <span class="text-sm text-gray-500">{selectedProject.items} items • {selectedProject.size}</span>
-                        </div>
-                    </div>
-                    <span class="text-gray-500">⋮</span>
-                </div>
-            {/if}
-        </Card>
-
-        <!-- Project Scope with Exploits Allowed -->
-        <Card class="flex-1 rounded-lg bg-white p-5 shadow-md">
-        <div class="mt-6">
-                <h3 class="mb-2 text-lg font-semibold">Exploits Allowed</h3>
+            <h2 class="mb-4 text-lg font-semibold text-center">Archetypes Allowed</h2>           
                 <Listgroup class="border-none">
                     {#each exploitsAllowed as exploit, index}
                         <ListgroupItem class="flex items-center gap-3 justify-between rounded-lg bg-gray-100 p-4 shadow dark:bg-gray-800 mb-4">                  
@@ -237,33 +245,12 @@
                         </ListgroupItem>
                     {/each}
                 </Listgroup>
-            </div>
-        </Card>
-
-        <!-- Load Project Card -->
-        <Card class="flex-1 rounded-lg bg-white p-5 shadow-md">
-            <h3 class="mb-4 text-lg font-semibold">Load Project</h3>
-            {#each projects as project}
-                <div
-                    class="mb-4 flex cursor-pointer items-center justify-between rounded-lg bg-gray-100 p-4 shadow dark:bg-gray-800 mb-4"
-                    on:click={() => loadProject(project)} on:click={() => logButtonClick(`${project.name} clicked`)}
-                >
-                    <div class="flex items-center gap-3">
-                        <i class="fas fa-folder text-lg"></i>
-                        <div>
-                            <span class="block font-medium">{project.name}</span>
-                            <span class="text-sm text-gray-500">{project.fileSize} items • {project.file}</span> <!-- Adjust fields as per project properties -->
-                        </div>
-                    </div>
-                    <span class="text-gray-500">⋮</span>
-                </div>
-            {/each}
         </Card>
     </Card>
 
 	<!-- Start Testing button placed below the layout -->
 	<button
 		class="mt-6 rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white hover:bg-blue-700"
-		on:click={startAnalysis}>Start Testing</button
+		on:click={startAnalysis}>Start Analysis</button
 	>
 </div>
