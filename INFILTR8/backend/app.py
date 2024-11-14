@@ -14,13 +14,6 @@ import json
 from datetime import datetime, timezone
 import secrets
 
-
-
-
-
-
-
-
 # Gets all the env variables
 config = dotenv_values(".env")
 URI = config['URI']
@@ -171,7 +164,7 @@ def receive_ips():
         return jsonify({"error": str(e)}), 500
 
 #gets unqiue ips from the file
-@app.route("/flask-api/get-all-ips", methods=['POST'])
+@app.route("/flask-api/get-ips-from-nessus", methods=['POST'])
 def get_all_ips():
     data = request.get_json()
     fileName = data.get('name')
