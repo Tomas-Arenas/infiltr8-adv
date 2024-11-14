@@ -7,12 +7,16 @@ def create_user(tx, username, hashed_password, recovery_key):
         """
         MERGE (a:Analyst {username: $username})
         ON CREATE SET a.password = $hashed_password, a.recovery_key = $recovery_key
+        ON MATCH SET a.existing = true
         MERGE (u:User)
-        CREATE (a)-[:IS_A]->(u)
+        MERGE (a)-[:IS_A]->(u)
+        RETURN a.existing AS existing
         """
     )
     
-    tx.run(query, username=username, hashed_password=hashed_password, recovery_key=recovery_key)
+    result = tx.run(query, username=username, hashed_password=hashed_password, recovery_key=recovery_key)
+    record = result.single()
+    return record["existing"] if record else False  # Returns True if the user exists, otherwise False
 
 def find_user_by_username(tx, username):
     query = "MATCH (a:Analyst {username: $username}) RETURN a"
