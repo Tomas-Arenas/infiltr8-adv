@@ -38,6 +38,11 @@
 			icon: Icon.GlobeSolid
 		},
 		{
+			text: 'Project',
+			href: '/project',
+			icon: Icon.DatabaseSolid
+		},
+		{
 			text: 'Report',
 			href: '/report',
 			icon: Icon.NewspaperSolid
@@ -46,11 +51,6 @@
 			text: 'Analysis',
 			href: '/analysis',
 			icon: Icon.BookSolid
-		},
-		{
-			text: 'Project',
-			href: '/project',
-			icon: Icon.DatabaseSolid
 		},
 		{
 			text: 'Settings',

@@ -12,6 +12,7 @@ from flask_session import Session
 import subprocess
 import json
 from datetime import datetime, timezone
+import secrets
 
 
 
@@ -225,18 +226,28 @@ def download_logs(date):
 @app.route('/flask-api/create_user', methods=['POST'])
 def create_user_route():
     data = request.get_json()
-    first_name = data['first_name']
-    last_name = data['last_name']
     username = data['username']
     password = data['password']
+
+    # Generate a secure, random key for account recovery
+    recovery_key = secrets.token_urlsafe(16)  # Generates a 16-byte secure token
 
     # Hash the password
     hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
 
     with driver.session() as session:
-        session.write_transaction(user_service.create_user, username, first_name, last_name, hashed_password.decode('utf-8'))
+        session.write_transaction(
+            user_service.create_user, 
+            username, 
+            hashed_password.decode('utf-8'), 
+            recovery_key
+        )
     
-    return jsonify({"status": "User created successfully"})
+    # Return the recovery key to the client for displaying to the user
+    return jsonify({
+        "status": "User created successfully",
+        "recovery_key": recovery_key
+    })
 
 # checks login information 
 @app.route('/flask-api/login', methods=['POST'])
