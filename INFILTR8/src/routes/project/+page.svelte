@@ -64,7 +64,7 @@
         selectedProject = project;
         allIps = project.ips || [];
         selectedIps = [];
-        console.log(`Project ${project.name} loaded.`, selectedProject);
+        console.log(`Project ${project.projectName} loaded.`, selectedProject);
     }
 
     function toggleIpSelection(ip) {
@@ -212,8 +212,8 @@
                     <div class="flex items-center gap-3">
                         <i class="fas fa-folder text-lg"></i>
                         <div>
-                            <span class="block font-medium">{selectedProject.name}</span>
-                            <span class="text-sm text-gray-500">{selectedProject.items} items • {selectedProject.size}</span>
+                            <span class="block font-medium">{selectedProject.projectName}</span>
+                            <span class="text-sm text-gray-500">{selectedProject.fileSize} size • {selectedProject.file}</span>
                         </div>
                     </div>
                     <span class="text-gray-500">⋮</span>
@@ -251,8 +251,8 @@
                     <div class="flex items-center gap-3">
                         <i class="fas fa-folder text-lg"></i>
                         <div>
-                            <span class="block font-medium">{project.name}</span>
-                            <span class="text-sm text-gray-500">{project.fileSize} items • {project.file}</span> <!-- Adjust fields as per project properties -->
+                            <span class="block font-medium">{project.projectName}</span>
+                            <span class="text-sm text-gray-500">{project.fileSize} size • {project.file}</span>
                         </div>
                     </div>
                     <span class="text-gray-500">⋮</span>
