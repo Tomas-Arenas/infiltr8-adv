@@ -3,10 +3,10 @@
     import { Card, Button, ButtonGroup, Listgroup, ListgroupItem } from 'flowbite-svelte';
     import { onMount } from 'svelte';
     import { goto } from '$app/navigation';
-    import { sendIPSToBackend, ipsAllowed, ipsDisallowed } from "$lib/stores.js"; // Import stores
+    import { ipsAllowed, ipsDisallowed } from "$lib/stores.js"; // Import stores
 
 
-    let projects = [];
+    let selectedProject = null;
     let selectedProjectName = null;
     let allIps = [];
     let selectedIps = [];
@@ -31,56 +31,13 @@
             selectedProjectName = data.data.projectName
             selectedIps = data.data.ips 
             allIps = data.data.ips
+            selectedProject = data.data;
+            console.log(selectedProject);
+           
+
         } catch (error) {
             console.error("Failed to fetch current project info", error);
         }
-    }
-
-    // Fetch projects from the backend on component mount
-    async function fetchProjects() {
-        try {
-            const response = await fetch('/flask-api/all-projects');
-            const data = await response.json();
-            projects = data.data.map(project => ({
-                ...project,
-                id: project.projectId // Map projectId to id
-            }));
-            console.log("Projects fetched:", projects);
-        } catch (error) {
-            console.error('Failed to fetch projects:', error);
-        }
-    }
-
-    async function fetchProjectIps(fileName) {
-        try {
-            const response = await fetch('/flask-api/get-all-ips', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name: fileName })
-            });
-            const data = await response.json();
-
-            if (response.ok) {
-                allIps = data;
-                ipsAllowed.set(allIps); // Store IPs in Svelte store for reactivity
-                console.log("All IPs fetched:", allIps);
-            } else {
-                console.error("Failed to fetch IPs:", data.error);
-            }
-        } catch (error) {
-            console.error("Error fetching IPs:", error);
-        }
-    }
-
-    function loadProject(project) {
-        if (!project) {
-            console.error("Project is undefined.");
-            return;
-        }
-        selectedProject = project;
-        allIps = project.ips || [];
-        selectedIps = [];
-        console.log(`Project ${project.projectName} loaded.`, selectedProject);
     }
 
     function toggleIpSelection(ip) {
@@ -139,7 +96,7 @@
     }
 
     async function startAnalysis() {
-        if (!selectedProject || !selectedProject.id) {
+        if (!selectedProject || !selectedProject.projectId) {
             alert("Please select a project with a valid ID before starting testing.");
             return;
         }
@@ -151,8 +108,8 @@
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    project_id: selectedProject.id,         // Ensure this is defined
-                    ips: allIps.join(','),                  // Convert array to comma-separated string if needed
+                    project_id: selectedProject.projectId,         // Ensure this is defined
+                    ips: selectedIps.join(','),                  // Convert array to comma-separated string if needed
                     exploits: selectedExploits              // Send selected exploits
                 })
             });
@@ -164,8 +121,8 @@
         } catch (error) {
             console.error('Error starting analysis:', error);
             console.log("Data sent to /flask-api/get-ips:", {
-                project_id: selectedProject.id,
-                ips: allIps,
+                project_id: selectedProject.projectId,
+                ips: selectedIps,
                 exploits: selectedExploits
             });
         }
@@ -197,10 +154,9 @@
     }
 
     onMount(() => {
-        fetchProjects();
         fetchProjectInfo()
         //getIPsFromBackend();
-        sendIPSToBackend();
+
     });
 </script>
 
