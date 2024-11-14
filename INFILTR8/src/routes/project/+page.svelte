@@ -22,19 +22,15 @@
 
     async function fetchProjectInfo(){
         try {
-            const response = await fetch('http://localhost:5173/flask-api/current-project-info');
+            const response = await fetch('/flask-api/current-project-info');
         
             if (!response.ok) {
                 throw new Error(`HTTP error! Status: ${response.status}`);
             }
-            
             const data = await response.json();
-            console.log(data.data.projectName); // Access projectName correctly
             selectedProjectName = data.data.projectName
             selectedIps = data.data.ips 
             allIps = data.data.ips
-            console.log(data.data.ips)
-        
         } catch (error) {
             console.error("Failed to fetch current project info", error);
         }
