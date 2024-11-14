@@ -6,7 +6,7 @@ from dotenv import dotenv_values
 from classes import database, analysis, parser
 from flask import send_file
 from logs.logmanager import LogManager
-from classes import user_service, project, nessus_upload
+from classes import user_service, project, nessus_upload, result
 import bcrypt
 from flask_session import Session
 import subprocess
@@ -44,7 +44,7 @@ driver = neo4j.driver_make()
 
 @app.route("/flask-api/test")
 def test():
-    return jsonify({'info': 'Test to makes sure everything is working'})
+    return jsonify({'info': 'Test to makes sure everything is working', 'projectId': session['currentProject']})
 
 @app.route("/flask-api/test2")
 def test2():
@@ -119,14 +119,31 @@ def nessusFileUpload():
 
 @app.route("/flask-api/process-nessus")
 def processNessus():
-    result = nessus_upload.processAndUpload(driver, session['currentProject'],  session['username'])
-    return jsonify({'message': 'File has been uploaded'})
+    analysis.analyze_nessus_file(driver, session['currentProject'], session['username'])
+    nessus_upload.processAndUpload(driver, session['username'], session['currentProject'])
+    return jsonify({'message': 'Result files have been uploaded'})
     
-
 # Sends the entry points
+@app.route("/flask-api/data-with-exploits")
+def dataExploits():
+    dataEx = result.getResult(driver, 'dataExploits', session['currentProject'], session['username'])
+    return jsonify({'message': 'success', 'data': dataEx})
+
 @app.route("/flask-api/ranked-entry-points")
 def rankedEntryPoints():
-    return
+    rankedEntry = result.getResult(driver, 'rankedEntry', session['currentProject'], session['username'])
+    return jsonify({'message': 'success', 'data': rankedEntry})
+
+@app.route("/flask-api/entry-most-info")
+def entryMostInfo():
+    mostInfo = result.getResult(driver, 'mostInfo', session['currentProject'], session['username'])
+    return jsonify({'message': 'success', 'data': mostInfo})
+
+@app.route("/flask-api/port-0-entries")
+def portZeroEntries():
+    zeroEntries = result.getResult(driver, 'portZero', session['currentProject'], session['username'])
+    return jsonify({'message': 'success', 'data': zeroEntries})
+
 #gets ips from the analysis
 @app.route('/flask-api/get-ips', methods=['POST'])
 def receive_ips():
