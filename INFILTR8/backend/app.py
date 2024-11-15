@@ -62,7 +62,7 @@ def createProject():
     projectName = data.get('name')
     fileName = data.get('fileName')
     ips = data.get('ips')
-    status = 'scheduled'
+    status = 'created'
     
     if 'username' not in session:
         print("User not authenticated - 'username' not in session")
