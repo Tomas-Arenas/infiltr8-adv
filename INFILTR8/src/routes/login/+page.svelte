@@ -325,26 +325,31 @@ async function checkRequestStatus() {
 <!-- "Was Your Request Accepted?" Modal -->
 <Modal open={showRequestAcceptedModal} on:close={() => showRequestAcceptedModal = false}>
   <div class="p-4">
+    <!-- Modal Title -->
     <h3 class="text-xl font-semibold text-gray-900 dark:text-white">Check Request Status</h3>
-    <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">Enter your username to check the status of your password reset request.</p>
+    <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+      Enter your username to check the status of your password reset request.
+    </p>
 
-    <input type="text" id="check-username" bind:value={checkUsername} placeholder="Enter your username" class="w-full p-2 mt-4 bg-gray-100 dark:bg-gray-700 rounded-md"/>
-    
-    <div>
-      <input type="text" bind:value={checkUsername} placeholder="Enter your username" />
-      <button on:click={checkRequestStatus}>Check Status</button>
-      <p>{requestStatusMessage}</p>
+    <!-- Username Input -->
+    <input
+      type="text"
+      id="check-username"
+      bind:value={checkUsername}
+      placeholder="Enter your username"
+      class="w-full p-2 mt-4 bg-gray-100 dark:bg-gray-700 rounded-md"
+    />
 
-      {#if showResetPasswordForm}
-        <div>
-          <h3>Reset Password</h3>
-          <input type="password" bind:value={newPassword} placeholder="New Password" />
-          <button on:click={submitNewPassword}>Reset Password</button>
-        </div>
-      {/if}
+    <!-- Check Status Button -->
+    <div class="mt-4">
+      <button
+        class="w-full px-4 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700"
+        on:click={checkRequestStatus}>
+        Check Status
+      </button>
     </div>
 
-    <!-- Display request status message -->
+    <!-- Display Request Status Message -->
     {#if requestStatusMessage}
       <p class="mt-4 text-center text-gray-600 dark:text-gray-300">{requestStatusMessage}</p>
     {/if}
@@ -352,17 +357,31 @@ async function checkRequestStatus() {
     <!-- Password Reset Form if the request is accepted -->
     {#if showResetPasswordForm}
       <div class="mt-4">
-          <h3 class="text-xl font-semibold text-gray-900 dark:text-white">Reset Password</h3>
-          <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">Enter a new password for your account.</p>
-          
-          <input type="password" id="new-password" bind:value={newPassword} placeholder="Enter new password" class="w-full p-2 mt-4 bg-gray-100 dark:bg-gray-700 rounded-md"/>
-          
-          <button class="w-full px-4 py-2 mt-4 text-white bg-blue-600 rounded-lg hover:bg-blue-700" on:click={submitNewPassword}>Reset Password</button>
+        <h3 class="text-xl font-semibold text-gray-900 dark:text-white">Reset Password</h3>
+        <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+          Enter a new password for your account.
+        </p>
+
+        <!-- New Password Input -->
+        <input
+          type="password"
+          id="new-password"
+          bind:value={newPassword}
+          placeholder="Enter new password"
+          class="w-full p-2 mt-4 bg-gray-100 dark:bg-gray-700 rounded-md"
+        />
+
+        <!-- Submit New Password Button -->
+        <button
+          class="w-full px-4 py-2 mt-4 text-white bg-blue-600 rounded-lg hover:bg-blue-700"
+          on:click={submitNewPassword}
+        >
+          Reset Password
+        </button>
       </div>
     {/if}
   </div>
 </Modal>
-
 
   
 </div>
