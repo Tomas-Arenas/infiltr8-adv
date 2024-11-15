@@ -144,8 +144,8 @@
 	{#if isExportModalOpen}
 		<div class="modal-backdrop">
 			<div class="modal-container dark:bg-gray-800 bg-white">
-				<Heading tag="h3" class="mb-4">Select Datasets to Export</Heading>
-				<div class="flex flex-col gap-2">
+				<Heading tag="h4" class="mb-4">Select Datasets to Export</Heading>
+				<div class="flex flex-col gap-2 dark:text-gray-300">
 					{#each apis as api}
 						<label class="inline-flex items-center">
 							<input type="checkbox" value={api.endpoint} on:change={(e) => {
@@ -160,7 +160,7 @@
 					{/each}
 				</div>
 				<div class="mt-4 flex justify-end gap-2">
-					<Button on:click={() => (isExportModalOpen = false)} color="gray">Cancel</Button>
+					<Button on:click={() => (isExportModalOpen = false)} color=info class="dark:text-gray-300">Cancel</Button>
 					<Button on:click={() => { isExportModalOpen = false; exportToCSV(); }} color="primary">Export</Button>
 				</div>
 			</div>
