@@ -251,6 +251,31 @@ def create_user_route():
         "status": "User created successfully",
         "recovery_key": recovery_key
     })
+@app.route('/flask-api/get-password-reset-requests', methods=['GET'])
+def get_password_reset_requests():
+    username = session.get('username')  # Assuming you store username in session
+    if username != "admin":
+        return jsonify({"error": "Access denied. Admins only."}), 403
+
+    try:
+        with driver.session() as session:
+            result = session.read_transaction(fetch_password_reset_requests)
+            requests = [{"id": record["r"]["id"], "username": record["r"]["username"], "timestamp": record["r"]["timestamp"]} for record in result]
+        return jsonify({"requests": requests}), 200
+    except Exception as e:
+        print(f"Error fetching password reset requests: {e}")
+        return jsonify({"error": "Failed to fetch password reset requests"}), 500
+
+# Function to fetch PasswordResetRequest nodes from Neo4j
+def fetch_password_reset_requests(tx):
+    query = "MATCH (r:PasswordResetRequest) RETURN r"
+    return tx.run(query)
+
+# Function to fetch PasswordResetRequest nodes from Neo4j
+def fetch_password_reset_requests(tx):
+    query = "MATCH (r:PasswordResetRequest) RETURN r"
+    return tx.run(query)
+
 
 # checks login information 
 @app.route('/flask-api/login', methods=['POST'])
@@ -304,3 +329,44 @@ def log_export():
         logger.log_action("User", "Export", f"Exporting IP: {ip} in format {export_format}")
 
     return jsonify({"message": "Export logged successfully"}), 200 
+
+@app.route('/flask-api/request-password-reset', methods=['POST'])
+def request_password_reset():
+    data = request.get_json()
+    username = data.get('username')
+    
+    # Debug log to confirm receiving the request
+    print(f"Received password reset request for username: {username}")
+    
+    # Check if user exists in the Analyst table
+    user_exists = False
+    with driver.session() as session:
+        result = session.run("MATCH (a:Analyst {username: $username}) RETURN a LIMIT 1", username=username)
+        user_exists = result.single() is not None
+    
+    print(f"User exists check: {user_exists}")
+    
+    if user_exists:
+        # Create the password reset request without a unique ID
+        request_id = username  # Set the ID to the username or use a static string
+        with driver.session() as session:
+            session.write_transaction(
+                lambda tx: tx.run(
+                    "CREATE (r:PasswordResetRequest {id: $id, username: $username, timestamp: timestamp()})",
+                    id=request_id,
+                    username=username
+                )
+            )
+        return jsonify({"status": "Password reset request created"}), 200
+    else:
+        # If the user does not exist
+        return jsonify({"error": "User not found"}), 404
+
+# Helper function to check if a user exists in the Analyst node
+def check_user_exists(tx, username):
+    query = "MATCH (a:Analyst {username: $username}) RETURN a LIMIT 1"
+    print("Running query to check user existence:", query)
+    result = tx.run(query, username=username)
+    exists = result.single() is not None
+    print("User existence result:", exists)
+    return exists

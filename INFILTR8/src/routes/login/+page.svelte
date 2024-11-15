@@ -99,15 +99,37 @@
     }
   }
 
-  // Function to submit forgot password request based on account key or username
-  function submitForgotPassword() {
-    if (keyProvided) {
-      console.log("Verifying account key:", accountKey); // Placeholder for key verification logic
-    } else {
-      console.log("Requesting admin password reset for username:", forgotUsername); // Placeholder for admin reset request
+  async function submitForgotPassword() {
+      if (!forgotUsername) {
+        alert('Please enter your username.');
+        return;
+      }
+
+      try {
+        const response = await fetch('/flask-api/request-password-reset', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: forgotUsername }), // Send username to backend
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          console.log('Password reset request sent:', data);
+          alert('Your password reset request has been sent to the admin.');
+        } else {
+          const error = await response.json();
+          console.error('Error requesting password reset:', error);
+          alert('Failed to send password reset request. Please try again.');
+        }
+      } catch (error) {
+        console.error('Error submitting password reset request:', error);
+        alert('An error occurred while sending the password reset request.');
+      } finally {
+        handleModalClose(); // Close the modal after submission
+      }
     }
-    handleModalClose(); // Close modal after submission
-  }
+
+
 </script>
 
 <div class="flex items-center justify-center min-h-screen">

@@ -23,6 +23,8 @@
     let possibleEntryPoints = [];
     let validEntryPoints = [];
     let projects = [];
+    let resetRequests = [];
+    let errorMessage = '';
     
     // Initialize the array to hold file names
     let value = [];
@@ -79,7 +81,26 @@
     }
     
     // Handle input change for file upload
-    
+    async function fetchResetRequests() {
+        try {
+            const response = await fetch('/flask-api/get-password-reset-requests', {
+                method: 'GET',
+                credentials: 'include'  // Ensure cookies are included in the request
+            });
+            if (response.status === 403) {
+                errorMessage = 'Access denied. Admins only.';
+            } else if (response.ok) {
+                const data = await response.json();
+                resetRequests = data.requests;
+            } else {
+                errorMessage = 'Failed to fetch reset requests';
+            }
+        } catch (error) {
+            errorMessage = 'An error occurred while fetching reset requests';
+            console.error(error);
+        }
+    }
+
     async function fetchProjects() {
         try {
             const response = await fetch('http://localhost:5173/flask-api/all-projects', {
