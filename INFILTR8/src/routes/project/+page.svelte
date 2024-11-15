@@ -208,7 +208,7 @@
 </script>
 
 <!-- Outer wrapper to center everything -->
-<div class="flex flex-col items-center justify-center">
+<div class="min-h-screen flex flex-col items-center justify-center">
     {#if selectedProjectName === null}
     <h1 class="text-2xl font-bold mb-6 text-red-700"> No Project Selected </h1>
     {:else}
