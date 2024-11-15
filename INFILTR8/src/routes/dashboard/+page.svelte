@@ -243,6 +243,30 @@
         }
     }
 
+
+    async function setCurrentProject(projectID) {
+        try {
+            const response = await fetch('/flask-api/set-currentProject', {
+                method: 'POST', // Make sure to use POST
+                headers: {
+                    'Content-Type': 'application/json' // Ensure the request is sent as JSON
+                },
+                body: JSON.stringify({ projectID }) // Send the projectID in the request body
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to set current project');
+            }
+
+            const result = await response.json(); // Parse the JSON response
+            console.log(result.message); // Log the success message or handle it as needed
+
+        } catch (error) {
+            console.error('Error:', error); // Log any errors for debugging
+        }
+        goto('/project')
+    }
+
 </script>
     
 <div class="flex flex-row items-start justify-between min-h-screen w-full">
@@ -272,10 +296,11 @@
                     </div>
                     <div>
                         <h2 class="text-2xl font-semibold mb-4 text-center">Project List</h2>
-        
+                    
                         {#if projects.length > 0}
                             <Table hoverable={true} class="shrink">
                                 <TableHead>
+                                    <TableHeadCell>Select</TableHeadCell> <!-- Added Select column -->
                                     <TableHeadCell>Project Name</TableHeadCell>
                                     <TableHeadCell>Project ID</TableHeadCell>
                                     <TableHeadCell>IPs</TableHeadCell>
@@ -284,17 +309,28 @@
                                 <TableBody>
                                     {#each projects as project}
                                         <TableBodyRow>
-                                        <TableBodyCell>{project.projectName}</TableBodyCell>
-                                        <TableBodyCell>{project.projectId}</TableBodyCell>
-                                        <TableBodyCell class="text-wrap">{project.ips ? project.ips.join(', ') : ''}</TableBodyCell>
-                                        <TableBodyCell>
-                                        {#if Array.isArray(project.exploits)}
-                                            {project.exploits.join(', ')}
-                                        {:else}
-                                            {project.exploits} <!-- Displays the string if it's not an array -->
-                                        {/if}
-                                    </TableBodyCell> 
-                                    </TableBodyRow>
+                                            <!-- Add a radio button to each row -->
+                                            <TableBodyCell>
+                                                <input 
+                                                    type="radio" 
+                                                    name="project" 
+                                                    value={project.projectId} 
+                                                    on:change={() => setCurrentProject(project.projectId)} />
+                                            </TableBodyCell>
+                    
+                                            <TableBodyCell>{project.projectName}</TableBodyCell>
+                                            <TableBodyCell>{project.projectId}</TableBodyCell>
+                                            <TableBodyCell class="text-wrap">
+                                                {project.ips ? project.ips.join(', ') : ''}
+                                            </TableBodyCell>
+                                            <TableBodyCell>
+                                                {#if Array.isArray(project.exploits)}
+                                                    {project.exploits.join(', ')}
+                                                {:else}
+                                                    {project.exploits} <!-- Displays the string if it's not an array -->
+                                                {/if}
+                                            </TableBodyCell>
+                                        </TableBodyRow>
                                     {/each}
                                 </TableBody>
                             </Table>

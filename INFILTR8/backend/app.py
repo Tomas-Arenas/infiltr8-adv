@@ -95,7 +95,20 @@ def getAllProjectsInfo():
     result = project.allProjectInfo(driver, session['username'])
     return jsonify({'data': result})
 
-### Nessus Routes ###
+
+@app.route("/flask-api/set-currentProject", methods=['POST'])
+def setCurrentProject():
+    try:
+        project_id = request.json.get("projectID")
+        if not project_id:
+            return jsonify({"message": "Missing 'projectID' in request body"})
+        
+        session['currentProject'] = project_id
+
+        return jsonify({"message": f"Current project set successfully id:{project_id}" })
+    except Exception as e:
+         return jsonify({"error": f"An error occurred: {str(e)}"}), 500
+ ### Nessus Routes ###
 
 # Handles the uploading of the file
 @app.route("/flask-api/nessus-upload", methods=['POST'])
