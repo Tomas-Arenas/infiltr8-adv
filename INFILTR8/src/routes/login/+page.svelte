@@ -59,7 +59,7 @@
 
     if (response.ok) {
       const result = await response.json();
-      console.log(result.status); // "Login successful"
+      console.log(result.status); // should be admin or user
       await checkSession(); // Update session store
       goto('/dashboard');
     } else {
