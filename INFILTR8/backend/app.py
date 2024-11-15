@@ -138,11 +138,18 @@ def processNessus():
     
     disallowedIps = data.get("disallowedIps")
     archetypesAllowed = data.get("archetypes")
-    
+    print(disallowedIps)
     analysis.disallowed_ips = disallowedIps
     analysis.analyze_nessus_file(driver, session['currentProject'], session['username'])
     nessus_upload.processAndUpload(driver, session['username'], session['currentProject'])
     return jsonify({'message': 'Result files have been uploaded'})
+
+# Test route for analysis
+@app.route("/flask-api/analysis-test")
+def testAnalysis():
+    analysis.analyze_nessus_file(driver, session['currentProject'], session['username'])
+    nessus_upload.processAndUpload(driver, session['username'], session['currentProject'])
+    return jsonify({'name': session['username'], 'proid': session['currentProject'], })
     
 # Sends the entry points
 @app.route("/flask-api/data-with-exploits")

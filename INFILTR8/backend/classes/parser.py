@@ -26,8 +26,6 @@ def parserFile(fileName):
     output_base_dir = currentPath+'/output/'
     
     data_with_exploits_path = os.path.join(output_base_dir, 'data_with_exploits.csv')
-    ranked_entry_points_path = os.path.join(output_base_dir, 'ranked_entry_points.csv')
-    entrypoint_most_info_path = os.path.join(output_base_dir, 'entrypoint_most_info.csv')
     port_0_entries_path = os.path.join(output_base_dir, 'port_0_entries.csv')
     
     # Initialize an empty DataFrame
@@ -86,6 +84,9 @@ def parserFile(fileName):
             
     # Export DataFrame to CSV file
     df.to_csv(data_with_exploits_path, index=False)
+    
+    port_0_entries = df[df['port'] == '0']
+    port_0_entries.to_csv(port_0_entries_path, index=False)
 
     unique_ips = df['ip'].unique()
     
