@@ -51,7 +51,8 @@ def getProjectInfomation(driver, username, projectId):
 
 def createProject(driver, username, projectName, fileName, status, ips, exploits):
 
-    fileSize = int(os.path.getsize(os.getcwd()+'/nessus-drop/'+fileName) / 1000)
+    filePath = os.path.join(os.getcwd(), 'nessus-drop', fileName)
+    fileSize = int(os.path.getsize(filePath) / 1000)
     creation = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     
     query = (
