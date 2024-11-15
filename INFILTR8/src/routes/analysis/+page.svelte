@@ -33,8 +33,11 @@
     }
 
     onMount(() => {
+        getTableData();
+    
         const initialize = async () => {
             await checkSession();
+            //this is really f***ing annoying
             setInterval(async () => {
                 await getTableData();
             }, 500);
@@ -92,13 +95,28 @@
         }
     }
 
-    async function getTableData(){
+    async function getTableData() {
         try {
+            // Check for cached data
+            const cachedData = localStorage.getItem("tableData");
+            const cachedTimestamp = localStorage.getItem("tableDataTimestamp");
+
+            // Use cached data if it exists and is recent ( within 1 sec )
+            const cacheValid = cachedData && cachedTimestamp && 
+                (Date.now() - parseInt(cachedTimestamp) < 1000);
+
+            if (cacheValid) {
+                const data = JSON.parse(cachedData);
+                console.log("Loaded table data from cache");
+                processTableData(data);
+                return;
+            }
+
             const response = await fetch("/flask-api/get-all-project-info", {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",
-                }
+                },
             });
 
             if (!response.ok) {
@@ -106,28 +124,36 @@
             }
 
             const data = await response.json();
-            tableData = Object.values(data).flatMap(Object.values);
-            tableData = tableData.filter(row => row.status != null);
-            series = [0, 0, 0];
-            tableData.forEach(row => {
-                if (row.status === 'completed') {
-                    series[2]++;
-                } else if (row.status === 'created') {
-                    series[0]++;
-                } else {
-                    series[1]++;
-                }
-            });
 
-            // Get the latest project by date
-            if (tableData.length > 0) {
-                latestProject = tableData.reduce((latest, current) => 
-                    new Date(current.creation) > new Date(latest.creation) ? current : latest
-                );
-            }
+            localStorage.setItem("tableData", JSON.stringify(data));
+            localStorage.setItem("tableDataTimestamp", Date.now().toString());
 
+            console.log("Fetched and cached table data");
+            processTableData(data);
         } catch (error) {
             console.error("There was an error retrieving data from the backend:", error);
+        }
+    }
+
+    function processTableData(data) {
+        tableData = Object.values(data).flatMap(Object.values);
+        tableData = tableData.filter(row => row.status != null);
+        series = [0, 0, 0];
+        tableData.forEach(row => {
+            if (row.status === "completed") {
+                series[2]++;
+            } else if (row.status === "created") {
+                series[0]++;
+            } else {
+                series[1]++;
+            }
+        });
+
+        // Get the latest project by date
+        if (tableData.length > 0) {
+            latestProject = tableData.reduce((latest, current) =>
+                new Date(current.creation) > new Date(latest.creation) ? current : latest
+            );
         }
     }
 
