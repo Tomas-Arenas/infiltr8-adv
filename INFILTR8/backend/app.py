@@ -95,7 +95,20 @@ def getAllProjectsInfo():
     result = project.allProjectInfo(driver, session['username'])
     return jsonify({'data': result})
 
-### Nessus Routes ###
+
+@app.route("/flask-api/set-currentProject", methods=['POST'])
+def setCurrentProject():
+    try:
+        project_id = request.json.get("projectID")
+        if not project_id:
+            return jsonify({"message": "Missing 'projectID' in request body"})
+        
+        session['currentProject'] = project_id
+
+        return jsonify({"message": f"Current project set successfully id:{project_id}" })
+    except Exception as e:
+         return jsonify({"error": f"An error occurred: {str(e)}"}), 500
+ ### Nessus Routes ###
 
 # Handles the uploading of the file
 @app.route("/flask-api/nessus-upload", methods=['POST'])
@@ -117,8 +130,16 @@ def nessusFileUpload():
         print(os.path.exists(app.config['UPLOAD_FOLDER']+'/'+filename))
         return jsonify({'message':'file was sent and has been saved on server'})
 
-@app.route("/flask-api/process-nessus")
+@app.route("/flask-api/process-nessus", methods=["POST"])
 def processNessus():
+    data = request.json
+    if not data:
+        return jsonify({'message': 'No data provided'}), 400
+    
+    disallowedIps = data.get("disallowedIps")
+    archetypesAllowed = data.get("archetypes")
+    
+    analysis.disallowed_ips = disallowedIps
     analysis.analyze_nessus_file(driver, session['currentProject'], session['username'])
     nessus_upload.processAndUpload(driver, session['username'], session['currentProject'])
     return jsonify({'message': 'Result files have been uploaded'})
@@ -145,7 +166,7 @@ def portZeroEntries():
     return jsonify({'message': 'success', 'data': zeroEntries})
 
 #gets ips from the analysis
-@app.route('/flask-api/get-ips', methods=['POST'])
+@app.route('/flask-api/get-scope', methods=['POST'])
 def receive_ips():
 
     try:

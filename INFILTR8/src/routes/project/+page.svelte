@@ -3,11 +3,12 @@
     import { Card, Button, ButtonGroup, Listgroup, ListgroupItem } from 'flowbite-svelte';
     import { onMount } from 'svelte';
     import { goto } from '$app/navigation';
-    import { sendIPSToBackend, ipsAllowed, ipsDisallowed } from "$lib/stores.js"; // Import stores
+    import { get } from 'svelte/store';
+    import { ipsAllowed, ipsDisallowed } from "$lib/stores.js"; // Import stores
 
 
-    let projects = [];
     let selectedProject = null;
+    let selectedProjectName = null;
     let allIps = [];
     let selectedIps = [];
     
@@ -20,51 +21,23 @@
         { id: 6, name: 'Weak Passwords', selected: false }
     ];
 
-    // Fetch projects from the backend on component mount
-    async function fetchProjects() {
+    async function fetchProjectInfo(){
         try {
-            const response = await fetch('/flask-api/all-projects');
-            const data = await response.json();
-            projects = data.data.map(project => ({
-                ...project,
-                id: project.projectId // Map projectId to id
-            }));
-            console.log("Projects fetched:", projects);
-        } catch (error) {
-            console.error('Failed to fetch projects:', error);
-        }
-    }
-
-    async function fetchProjectIps(fileName) {
-        try {
-            const response = await fetch('/flask-api/get-all-ips', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name: fileName })
-            });
-            const data = await response.json();
-
-            if (response.ok) {
-                allIps = data;
-                ipsAllowed.set(allIps); // Store IPs in Svelte store for reactivity
-                console.log("All IPs fetched:", allIps);
-            } else {
-                console.error("Failed to fetch IPs:", data.error);
+            const response = await fetch('/flask-api/current-project-info');
+        
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
             }
-        } catch (error) {
-            console.error("Error fetching IPs:", error);
-        }
-    }
+            const data = await response.json();
+            selectedProjectName = data.data.projectName
+            selectedIps = data.data.ips 
+            allIps = data.data.ips
+            selectedProject = data.data;
+            console.log(selectedProject);    
 
-    function loadProject(project) {
-        if (!project) {
-            console.error("Project is undefined.");
-            return;
+        } catch (error) {
+            console.error("Failed to fetch current project info", error);
         }
-        selectedProject = project;
-        allIps = project.ips || [];
-        selectedIps = [];
-        console.log(`Project ${project.projectName} loaded.`, selectedProject);
     }
 
     function toggleIpSelection(ip) {
@@ -123,35 +96,35 @@
     }
 
     async function startAnalysis() {
-        if (!selectedProject || !selectedProject.id) {
+        if (!selectedProject || !selectedProject.projectId) {
             alert("Please select a project with a valid ID before starting testing.");
             return;
         }
-    
         const selectedExploits = exploitsAllowed.filter(exp => exp.selected).map(exp => exp.name);
-    
         try {
-            const response = await fetch('/flask-api/get-ips', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    project_id: selectedProject.id,         // Ensure this is defined
-                    ips: allIps.join(','),                  // Convert array to comma-separated string if needed
-                    exploits: selectedExploits              // Send selected exploits
-                })
+            const response = await fetch('/flask-api/process-nessus' ,{
+               method:'POST',
+               headers: { 'Content-Type': 'application/json' },
+               body: JSON.stringify({
+                projectId: selectedProject.projectId,
+                disallowedIps: get(ipsDisallowed).map(item => item.ip),
+                archetypes: exploitsAllowed
+               }) 
             });
-    
-            if (!response.ok) throw new Error("Failed to start project analysis.");
             
-            const result = await response.json();
-            console.log("Project analysis started:", result);
+            // Check if the response is OK (status 200)
+            if (!response.ok) {
+                throw new Error(`Error: ${response.statusText}`);
+            }
+            
+            // Parse the JSON response
+            const data = await response.json();
+            
+            // Handle the response data
+            console.log(data.message);  // or update the UI as needed  
+            console.log("process-nessus called and sent disallowed ips:",get(ipsDisallowed).map(item => item.ip));
         } catch (error) {
-            console.error('Error starting analysis:', error);
-            console.log("Data sent to /flask-api/get-ips:", {
-                project_id: selectedProject.id,
-                ips: allIps,
-                exploits: selectedExploits
-            });
+            console.error('Error calling /flask-api/process-nessus:', error);
         }
     }
 
@@ -181,50 +154,37 @@
     }
 
     onMount(() => {
-        fetchProjects();
+        fetchProjectInfo()
         //getIPsFromBackend();
-        sendIPSToBackend();
+
     });
 </script>
 
 <!-- Outer wrapper to center everything -->
 <div class="flex flex-col items-center justify-center">
+    {#if selectedProjectName === null}
+    <h1 class="text-2xl font-bold mb-6 text-red-700"> No Project Selected </h1>
+    {:else}
+    <h1 class="text-2xl font-bold mb-6 text-white"> {selectedProjectName} </h1>
+    {/if}
 	<!-- Main container with cards -->
-	<Card class="flex min-w-fit flex-row gap-5 rounded-lg bg-gray-100 p-5 shadow-md dark:bg-gray-800">
+	<Card class="flex min-w-fit flex-row gap-5 rounded-lg bg-gray-100 p-5 shadow-md dark:bg-gray-800"> 
         <!-- Show current IP list -->
         <Card class="flex-1 rounded-lg bg-white p-5 shadow-md">
-            <h2 class="mb-4 text-lg font-semibold">Current Project IPS</h2>
+            <h2 class="mb-4 text-lg font-semibold text-center">Current Project IPS</h2>
             <Listgroup class="border-none">
                         {#each allIps as ip, index}
                             <ListgroupItem class="flex items-center gap-3 justify-between rounded-lg bg-gray-100 p-4 shadow dark:bg-gray-800 mb-4">
-                                <input type="checkbox" on:change={() => toggleIpSelection(ip)} />
+                                <input type="checkbox" checked on:change={() => toggleIpSelection(ip)} />
                                 <span>{ip}</span>
                         </ListgroupItem>
                 {/each}
             </Listgroup>
         </Card>
 
-        <!-- Current Project Folder Card -->
-        <Card class="flex-1 rounded-lg bg-white p-5 shadow-md">
-            <h2 class="mb-4 text-lg font-semibold">Current Project Folder</h2>
-            {#if selectedProject}
-                <div class="flex items-center justify-between rounded-lg bg-gray-100 p-4 shadow">
-                    <div class="flex items-center gap-3">
-                        <i class="fas fa-folder text-lg"></i>
-                        <div>
-                            <span class="block font-medium">{selectedProject.projectName}</span>
-                            <span class="text-sm text-gray-500">{selectedProject.fileSize} size • {selectedProject.file}</span>
-                        </div>
-                    </div>
-                    <span class="text-gray-500">⋮</span>
-                </div>
-            {/if}
-        </Card>
 
-        <!-- Project Scope with Exploits Allowed -->
         <Card class="flex-1 rounded-lg bg-white p-5 shadow-md">
-        <div class="mt-6">
-                <h3 class="mb-2 text-lg font-semibold">Exploits Allowed</h3>
+            <h2 class="mb-4 text-lg font-semibold text-center">Archetypes Allowed</h2>           
                 <Listgroup class="border-none">
                     {#each exploitsAllowed as exploit, index}
                         <ListgroupItem class="flex items-center gap-3 justify-between rounded-lg bg-gray-100 p-4 shadow dark:bg-gray-800 mb-4">                  
@@ -237,33 +197,13 @@
                         </ListgroupItem>
                     {/each}
                 </Listgroup>
-            </div>
-        </Card>
 
-        <!-- Load Project Card -->
-        <Card class="flex-1 rounded-lg bg-white p-5 shadow-md">
-            <h3 class="mb-4 text-lg font-semibold">Load Project</h3>
-            {#each projects as project}
-                <div
-                    class="mb-4 flex cursor-pointer items-center justify-between rounded-lg bg-gray-100 p-4 shadow dark:bg-gray-800 mb-4"
-                    on:click={() => loadProject(project)} on:click={() => logButtonClick(`${project.name} clicked`)}
-                >
-                    <div class="flex items-center gap-3">
-                        <i class="fas fa-folder text-lg"></i>
-                        <div>
-                            <span class="block font-medium">{project.projectName}</span>
-                            <span class="text-sm text-gray-500">{project.fileSize} size • {project.file}</span>
-                        </div>
-                    </div>
-                    <span class="text-gray-500">⋮</span>
-                </div>
-            {/each}
         </Card>
     </Card>
 
 	<!-- Start Testing button placed below the layout -->
 	<button
 		class="mt-6 rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white hover:bg-blue-700"
-		on:click={startAnalysis}>Start Testing</button
+		on:click={startAnalysis}>Start Analysis</button
 	>
 </div>
