@@ -5,8 +5,10 @@
 	import { Heading, Button } from 'flowbite-svelte';
 
 	let rows = [];
+	let headers = [];
 	let currentAPI = '/flask-api/ranked-entry-points'; // Default API endpoint
-	let headers = []; // Separate headers to ensure they're shown even if rows are empty
+	let isExportModalOpen = false; // Controls modal visibility
+	let selectedApis = []; // Stores selected APIs for export
 
 	const apis = [
 		{ name: 'Ranked Entry Points', endpoint: '/flask-api/ranked-entry-points' },
@@ -18,16 +20,12 @@
 	async function fetchCSVData() {
 		try {
 			const response = await fetch(currentAPI);
-			if (!response.ok) {
-				throw new Error(`Failed to fetch data: ${response.statusText}`);
-			}
+			if (!response.ok) throw new Error(`Failed to fetch data: ${response.statusText}`);
 			const jsonResponse = await response.json();
 
 			const { data } = jsonResponse;
-			headers = data[0] || []; // Ensure headers are always populated
-			const rowsData = data.slice(1);
-
-			rows = rowsData.map((row, index) => {
+			headers = data[0] || [];
+			rows = data.slice(1).map((row, index) => {
 				return headers.reduce((acc, header, colIndex) => {
 					acc[header] = row[colIndex] || 'N/A';
 					return acc;
@@ -36,16 +34,35 @@
 		} catch (error) {
 			console.error('Error fetching or parsing CSV data:', error);
 			rows = [];
-			headers = []; // Reset in case of error
+			headers = [];
 		}
 	}
 
-	function exportToCSV() {
-		const csvData = Papa.unparse(rows.map(row => ({ ...row })));
+	async function exportToCSV() {
+		if (selectedApis.length === 0) {
+			alert('Please select at least one dataset to export.');
+			return;
+		}
+
+		let combinedData = [];
+		for (const api of selectedApis) {
+			try {
+				const response = await fetch(api.endpoint);
+				const jsonResponse = await response.json();
+				const { data } = jsonResponse;
+				combinedData.push({ name: api.name, data });
+			} catch (error) {
+				console.error(`Error fetching data for ${api.name}:`, error);
+			}
+		}
+
+		const csvData = combinedData
+			.map(({ name, data }) => `${name}\n${Papa.unparse(data)}`)
+			.join('\n\n');
 		const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
-		const link = document.createElement("a");
+		const link = document.createElement('a');
 		link.href = URL.createObjectURL(blob);
-		link.setAttribute("download", "reports.csv");
+		link.setAttribute('download', 'selected_reports.csv');
 		document.body.appendChild(link);
 		link.click();
 		document.body.removeChild(link);
@@ -56,9 +73,7 @@
 		fetchCSVData();
 	}
 
-	onMount(() => {
-		fetchCSVData();
-	});
+	onMount(fetchCSVData);
 </script>
 
 <main class="container mx-auto p-6">
@@ -69,7 +84,7 @@
 		</Heading>
 	</div>
 
-	<!-- Dropdown to switch between datasets -->
+	<!-- Dataset Selector -->
 	<div class="mb-4">
 		<label for="data-select" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Select Dataset:</label>
 		<select id="data-select" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-white"
@@ -80,7 +95,7 @@
 		</select>
 	</div>
 
-	<!-- Table Container -->
+	<!-- Table -->
 	<div class="report-container dark:bg-gray-800 bg-white rounded-lg shadow-md mt-2 mb-2">
 		<div class="table-container">
 			<Table noborder={true}>
@@ -119,15 +134,41 @@
 	</div>
 
 	<!-- Export Button -->
-	<div class="flex justify-end mt-1">
-		<Button on:click={exportToCSV} color="primary" class="text-lg">
+	<div class="flex justify-end mt-4">
+		<Button on:click={() => (isExportModalOpen = true)} color="primary" class="text-lg">
 			Export
 		</Button>
 	</div>
+
+	<!-- Export Modal -->
+	{#if isExportModalOpen}
+		<div class="modal-backdrop">
+			<div class="modal-container dark:bg-gray-800 bg-white">
+				<Heading tag="h3" class="mb-4">Select Datasets to Export</Heading>
+				<div class="flex flex-col gap-2">
+					{#each apis as api}
+						<label class="inline-flex items-center">
+							<input type="checkbox" value={api.endpoint} on:change={(e) => {
+								if (e.target.checked) {
+									selectedApis = [...selectedApis, api];
+								} else {
+									selectedApis = selectedApis.filter(a => a.endpoint !== api.endpoint);
+								}
+							}} />
+							<span class="ml-2">{api.name}</span>
+						</label>
+					{/each}
+				</div>
+				<div class="mt-4 flex justify-end gap-2">
+					<Button on:click={() => (isExportModalOpen = false)} color="gray">Cancel</Button>
+					<Button on:click={() => { isExportModalOpen = false; exportToCSV(); }} color="primary">Export</Button>
+				</div>
+			</div>
+		</div>
+	{/if}
 </main>
 
 <style>
-	/* Existing styling */
 	.container {
 		max-width: 1200px;
 		min-height: 95vh;
@@ -135,31 +176,34 @@
 		flex-direction: column;
 		justify-content: space-between;
 	}
+
 	.report-container {
 		padding: 1rem;
 		margin-top: 1rem;
-		margin-bottom: 0.5rem;
 	}
-	.table-container {
-		display: grid;
-		grid-template-rows: auto 1fr;
-	}
+
 	.table-body-scroll {
 		max-height: 490px;
 		overflow-y: auto;
 	}
-	th {
-		position: sticky;
+
+	.modal-backdrop {
+		position: fixed;
 		top: 0;
-		background-color: inherit;
-		z-index: 1;
-	}
-	.mt-1 {
-		margin-top: 0.25rem;
-	}
-	select {
+		left: 0;
 		width: 100%;
-		padding: 0.5rem;
-		font-size: 1rem;
+		height: 100%;
+		background: rgba(0, 0, 0, 0.5);
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		z-index: 1000;
+	}
+
+	.modal-container {
+		padding: 2rem;
+		border-radius: 0.5rem;
+		box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+		width: 400px;
 	}
 </style>
