@@ -35,6 +35,7 @@
     onMount(() => {
         const initialize = async () => {
             await checkSession();
+            //this is really f***ing annoying
             setInterval(async () => {
                 await getTableData();
             }, 500);
