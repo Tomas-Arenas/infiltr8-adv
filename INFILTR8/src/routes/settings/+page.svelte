@@ -119,16 +119,17 @@
   $: applyFontSize(selectedFontSize);
 </script>
 
-<main>
-  <h1 class="font-bold text-xl dark:text-white">Accessibility Options</h1>
-  <div>
-    <div id="left" class="float-left w-9/12 h-flex">
+<div class="min-h-screen flex flex-col justify-start items-center">
+  <h1 class="font-bold text-xl dark:text-white mt-6">Accessibility Options</h1>
+  
+  <div class="flex-grow w-full max-w-5xl p-6">
+    <div id="left" class="w-full h-full">
       <div id="table" class="my-6">
-        <Table noborder={true}>
+        <Table noborder={true} shadow>
           <TableHead class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-gray-900 dark:text-gray-400">
             <TableHeadCell>Setting</TableHeadCell>
             <TableHeadCell>Description</TableHeadCell>
-            <TableHeadCell class="text-right px-6" style="width: 30%;">Option</TableHeadCell>
+            <TableHeadCell class="text-right px-6 w-1/3">Option</TableHeadCell>
           </TableHead>
 
           <TableBody>
@@ -136,7 +137,7 @@
             <TableBodyRow>
               <TableBodyCell>Color mode:</TableBodyCell>
               <TableHeadCell>Colorblind options</TableHeadCell>
-              <TableBodyCell class="text-right px-6" style="width: 30%;">
+              <TableBodyCell class="text-right px-6 w-1/3">
                 <Label>
                   Select an option
                   <Select items={colorModes} bind:value={$colorblindMode} on:change={() => logButtonClick('Color mode click')} />
@@ -148,7 +149,7 @@
             <TableBodyRow>
               <TableBodyCell>Text size:</TableBodyCell>
               <TableHeadCell>Size of the font on the website</TableHeadCell>
-              <TableBodyCell class="text-right px-6" style="width: 30%;">
+              <TableBodyCell class="text-right px-6 w-1/3">
                 <Label>
                   Select an option
                   <Select items={fontSizes} bind:value={selectedFontSize} on:change={() => applyFontSize(selectedFontSize)} on:change={() => logButtonClick('Font size click')} />
@@ -160,11 +161,19 @@
             <TableBodyRow>
               <TableBodyCell>Theme:</TableBodyCell>
               <TableHeadCell>Light mode or Dark mode</TableHeadCell>
-              <TableBodyCell class="text-right px-6" style="width: 30%;">
+              <TableBodyCell class="text-right px-6 w-1/3">
                 <Label>
                   Select an option
                   <Select items={themes} bind:value={selectedTheme} on:change={() => updateTheme(selectedTheme)} on:change={() => logButtonClick('Theme click')} />
                 </Label>
+              </TableBodyCell>
+            </TableBodyRow>
+
+            <!-- Reset Button Row -->
+            <TableBodyRow>
+              <TableBodyCell colspan="2"></TableBodyCell> <!-- Left side intentionally left blank -->
+              <TableBodyCell class="text-right px-6 w-1/3">
+                <Button color="danger" on:click={resetSettings} on:click={() => logButtonClick('Reset click')}>Reset to Defaults</Button>
               </TableBodyCell>
             </TableBodyRow>
           </TableBody>
@@ -172,5 +181,4 @@
       </div>    
     </div>
   </div> 
-  <Button class="mt-5" color="danger" on:click={resetSettings} on:click={() => logButtonClick('Reset click')}>Reset</Button>
-</main>
+</div>
