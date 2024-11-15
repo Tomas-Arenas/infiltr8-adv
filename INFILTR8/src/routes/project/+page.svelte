@@ -11,6 +11,9 @@
     let selectedProjectName = null;
     let allIps = [];
     let selectedIps = [];
+    let showModal = false; 
+    let newIP = ""; 
+
     
     let exploitsAllowed = [
         { id: 1, name: 'SQL Injection', selected: false },
@@ -60,14 +63,57 @@
         console.log("Disallowed IPs:", disallowedIPInstances.map(ip => ip.ip));
     }
 
-    function addIPstoStore(data) {
-        const ipInstances = data.map(ipAddress => new IP(ipAddress));
-        ipsDisallowed.set(ipInstances);
+    function addIP(data) {
+        if (Array.isArray(data)) {
+        data.forEach(ipString => {
+            let tempIp = new IP(ipString);
+            allIps = [...allIps, tempIp.ip]; 
+            selectedIps = [...selectedIps, tempIp.ip];
+        });
+        } else {
+            // Handle the case where data is not an array (if needed)
+            let tempIp = new IP(data);
+            allIps = [...allIps, tempIp.ip]; 
+            selectedIps = [...selectedIps, tempIp.ip];
+        }
+
     }
+
 
     function isValidIPv4(ip) {
         const ipv4Regex = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9][0-9]?)\.(25[0-5]|2[0-4][0-9][0-9]?)$/;
         return ipv4Regex.test(ip);
+    }
+
+    function handleAddIP() {
+        if (newIP) {
+            addIP(newIP);
+            newIP = ""; 
+            showModal = false; 
+        }
+    }
+
+    function handleImportIPs() {
+        const fileInput = document.getElementById('fileInput');
+        const file = fileInput.files[0];
+
+        if (file) {
+            const reader = new FileReader();
+
+            reader.onload = function(event) {
+                const fileContent = event.target.result;
+                const importedIPs = fileContent.split(/\r?\n/).filter(ip => ip.trim() !== '');
+                addIP(importedIPs);
+            };
+
+            reader.onerror = function(event) {
+                console.error("File could not be read! Code " + event.target.error.code);
+            };
+
+            reader.readAsText(file);
+        } else {
+            console.log("No file selected.");
+        }
     }
 
     function moveUp(list, index) {
@@ -174,14 +220,53 @@
         <Card class="flex-1 rounded-lg bg-white p-5 shadow-md">
             <h2 class="mb-4 text-lg font-semibold text-center">Current Project IPS</h2>
             <Listgroup class="border-none">
-                        {#each allIps as ip, index}
-                            <ListgroupItem class="flex items-center gap-3 justify-between rounded-lg bg-gray-100 p-4 shadow dark:bg-gray-800 mb-4">
-                                <input type="checkbox" checked on:change={() => toggleIpSelection(ip)} />
-                                <span>{ip}</span>
-                        </ListgroupItem>
+                {#each allIps as ip, index}
+                    <ListgroupItem class="flex items-center gap-3 justify-between rounded-lg bg-gray-100 p-4 shadow dark:bg-gray-800 mb-4">
+                        <input type="checkbox" checked on:change={() => toggleIpSelection(ip)} />
+                        <span>{ip}</span>
+                    </ListgroupItem>
                 {/each}
             </Listgroup>
+            
+            <div class="mt-4 flex flex-col items-start">
+                <div class="flex justify-between w-full">
+                    <button on:click={() => showModal = true} class="bg-blue-500 text-white rounded-lg px-4 py-2 hover:bg-blue-600">
+                        Add IP
+                    </button>
+                    <button on:click={handleImportIPs} class="bg-green-500 text-white rounded-lg px-4 py-2 hover:bg-green-600">
+                        Import IPs
+                    </button>
+                </div>
+                <div class="mt-2">
+                    <label for="fileInput" class="block text-gray">
+                        Select .txt to import IPs
+                    </label>
+                    <input type="file" id="fileInput" accept=".txt" class="mt-1" />
+                </div>
+            </div>
         </Card>
+
+        {#if showModal}
+            <div class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+                <div class="bg-white rounded-lg p-5 shadow-md">
+                    <h3 class="mb-4 text-lg font-semibold">Add IP Address</h3>
+                    <input 
+                        type="text" 
+                        placeholder="Enter IP address" 
+                        bind:value={newIP} 
+                        class="border p-2 rounded w-full mb-4"
+                    />
+                    <div class="flex justify-end">
+                        <button on:click={handleAddIP} class="bg-blue-500 text-white rounded-lg px-4 py-2 hover:bg-blue-600">
+                            Add
+                        </button>
+                        <button on:click={() => showModal = false} class="ml-2 bg-gray-300 text-black rounded-lg px-4 py-2 hover:bg-gray-400">
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            </div>
+        {/if}
 
 
         <Card class="flex-1 rounded-lg bg-white p-5 shadow-md">
