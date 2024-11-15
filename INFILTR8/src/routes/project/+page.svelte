@@ -153,7 +153,7 @@
                headers: { 'Content-Type': 'application/json' },
                body: JSON.stringify({
                 projectId: selectedProject.projectId,
-                disallowedIps: get(ipsDisallowed).map(item => item.ip),
+                disallowedIps: get(ipsAllowed).map(item => item.ip),
                 archetypes: exploitsAllowed
                }) 
             });
