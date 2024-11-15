@@ -95,28 +95,32 @@
 		</select>
 	</div>
 
-	<!-- Table -->
+		<!-- Table -->
 	<div class="report-container dark:bg-gray-800 bg-white rounded-lg shadow-md mt-2 mb-2">
 		<div class="table-container">
-			<Table noborder={true}>
-				<TableHead class="bg-gray-100 dark:bg-gray-900 text-gray-700 dark:text-gray-400">
+			<Table noborder={false} style="text-align: center">
+				<TableHead style="bg-gray-100 dark:bg-gray-850 text-gray-700 text-align: center">
 					{#if headers.length > 0}
 						{#each headers as header}
-							<TableHeadCell>{header.toUpperCase()}</TableHeadCell>
+							{#if header === 'ip' || header === 'port' || header === 'severity' || header === 'archetype' || header === 'pluginName' || header === 'severity_score' || header === 'vulnerability_count'}
+								<TableHeadCell style="text-align: center">{header.toUpperCase()}</TableHeadCell>
+							{/if}
 						{/each}
 					{:else}
-						<TableHeadCell>No Headers Available</TableHeadCell>
+						<TableHeadCell style="text-align: center">No Headers Available</TableHeadCell>
 					{/if}
 				</TableHead>
-			</Table>
+			</Table>			
 			<div class="table-body-scroll">
 				<Table noborder={true}>
 					<TableBody>
 						{#if rows.length > 0}
 							{#each rows as row (row.id)}
-								<TableBodyRow class="border-b dark:border-gray-700">
-									{#each Object.values(row) as value}
-										<TableBodyCell>{value}</TableBodyCell>
+								<TableBodyRow class="border-b dark:border-gray-700 text-align: center">
+									{#each Object.entries(row) as [key, value]}
+										{#if key === 'ip' || key === 'port'|| key === 'severity' || key === 'archetype' || key === 'pluginName' || key === 'severity_score' || key === 'vulnerability_count'}
+											<TableBodyCell class ="text-align: center">{value}</TableBodyCell>
+										{/if}
 									{/each}
 								</TableBodyRow>
 							{/each}
