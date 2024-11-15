@@ -110,12 +110,12 @@
             tableData = tableData.filter(row => row.status != null);
             series = [0, 0, 0];
             tableData.forEach(row => {
-                if (row.status === 'reports') {
+                if (row.status === 'completed') {
                     series[2]++;
-                } else if (row.status === 'scheduled') {
-                    series[1]++;
-                } else {
+                } else if (row.status === 'created') {
                     series[0]++;
+                } else {
+                    series[1]++;
                 }
             });
 
@@ -159,20 +159,22 @@
                 <Table noborder={true}>
                     <TableHead class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-gray-900 dark:text-gray-400 ">
                         <TableHeadCell>Date</TableHeadCell>
-                        <TableHeadCell>Analyst</TableHeadCell>
+                        <TableHeadCell>Project Name</TableHeadCell>
                         <TableHeadCell>File Size</TableHeadCell>
-                        <TableHeadCell>Progress</TableHeadCell>
+                        <TableHeadCell>Status</TableHeadCell>
                     </TableHead>
                     <TableBody>
                         {#if tableData.length > 0}
                             {#each tableData as row}
                                 <TableBodyRow>
                                     <TableBodyCell>{row.creation}</TableBodyCell>
-                                    <TableBodyCell>{row.user}</TableBodyCell>
+                                    <TableBodyCell>{row.projectName}</TableBodyCell>
                                     <TableBodyCell>{row.fileSize}</TableBodyCell>
                                     <TableBodyCell>
                                         {#if typeof row.status === 'number'}
                                             <Progressbar progress={row.status} labelInside />
+                                        {:else if typeof row.status === 'completed'}
+                                            <Progressbar progress='Reports' labelInside />
                                         {:else}
                                             <button class="border-2 py-2 px-2 shadow-lg rounded-2xl self-center">{row.status}</button>
                                         {/if}
@@ -223,8 +225,8 @@
                                 }
                             },
                             labels: [
+                                '<span class="text-created dark:text-white">Created</span>',
                                 '<span class="text-analyzing dark:text-white">Analyzing</span>',
-                                '<span class="text-scheduled dark:text-white">Scheduled</span>',
                                 '<span class="text-completed dark:text-white">Completed</span>'
                             ],
                             legend: { position: 'bottom', fontFamily: 'Inter, sans-serif' },

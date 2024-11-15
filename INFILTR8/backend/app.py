@@ -62,7 +62,7 @@ def createProject():
     projectName = data.get('name')
     fileName = data.get('fileName')
     ips = data.get('ips')
-    status = 'scheduled'
+    status = 'created'
     
     if 'username' not in session:
         print("User not authenticated - 'username' not in session")
@@ -95,7 +95,20 @@ def getAllProjectsInfo():
     result = project.allProjectInfo(driver, session['username'])
     return jsonify({'data': result})
 
-### Nessus Routes ###
+
+@app.route("/flask-api/set-currentProject", methods=['POST'])
+def setCurrentProject():
+    try:
+        project_id = request.json.get("projectID")
+        if not project_id:
+            return jsonify({"message": "Missing 'projectID' in request body"})
+        
+        session['currentProject'] = project_id
+
+        return jsonify({"message": f"Current project set successfully id:{project_id}" })
+    except Exception as e:
+         return jsonify({"error": f"An error occurred: {str(e)}"}), 500
+ ### Nessus Routes ###
 
 # Handles the uploading of the file
 @app.route("/flask-api/nessus-upload", methods=['POST'])
@@ -117,8 +130,16 @@ def nessusFileUpload():
         print(os.path.exists(app.config['UPLOAD_FOLDER']+'/'+filename))
         return jsonify({'message':'file was sent and has been saved on server'})
 
-@app.route("/flask-api/process-nessus")
+@app.route("/flask-api/process-nessus", methods=["POST"])
 def processNessus():
+    data = request.json
+    if not data:
+        return jsonify({'message': 'No data provided'}), 400
+    
+    disallowedIps = data.get("disallowedIps")
+    archetypesAllowed = data.get("archetypes")
+    
+    analysis.disallowed_ips = disallowedIps
     analysis.analyze_nessus_file(driver, session['currentProject'], session['username'])
     nessus_upload.processAndUpload(driver, session['username'], session['currentProject'])
     return jsonify({'message': 'Result files have been uploaded'})
@@ -145,7 +166,7 @@ def portZeroEntries():
     return jsonify({'message': 'success', 'data': zeroEntries})
 
 #gets ips from the analysis
-@app.route('/flask-api/get-ips', methods=['POST'])
+@app.route('/flask-api/get-scope', methods=['POST'])
 def receive_ips():
 
     try:
@@ -233,19 +254,20 @@ def create_user_route():
     password = data['password']
 
     # Generate a secure, random key for account recovery
-    recovery_key = secrets.token_urlsafe(16)  # Generates a 16-byte secure token
+    recovery_key = secrets.token_urlsafe(16)
 
     # Hash the password
     hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
 
     with driver.session() as session:
-        session.write_transaction(
+        user_exists = session.write_transaction(
             user_service.create_user, 
             username, 
             hashed_password.decode('utf-8'), 
             recovery_key
         )
     
+
     # Return the recovery key to the client for displaying to the user
     return jsonify({
         "status": "User created successfully",
@@ -332,6 +354,7 @@ def reset_password():
     except Exception as e:
         print(f"Error resetting password: {e}")
         return jsonify({"error": "Failed to reset password"}), 500
+
 
 
 # checks login information 
