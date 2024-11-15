@@ -6,20 +6,13 @@ from dotenv import dotenv_values
 from classes import database, analysis, parser
 from flask import send_file
 from logs.logmanager import LogManager
-from classes import user_service, project, nessus_upload
+from classes import user_service, project, nessus_upload, result
 import bcrypt
 from flask_session import Session
 import subprocess
 import json
 from datetime import datetime, timezone
 import secrets
-
-
-
-
-
-
-
 
 # Gets all the env variables
 config = dotenv_values(".env")
@@ -51,7 +44,7 @@ driver = neo4j.driver_make()
 
 @app.route("/flask-api/test")
 def test():
-    return jsonify({'info': 'Test to makes sure everything is working'})
+    return jsonify({'info': 'Test to makes sure everything is working', 'projectId': session['currentProject']})
 
 @app.route("/flask-api/test2")
 def test2():
@@ -102,7 +95,20 @@ def getAllProjectsInfo():
     result = project.allProjectInfo(driver, session['username'])
     return jsonify({'data': result})
 
-### Nessus Routes ###
+
+@app.route("/flask-api/set-currentProject", methods=['POST'])
+def setCurrentProject():
+    try:
+        project_id = request.json.get("projectID")
+        if not project_id:
+            return jsonify({"message": "Missing 'projectID' in request body"})
+        
+        session['currentProject'] = project_id
+
+        return jsonify({"message": f"Current project set successfully id:{project_id}" })
+    except Exception as e:
+         return jsonify({"error": f"An error occurred: {str(e)}"}), 500
+ ### Nessus Routes ###
 
 # Handles the uploading of the file
 @app.route("/flask-api/nessus-upload", methods=['POST'])
@@ -124,26 +130,44 @@ def nessusFileUpload():
         print(os.path.exists(app.config['UPLOAD_FOLDER']+'/'+filename))
         return jsonify({'message':'file was sent and has been saved on server'})
 
-@app.route("/flask-api/process-nessus")
+@app.route("/flask-api/process-nessus", methods=["POST"])
 def processNessus():
-    result = nessus_upload.processAndUpload(driver, session['currentProject'],  session['username'])
-    return jsonify({'message': 'File has been uploaded'})
+    data = request.json
+    if not data:
+        return jsonify({'message': 'No data provided'}), 400
     
-
+    disallowedIps = data.get("disallowedIps")
+    archetypesAllowed = data.get("archetypes")
+    
+    analysis.disallowed_ips = disallowedIps
+    analysis.analyze_nessus_file(driver, session['currentProject'], session['username'])
+    nessus_upload.processAndUpload(driver, session['username'], session['currentProject'])
+    return jsonify({'message': 'Result files have been uploaded'})
+    
 # Sends the entry points
+@app.route("/flask-api/data-with-exploits")
+def dataExploits():
+    dataEx = result.getResult(driver, 'dataExploits', session['currentProject'], session['username'])
+    return jsonify({'message': 'success', 'data': dataEx})
+
 @app.route("/flask-api/ranked-entry-points")
 def rankedEntryPoints():
-    return
+    rankedEntry = result.getResult(driver, 'rankedEntry', session['currentProject'], session['username'])
+    return jsonify({'message': 'success', 'data': rankedEntry})
+
+@app.route("/flask-api/entry-most-info")
+def entryMostInfo():
+    mostInfo = result.getResult(driver, 'mostInfo', session['currentProject'], session['username'])
+    return jsonify({'message': 'success', 'data': mostInfo})
+
+@app.route("/flask-api/port-0-entries")
+def portZeroEntries():
+    zeroEntries = result.getResult(driver, 'portZero', session['currentProject'], session['username'])
+    return jsonify({'message': 'success', 'data': zeroEntries})
+
 #gets ips from the analysis
-@app.route('/flask-api/get-ips', methods=['POST'])
+@app.route('/flask-api/get-scope', methods=['POST'])
 def receive_ips():
-    ips = request.json
-    analysis.disallowed_ips=[]
-    # Run analysis.py with the data as a JSON command-line argument
-    for ip in ips:
-        analysis.disallowed_ips.append(ip['ip'])
-    
-    analysis.analyze_nessus_file(driver, session['currentProject'] ,session['username'])
 
     try:
         data = request.get_json(force=True)
@@ -178,7 +202,7 @@ def receive_ips():
         return jsonify({"error": str(e)}), 500
 
 #gets unqiue ips from the file
-@app.route("/flask-api/get-all-ips", methods=['POST'])
+@app.route("/flask-api/get-ips-from-nessus", methods=['POST'])
 def get_all_ips():
     data = request.get_json()
     fileName = data.get('name')
