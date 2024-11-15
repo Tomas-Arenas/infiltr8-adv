@@ -327,22 +327,22 @@
     async function setCurrentProject(projectID) {
         try {
             const response = await fetch('/flask-api/set-currentProject', {
-                method: 'POST', // Make sure to use POST
+                method: 'POST', 
                 headers: {
-                    'Content-Type': 'application/json' // Ensure the request is sent as JSON
+                    'Content-Type': 'application/json' 
                 },
-                body: JSON.stringify({ projectID }) // Send the projectID in the request body
+                body: JSON.stringify({ projectID }) 
             });
 
             if (!response.ok) {
                 throw new Error('Failed to set current project');
             }
 
-            const result = await response.json(); // Parse the JSON response
-            console.log(result.message); // Log the success message or handle it as needed
+            const result = await response.json(); 
+            console.log(result.message); 
 
         } catch (error) {
-            console.error('Error:', error); // Log any errors for debugging
+            console.error('Error:', error);
         }
         goto('/project')
     }
