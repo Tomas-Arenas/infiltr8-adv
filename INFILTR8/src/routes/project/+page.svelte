@@ -126,6 +126,7 @@
         } catch (error) {
             console.error('Error calling /flask-api/process-nessus:', error);
         }
+        goto('/analysis')
     }
 
     async function logButtonClick(detail) {
