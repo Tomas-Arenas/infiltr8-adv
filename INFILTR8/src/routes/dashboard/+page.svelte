@@ -302,9 +302,7 @@
                                 <TableHead>
                                     <TableHeadCell>Select</TableHeadCell> <!-- Added Select column -->
                                     <TableHeadCell>Project Name</TableHeadCell>
-                                    <TableHeadCell>Project ID</TableHeadCell>
-                                    <TableHeadCell>IPs</TableHeadCell>
-                                    <TableHeadCell>Exploits</TableHeadCell>
+                                    
                                 </TableHead>
                                 <TableBody>
                                     {#each projects as project}
