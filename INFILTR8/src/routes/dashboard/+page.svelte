@@ -24,7 +24,7 @@
     let validEntryPoints = [];
     let projects = [];
     let resetRequests = [];
-    let errorMessage = '';
+    let errorMessage = '';  
     
     // Initialize the array to hold file names
     let value = [];
@@ -79,6 +79,32 @@
         return isHighSeverity && isValidPort;
       });
     }
+    async function handleResetRequest(username, action) {
+    try {
+        const response = await fetch("http://localhost:5173/flask-api/approve-password-reset", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                username: username,  // Ensure `username` is set
+                action: action       // Ensure `action` is set (e.g., 'approve' or 'deny')
+            })
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            console.log(data.message); // Log success message
+        } else {
+            const error = await response.json();
+            console.error("Error:", error);
+        }
+    } catch (error) {
+        console.error("Error in handleResetRequest:", error);
+    }
+}
+
+
     
     // Handle input change for file upload
     async function fetchResetRequests() {
@@ -98,6 +124,38 @@
         } catch (error) {
             errorMessage = 'An error occurred while fetching reset requests';
             console.error(error);
+        }
+    }
+    async function checkRequestStatus() {
+        console.log("Checking request status...");  // Debug: Initial log to confirm function call
+
+        if (!checkUsername) {
+            console.error("No username provided.");  // Debug: Log if username is missing
+            alert("Please enter your username.");
+            return;
+        }
+
+        try {
+            const response = await fetch("http://localhost:5173/flask-api/password-reset-status", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ username: checkUsername })
+            });
+
+            console.log("Response status:", response.status);  // Debug: Log response status
+
+            if (response.ok) {
+                const data = await response.json();
+                console.log("Password reset request status:", data);  // Debug: Log successful response data
+                requestStatusMessage = `Your request status: ${data.status}, Timestamp: ${new Date(data.timestamp).toLocaleString()}`;
+            } else {
+                const error = await response.json();
+                console.error("Error response:", error);  // Debug: Log error response from server
+                requestStatusMessage = error.error || "Failed to check request status.";
+            }
+        } catch (error) {
+            console.error("Error in checkRequestStatus:", error);  // Debug: Log any unexpected errors
+            alert("An error occurred while checking the password reset request status.");
         }
     }
 
@@ -120,6 +178,7 @@
     }
 
     onMount(() => {
+        fetchResetRequests();
         fetchProjects();
     });
 
@@ -265,7 +324,36 @@
     }
 
 </script>
-    
+<!-- Password Reset Request Modal -->
+{#if resetRequests.length > 0}
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-gray-800 bg-opacity-50">
+        <div class="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
+            <h2 class="text-xl font-semibold mb-4">Pending Password Reset Requests</h2>
+            
+            <!-- Display list of reset requests -->
+            <Table hoverable={true} class="shrink">
+                <TableHead>
+                    <TableHeadCell>Username</TableHeadCell>
+                    <TableHeadCell>Action</TableHeadCell>
+                </TableHead>
+                <TableBody>
+                    {#each resetRequests as request}
+                        <TableBodyRow>
+                            <TableBodyCell>{request.username}</TableBodyCell>
+                            <TableBodyCell>
+                                <button class="text-green-600 hover:underline mr-2" on:click={() => handleResetRequest(request.id, 'approve')}>Accept</button>
+                                <button class="text-red-600 hover:underline" on:click={() => handleResetRequest(request.id, 'deny')}>Deny</button>
+                            </TableBodyCell>
+                        </TableBodyRow>
+                    {/each}
+                </TableBody>
+            </Table>
+            
+            <button class="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600" on:click={() => resetRequests = []}>Close</button>
+        </div>
+    </div>
+{/if}
+
 <div class="flex flex-row items-start justify-between min-h-screen w-full">
     <div class="flex-grow">
         <div class="flex flex-col items-center min-h-screen w-full p-6">

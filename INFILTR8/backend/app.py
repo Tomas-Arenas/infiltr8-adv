@@ -251,30 +251,87 @@ def create_user_route():
         "status": "User created successfully",
         "recovery_key": recovery_key
     })
+@app.route('/flask-api/password-reset-status', methods=['POST'])
+def password_reset_status():
+    data = request.get_json()
+    username = data.get('username')
+    
+    try:
+        with driver.session() as session:
+            result = session.run(
+                "MATCH (r:PasswordResetRequest {username: $username}) RETURN r.status AS status, r.timestamp AS timestamp",
+                username=username
+            ).single()
+            
+            if result:
+                # If `status` is None, assume it is "active"
+                status = result['status'] if result['status'] is not None else "active"
+                return jsonify({
+                    "status": status,
+                    "timestamp": result['timestamp']
+                }), 200
+            else:
+                return jsonify({"error": "No pending password reset request found"}), 404
+    except Exception as e:
+        print(f"Error checking password reset status: {e}")
+        return jsonify({"error": "Failed to check password reset status"}), 500
+
 @app.route('/flask-api/get-password-reset-requests', methods=['GET'])
 def get_password_reset_requests():
-    username = session.get('username')  # Assuming you store username in session
+    # Ensure the session contains the username
+    username = session.get('username')  # Check if the username is in session
+    print(f"Session username: {username}")  # Debug: Log the session username
+
+    # Allow access only to the admin user
     if username != "admin":
+        print("Access denied: User is not an admin.")  # Debug log for access check
         return jsonify({"error": "Access denied. Admins only."}), 403
 
     try:
-        with driver.session() as session:
-            result = session.read_transaction(fetch_password_reset_requests)
-            requests = [{"id": record["r"]["id"], "username": record["r"]["username"], "timestamp": record["r"]["timestamp"]} for record in result]
+        # Use a session to interact with the database
+        with driver.session() as neo4j_session:
+            # Run the query and process the result immediately within the transaction
+            result = neo4j_session.run("MATCH (r:PasswordResetRequest) RETURN r")
+            requests = [
+                {
+                    "id": record["r"]["id"],
+                    "username": record["r"]["username"],
+                    "timestamp": record["r"]["timestamp"]
+                }
+                for record in result  # Process each record within the transaction
+            ]
+        
+        print(f"Fetched reset requests: {requests}")  # Debug: Log fetched requests
         return jsonify({"requests": requests}), 200
+
     except Exception as e:
-        print(f"Error fetching password reset requests: {e}")
+        print(f"Error fetching password reset requests: {e}")  # Debug: Log errors
         return jsonify({"error": "Failed to fetch password reset requests"}), 500
-
-# Function to fetch PasswordResetRequest nodes from Neo4j
-def fetch_password_reset_requests(tx):
-    query = "MATCH (r:PasswordResetRequest) RETURN r"
-    return tx.run(query)
-
-# Function to fetch PasswordResetRequest nodes from Neo4j
-def fetch_password_reset_requests(tx):
-    query = "MATCH (r:PasswordResetRequest) RETURN r"
-    return tx.run(query)
+@app.route('/flask-api/reset-password', methods=['POST'])
+def reset_password():
+    data = request.get_json()
+    username = data.get('username')
+    new_password = data.get('newPassword')
+    
+    try:
+        with driver.session() as session:
+            # Update user password directly in plain text
+            session.run(
+                "MATCH (u:User {username: $username}) SET u.password = $password",
+                username=username, password=new_password
+            )
+            
+            # Delete the PasswordResetRequest node for this user
+            session.run(
+                "MATCH (r:PasswordResetRequest {username: $username}) DELETE r",
+                username=username
+            )
+        
+        return jsonify({"message": "Password reset successfully"}), 200
+    
+    except Exception as e:
+        print(f"Error resetting password: {e}")
+        return jsonify({"error": "Failed to reset password"}), 500
 
 
 # checks login information 
@@ -330,6 +387,15 @@ def log_export():
 
     return jsonify({"message": "Export logged successfully"}), 200 
 
+
+# Helper function to check if a user exists in the Analyst node
+def check_user_exists(tx, username):
+    query = "MATCH (a:Analyst {username: $username}) RETURN a LIMIT 1"
+    print("Running query to check user existence:", query)
+    result = tx.run(query, username=username)
+    exists = result.single() is not None
+    print("User existence result:", exists)
+    return exists
 @app.route('/flask-api/request-password-reset', methods=['POST'])
 def request_password_reset():
     data = request.get_json()
@@ -361,12 +427,40 @@ def request_password_reset():
     else:
         # If the user does not exist
         return jsonify({"error": "User not found"}), 404
+@app.route('/flask-api/approve-password-reset', methods=['POST'])
+def approve_password_reset():
+    if 'username' not in session or session['username'] != 'admin':
+        return jsonify({"error": "Access denied: Admin only."}), 403
 
-# Helper function to check if a user exists in the Analyst node
-def check_user_exists(tx, username):
-    query = "MATCH (a:Analyst {username: $username}) RETURN a LIMIT 1"
-    print("Running query to check user existence:", query)
-    result = tx.run(query, username=username)
-    exists = result.single() is not None
-    print("User existence result:", exists)
-    return exists
+    data = request.get_json()
+    print(f"Data received in request: {data}")  # Debugging line
+
+    if not data:
+        print("Error: No data received")
+        return jsonify({"error": "Invalid data. No JSON received."}), 400
+
+    username = data.get('username')
+    action = data.get('action')
+
+    if not username or action not in ['approve', 'deny']:
+        print(f"Error: Missing or invalid 'username' or 'action' - Username: {username}, Action: {action}")
+        return jsonify({"error": "Invalid input: Missing username or action."}), 400
+
+    status = 'approved' if action == 'approve' else 'denied'
+
+    # Update the status in the database
+    with driver.session() as neo4j_session:
+        result = neo4j_session.run(
+            """
+            MATCH (r:PasswordResetRequest {username: $username})
+            SET r.status = $status
+            RETURN r.username AS username, r.status AS status
+            """,
+            username=username, status=status
+        )
+
+        record = result.single()
+        if record:
+            return jsonify({"message": f"Request {status} successfully for {username}."}), 200
+        else:
+            return jsonify({"error": "Request not found."}), 404
