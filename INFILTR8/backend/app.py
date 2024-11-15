@@ -247,7 +247,59 @@ def create_user_route():
         return jsonify({"error": "User already exists"}), 409  # Conflict status
     else:
         return jsonify({"status": "User created successfully", "recovery_key": recovery_key}), 201
+    
+@app.route('/flask-api/verify_recovery_key', methods=['POST'])
+def verify_recovery_key():
+    data = request.get_json()
+    recovery_key = data.get('recovery_key')
 
+    if not recovery_key:
+        return jsonify({"error": "Recovery key is required"}), 400
+
+    with driver.session() as session:
+        result = session.run(
+            """
+            MATCH (a:Analyst {recovery_key: $recovery_key})
+            RETURN a.username AS username
+            """,
+            recovery_key=recovery_key
+        )
+
+        record = result.single()
+        
+        if record:
+            return jsonify({"status": "Recovery key valid", "username": record["username"]}), 200
+        else:
+            return jsonify({"error": "Invalid recovery key"}), 404
+
+@app.route('/flask-api/reset_password', methods=['POST'])
+def reset_password():
+    data = request.get_json()
+    recovery_key = data.get('recovery_key')
+    new_password = data.get('new_password')
+
+    if not recovery_key or not new_password:
+        return jsonify({"error": "Recovery key and new password are required"}), 400
+
+    # Hash the new password
+    hashed_password = bcrypt.hashpw(new_password.encode('utf-8'), bcrypt.gensalt())
+
+    with driver.session() as session:
+        result = session.run(
+            """
+            MATCH (a:Analyst {recovery_key: $recovery_key})
+            SET a.password = $hashed_password
+            RETURN a.username AS username
+            """,
+            recovery_key=recovery_key, hashed_password=hashed_password.decode('utf-8')
+        )
+
+        record = result.single()
+        
+        if record:
+            return jsonify({"status": "Password reset successful", "username": record["username"]}), 200
+        else:
+            return jsonify({"error": "Invalid recovery key"}), 404
 
 # checks login information 
 @app.route('/flask-api/login', methods=['POST'])
