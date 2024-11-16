@@ -308,11 +308,11 @@ def password_reset_status():
 @app.route('/flask-api/get-password-reset-requests', methods=['GET'])
 def get_password_reset_requests():
     # Ensure the session contains the username
-    username = session.get('username')  # Check if the username is in session
-    print(f"Session username: {username}")  # Debug: Log the session username
+    # username = session.get('username')  # Check if the username is in session
+    print("Session username: ", session['username'])  # Debug: Log the session username
 
     # Allow access only to the admin user
-    if username != "admin":
+    if session['username'] != "admin":
         print("Access denied: User is not an admin.")  # Debug log for access check
         return jsonify({"error": "Access denied. Admins only."}), 403
 
