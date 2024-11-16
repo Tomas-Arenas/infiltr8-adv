@@ -257,29 +257,36 @@ def download_logs(date):
 @app.route('/flask-api/create_user', methods=['POST'])
 def create_user_route():
     data = request.get_json()
-    username = data['username']
-    password = data['password']
+    username = data.get('username')
+    password = data.get('password')
+
+    if not username or not password:
+        return jsonify({"error": "Username and password are required"}), 400
 
     # Generate a secure, random key for account recovery
     recovery_key = secrets.token_urlsafe(16)
 
     # Hash the password
-    hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+    hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 
-    with driver.session() as session:
-        user_exists = session.write_transaction(
-            user_service.create_user, 
-            username, 
-            hashed_password.decode('utf-8'), 
-            recovery_key
-        )
-    
+    try:
+        with driver.session() as session:
+            user_created = session.write_transaction(
+                user_service.create_user, username, hashed_password, recovery_key
+            )
 
-    # Return the recovery key to the client for displaying to the user
-    return jsonify({
-        "status": "User created successfully",
-        "recovery_key": recovery_key
-    })
+        if user_created:
+            return jsonify({
+                "status": "User created successfully",
+                "recovery_key": recovery_key
+            }), 201
+        else:
+            return jsonify({"error": "User already exists"}), 409
+
+    except Exception as e:
+        print(f"Error creating user: {e}")
+        return jsonify({"error": "Failed to create user"}), 500
+
 
 @app.route('/flask-api/verify_recovery_key', methods=['POST'])
 def verify_recovery_key():
