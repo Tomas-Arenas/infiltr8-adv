@@ -65,17 +65,23 @@
 		recoveryKey = '';
 
 		// Reset Forgot Password modal state
-		keyProvided = true;
+		keyProvided = true; // Default to assuming the user has the account key
 		accountKey = '';
 		newPassword = '';
 		forgotUsername = '';
+		checkUsername = ''; // Reset username for status check
 		keyVerified = false;
 		recoveryKeyError = '';
 		passwordResetMessage = '';
 		adminResetMessage = '';
+		requestStatusMessage = '';
+		showRequestAcceptedModal = false; // Ensure "Check Status" state is reset
+		showResetPasswordForm = false; // Ensure password reset form visibility is reset
 
+		// Reset autocomplete to default
 		autocomplete = 'on';
 	}
+
 	async function submitNewPassword() {
 		if (!newPassword) {
 			alert('Please enter a new password.');
@@ -115,13 +121,13 @@
 			const response = await fetch('/flask-api/password-reset-status', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ username: checkUsername }) // Use checkUsername here
+				body: JSON.stringify({ username: checkUsername })
 			});
 
 			if (response.ok) {
 				const data = await response.json();
 				requestStatusMessage = `Your request status: ${data.status}`;
-				showResetPasswordForm = data.status === 'approved'; // Optionally, show reset form
+				showResetPasswordForm = data.status === 'approved'; // Show reset form if status is approved
 			} else {
 				const error = await response.json();
 				requestStatusMessage = error.error || 'Failed to check request status.';
@@ -257,17 +263,35 @@
 		}
 	}
 
-	function requestAdminReset() {
-		adminResetMessage = '';
+	async function requestAdminReset() {
+		adminResetMessage = ''; // Reset the admin reset message
 
-		// Placeholder for actual admin reset logic
-		console.log('Requesting admin reset for username:', forgotUsername);
-
-		// Simulate feedback for admin reset request
-		if (forgotUsername) {
-			adminResetMessage = `Admin reset request sent for ${forgotUsername}. Please contact support for further assistance.`;
-		} else {
+		if (!forgotUsername) {
 			adminResetMessage = 'Please enter a valid username for the admin reset request.';
+			return;
+		}
+
+		try {
+			const response = await fetch('/flask-api/request-password-reset', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ username: forgotUsername })
+			});
+
+			if (response.ok) {
+				const data = await response.json();
+				adminResetMessage = `Admin reset request sent for ${forgotUsername}. Please contact support for further assistance.`;
+				console.log('Admin reset request successful:', data);
+			} else {
+				const error = await response.json();
+				adminResetMessage =
+					error.message || 'Failed to send admin reset request. Please try again.';
+				console.error('Admin reset request failed:', error);
+			}
+		} catch (error) {
+			console.error('Error in requestAdminReset:', error);
+			adminResetMessage =
+				'An error occurred while processing your request. Please try again later.';
 		}
 	}
 </script>
@@ -396,6 +420,7 @@
 	</Modal>
 
 	<!-- Forgot Password Modal -->
+	<!-- Forgot Password Modal -->
 	<Modal open={showForgotPasswordModal} on:close={handleModalClose}>
 		<div class="p-4">
 			<!-- Title and Instructions -->
@@ -472,7 +497,10 @@
 				<p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
 					<button
 						class="cursor-pointer text-indigo-600 hover:underline"
-						on:click={() => (showRequestAcceptedModal = true)}
+						on:click={() => {
+							showRequestAcceptedModal = true;
+							adminResetMessage = '';
+						}}						
 					>
 						Check Status of Your Request
 					</button>
@@ -485,19 +513,43 @@
 					bind:value={checkUsername}
 					placeholder="Enter your username"
 					class="mt-4 w-full rounded-md bg-gray-100 p-2 dark:bg-gray-700"
+					disabled={showResetPasswordForm}
 				/>
-				<button
-					on:click={checkRequestStatus}
-					class="mt-4 w-full rounded-lg bg-blue-600 px-4 py-2 text-white"
-				>
-					Check Status
-				</button>
-				
+				{#if !showResetPasswordForm}
+					<button
+						on:click={checkRequestStatus}
+						class="mt-4 w-full rounded-lg bg-blue-600 px-4 py-2 text-white"
+					>
+						Check Status
+					</button>
+				{/if}
+
+				<!-- Password Reset Form if Status is Approved -->
+				{#if showResetPasswordForm}
+					<input
+						type="password"
+						id="new-password"
+						bind:value={newPassword}
+						placeholder="Enter your new password"
+						class="mt-4 w-full rounded-md bg-gray-100 p-2 dark:bg-gray-700"
+					/>
+					<button
+						on:click={resetPassword}
+						class="mt-4 w-full rounded-lg bg-blue-600 px-4 py-2 text-white"
+					>
+						Reset Password
+					</button>
+				{/if}
+
 				<!-- Back to Admin Reset -->
 				<div class="mt-4">
 					<button
 						class="cursor-pointer text-indigo-600 hover:underline"
-						on:click={() => (showRequestAcceptedModal = false)}
+						on:click={() => {
+							showRequestAcceptedModal = false;
+							showResetPasswordForm = false; // Reset password form visibility
+							requestStatusMessage = ''; // Reset status message
+						}}
 					>
 						Go Back to Admin Reset
 					</button>
