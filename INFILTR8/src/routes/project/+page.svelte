@@ -146,6 +146,10 @@
             alert("Please select a project with a valid ID before starting testing.");
             return;
         }
+        if (get(ipsAllowed).map(item => item.ip).length == 0) {
+            ipsAllowed.set(selectedIps.map(ipAddress => new IP(ipAddress)));
+        }
+        console.log(get(ipsAllowed).map(item => item.ip))
         const selectedExploits = exploitsAllowed.filter(exp => exp.selected).map(exp => exp.name);
         try {
             const response = await fetch('/flask-api/process-nessus' ,{

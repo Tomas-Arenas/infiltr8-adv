@@ -44,7 +44,7 @@ driver = neo4j.driver_make()
 
 @app.route("/flask-api/test")
 def test():
-    return jsonify({'info': 'Test to makes sure everything is working', 'projectId': session['currentProject']})
+    return jsonify({'info': 'Test to makes sure everything is working'})
 
 @app.route("/flask-api/test2")
 def test2():
