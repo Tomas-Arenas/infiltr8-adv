@@ -22,6 +22,10 @@
 	let accountKey = '';
 	let forgotUsername = '';
 	let keyProvided = true; // Assume user has the account key initially
+	let keyVerified = false; // Flag to show password reset form
+	let recoveryKeyError = '';
+	let passwordResetMessage = '';
+	let adminResetMessage = '';
 
 	// Reactive variable to control autocomplete
 	let autocomplete = 'on';
@@ -48,11 +52,28 @@
 		autocomplete = 'off';
 	}
 
-	// Re-enable autocomplete when modals are closed and reset forgot password modal state
+	// Re-enable autocomplete when modals are closed and reset modal states
 	function handleModalClose() {
 		showCreateAccountModal = false;
 		showForgotPasswordModal = false;
-		keyProvided = true; // Reset to default state
+
+		// Reset Create Account modal state
+		createUsername = '';
+		createPassword = '';
+		createErrorMessage = '';
+		createSuccessMessage = '';
+		recoveryKey = '';
+
+		// Reset Forgot Password modal state
+		keyProvided = true;
+		accountKey = '';
+		newPassword = '';
+		forgotUsername = '';
+		keyVerified = false;
+		recoveryKeyError = '';
+		passwordResetMessage = '';
+		adminResetMessage = '';
+
 		autocomplete = 'on';
 	}
 	async function submitNewPassword() {
@@ -83,6 +104,7 @@
 		}
 	}
 
+	// Function to check the status of the password reset request
 	async function checkRequestStatus() {
 		if (!checkUsername) {
 			alert('Please enter your username.');
@@ -93,13 +115,13 @@
 			const response = await fetch('/flask-api/password-reset-status', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ username: checkUsername })
+				body: JSON.stringify({ username: checkUsername }) // Use checkUsername here
 			});
 
 			if (response.ok) {
 				const data = await response.json();
 				requestStatusMessage = `Your request status: ${data.status}`;
-				showResetPasswordForm = data.status === 'approved'; // Show form only if approved
+				showResetPasswordForm = data.status === 'approved'; // Optionally, show reset form
 			} else {
 				const error = await response.json();
 				requestStatusMessage = error.error || 'Failed to check request status.';
@@ -147,11 +169,13 @@
 
 			const data = await response.json();
 
-			if (response.ok) {
+			if (response.status === 201) {
 				createSuccessMessage = 'User created successfully!';
 				recoveryKey = data.recovery_key; // Capture the recovery key
 				createUsername = '';
 				createPassword = '';
+			} else if (response.status === 409) {
+				createErrorMessage = data.error || 'Error: Username already exists';
 			} else {
 				createErrorMessage = data.error || 'Failed to create user';
 			}
@@ -187,6 +211,63 @@
 			alert('An error occurred while sending the password reset request.');
 		} finally {
 			handleModalClose(); // Close the modal after submission
+		}
+	}
+
+	async function verifyRecoveryKey() {
+		recoveryKeyError = '';
+		passwordResetMessage = '';
+
+		const response = await fetch('/flask-api/verify_recovery_key', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ recovery_key: accountKey })
+		});
+
+		const data = await response.json();
+
+		if (response.ok) {
+			keyVerified = true;
+			passwordResetMessage = 'Recovery key verified! Enter your new password below.';
+		} else {
+			recoveryKeyError = data.error || 'Invalid recovery key';
+		}
+	}
+
+	async function resetPassword() {
+		passwordResetMessage = '';
+		recoveryKeyError = '';
+
+		const response = await fetch('/flask-api/reset-password', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ recovery_key: accountKey, new_password: newPassword })
+		});
+
+		const data = await response.json();
+
+		if (response.ok) {
+			passwordResetMessage =
+				'Password reset successful! You can now log in with your new password.';
+			keyVerified = false;
+			accountKey = '';
+			newPassword = '';
+		} else {
+			recoveryKeyError = data.error || 'Failed to reset password';
+		}
+	}
+
+	function requestAdminReset() {
+		adminResetMessage = '';
+
+		// Placeholder for actual admin reset logic
+		console.log('Requesting admin reset for username:', forgotUsername);
+
+		// Simulate feedback for admin reset request
+		if (forgotUsername) {
+			adminResetMessage = `Admin reset request sent for ${forgotUsername}. Please contact support for further assistance.`;
+		} else {
+			adminResetMessage = 'Please enter a valid username for the admin reset request.';
 		}
 	}
 </script>
@@ -236,16 +317,11 @@
 			<button
 				type="submit"
 				class="w-full rounded-lg bg-blue-600 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-300 dark:bg-blue-500 dark:hover:bg-blue-600 dark:focus:ring-blue-700"
+				>Login</button
 			>
-				Login
-			</button>
 
 			<div class="mt-4 text-center text-sm text-gray-500 dark:text-gray-400">
-        <a
-          href="/"
-					class="cursor-pointer hover:underline"
-					on:click={() => handleModalOpen('createAccount')}>Home</a
-				>
+				<a href="/" class="cursor-pointer hover:underline">Home</a>
 				&nbsp;|&nbsp;
 				<button
 					type="button"
@@ -277,7 +353,6 @@
 			{/if}
 
 			<form on:submit|preventDefault={createUser} class="mt-4 space-y-4">
-				<!-- Username Field -->
 				<input
 					type="text"
 					id="create-username"
@@ -286,8 +361,6 @@
 					required
 					class="w-full rounded-md bg-gray-100 p-2 dark:bg-gray-700"
 				/>
-
-				<!-- Password Field -->
 				<input
 					type="password"
 					id="create-password"
@@ -296,8 +369,6 @@
 					required
 					class="w-full rounded-md bg-gray-100 p-2 dark:bg-gray-700"
 				/>
-
-				<!-- Create Account Button -->
 				<button
 					type="submit"
 					class="w-full rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-300 dark:bg-blue-500 dark:hover:bg-blue-600 dark:focus:ring-blue-700"
@@ -305,7 +376,6 @@
 				>
 			</form>
 
-			<!-- Display the Recovery Key if Available -->
 			{#if recoveryKey}
 				<div class="mt-4 rounded-lg bg-yellow-100 p-4 dark:bg-yellow-700">
 					<h4 class="font-semibold text-yellow-800 dark:text-yellow-300">
@@ -322,30 +392,53 @@
 					</div>
 				</div>
 			{/if}
-
-			<div class="mt-4">
-				<button
-					class="w-full rounded-lg bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300 focus:outline-none focus:ring-4 focus:ring-gray-300 dark:bg-gray-600 dark:text-gray-300 dark:hover:bg-gray-700 dark:focus:ring-gray-700"
-					on:click={handleModalClose}>Close</button
-				>
-			</div>
 		</div>
 	</Modal>
 
 	<!-- Forgot Password Modal -->
 	<Modal open={showForgotPasswordModal} on:close={handleModalClose}>
 		<div class="p-4">
-			<h3 class="text-xl font-semibold text-gray-900 dark:text-white">Forgot Password</h3>
-			<p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-				{#if keyProvided}
-					Enter your account key to reset your password.
-				{:else}
-					Enter your username to request an admin reset or check if your request was accepted.
-				{/if}
-			</p>
+			<!-- Title and Instructions -->
+			{#if !keyProvided && !keyVerified && !showRequestAcceptedModal}
+				<h3 class="text-xl font-semibold text-gray-900 dark:text-white">Request Admin Reset</h3>
+				<p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+					Enter your username to request an admin reset or check your request status.
+				</p>
+			{:else if showRequestAcceptedModal}
+				<h3 class="text-xl font-semibold text-gray-900 dark:text-white">Check Status</h3>
+				<p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+					Enter your username to check the status of your password reset request.
+				</p>
+			{:else if keyProvided && !keyVerified}
+				<h3 class="text-xl font-semibold text-gray-900 dark:text-white">
+					Reset Password with Recovery Key
+				</h3>
+				<p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+					Enter your recovery key to reset your password.
+				</p>
+			{:else}
+				<h3 class="text-xl font-semibold text-gray-900 dark:text-white">Reset Your Password</h3>
+				<p class="mt-2 text-sm text-gray-600 dark:text-gray-400">Enter your new password below.</p>
+			{/if}
 
-			{#if keyProvided}
-				<!-- Account Key Input -->
+			<!-- Error and Success Messages -->
+			{#if recoveryKeyError}
+				<div class="mt-2 text-red-600 dark:text-red-400">{recoveryKeyError}</div>
+			{/if}
+			{#if passwordResetMessage}
+				<div class="mt-2 text-green-600 dark:text-green-400">{passwordResetMessage}</div>
+			{/if}
+			{#if adminResetMessage}
+				<div class="mt-2 text-blue-600 dark:text-blue-400">{adminResetMessage}</div>
+			{/if}
+			{#if requestStatusMessage}
+				<!-- Adjusted the location and styling of the status message -->
+				<div class="mt-2 text-green-600 dark:text-green-400">{requestStatusMessage}</div>
+			{/if}
+
+			<!-- Modal Content -->
+			{#if keyProvided && !keyVerified}
+				<!-- Recovery Key Input -->
 				<input
 					type="text"
 					id="account-key"
@@ -353,14 +446,13 @@
 					placeholder="Enter your account key"
 					class="mt-4 w-full rounded-md bg-gray-100 p-2 dark:bg-gray-700"
 				/>
-				<p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-					Lost your account key?
-					<button
-						class="cursor-pointer text-indigo-600 hover:underline"
-						on:click={() => (keyProvided = false)}>Click here</button
-					>
-				</p>
-			{:else}
+				<button
+					on:click={verifyRecoveryKey}
+					class="mt-4 w-full rounded-lg bg-blue-600 px-4 py-2 text-white"
+				>
+					Verify Recovery Key
+				</button>
+			{:else if !keyProvided && !showRequestAcceptedModal}
 				<!-- Username Input for Admin Reset -->
 				<input
 					type="text"
@@ -369,113 +461,78 @@
 					placeholder="Enter your username"
 					class="mt-4 w-full rounded-md bg-gray-100 p-2 dark:bg-gray-700"
 				/>
+				<button
+					on:click={requestAdminReset}
+					class="mt-4 w-full rounded-lg bg-blue-600 px-4 py-2 text-white"
+				>
+					Request Admin Reset
+				</button>
 
+				<!-- Toggle to Check Status -->
 				<p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
 					<button
 						class="cursor-pointer text-indigo-600 hover:underline"
-						on:click={() => (showRequestAcceptedModal = true)}>Was your request accepted?</button
+						on:click={() => (showRequestAcceptedModal = true)}
 					>
+						Check Status of Your Request
+					</button>
 				</p>
-
-				<!-- Submit Button -->
+			{:else if showRequestAcceptedModal}
+				<!-- Check Status Input -->
+				<input
+					type="text"
+					id="check-username"
+					bind:value={checkUsername}
+					placeholder="Enter your username"
+					class="mt-4 w-full rounded-md bg-gray-100 p-2 dark:bg-gray-700"
+				/>
+				<button
+					on:click={checkRequestStatus}
+					class="mt-4 w-full rounded-lg bg-blue-600 px-4 py-2 text-white"
+				>
+					Check Status
+				</button>
+				
+				<!-- Back to Admin Reset -->
 				<div class="mt-4">
 					<button
-						class="w-full rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-300 dark:bg-blue-500 dark:hover:bg-blue-600 dark:focus:ring-blue-700"
-						on:click={submitForgotPassword}>Submit</button
+						class="cursor-pointer text-indigo-600 hover:underline"
+						on:click={() => (showRequestAcceptedModal = false)}
 					>
+						Go Back to Admin Reset
+					</button>
 				</div>
-			{/if}
-
-			<div class="mt-4">
-				<!-- Close Button -->
-				<button
-					class="w-full rounded-lg bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300 focus:outline-none focus:ring-4 focus:ring-gray-300 dark:bg-gray-600 dark:text-gray-300 dark:hover:bg-gray-700 dark:focus:ring-gray-700"
-					on:click={handleModalClose}>Close</button
-				>
-			</div>
-		</div>
-		{#if showResetPasswordForm}
-			<div class="mt-4">
-				<h3 class="text-xl font-semibold text-gray-900 dark:text-white">Reset Password</h3>
-				<p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-					Enter a new password for your account.
-				</p>
-
+			{:else}
+				<!-- Password Reset Form -->
 				<input
 					type="password"
 					id="new-password"
 					bind:value={newPassword}
-					placeholder="Enter new password"
+					placeholder="Enter your new password"
 					class="mt-4 w-full rounded-md bg-gray-100 p-2 dark:bg-gray-700"
 				/>
-
 				<button
-					class="mt-4 w-full rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
-					on:click={submitNewPassword}>Reset Password</button
+					on:click={resetPassword}
+					class="mt-4 w-full rounded-lg bg-blue-600 px-4 py-2 text-white"
 				>
-			</div>
-		{/if}
-	</Modal>
-
-	<!-- "Was Your Request Accepted?" Modal -->
-	<Modal open={showRequestAcceptedModal} on:close={() => (showRequestAcceptedModal = false)}>
-		<div class="p-4">
-			<!-- Modal Title -->
-			<h3 class="text-xl font-semibold text-gray-900 dark:text-white">Check Request Status</h3>
-			<p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-				Enter your username to check the status of your password reset request.
-			</p>
-
-			<!-- Username Input -->
-			<input
-				type="text"
-				id="check-username"
-				bind:value={checkUsername}
-				placeholder="Enter your username"
-				class="mt-4 w-full rounded-md bg-gray-100 p-2 dark:bg-gray-700"
-			/>
-
-			<!-- Check Status Button -->
-			<div class="mt-4">
-				<button
-					class="w-full rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
-					on:click={checkRequestStatus}
-				>
-					Check Status
+					Reset Password
 				</button>
-			</div>
-
-			<!-- Display Request Status Message -->
-			{#if requestStatusMessage}
-				<p class="mt-4 text-center text-gray-600 dark:text-gray-300">{requestStatusMessage}</p>
 			{/if}
 
-			<!-- Password Reset Form if the request is accepted -->
-			{#if showResetPasswordForm}
-				<div class="mt-4">
-					<h3 class="text-xl font-semibold text-gray-900 dark:text-white">Reset Password</h3>
-					<p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-						Enter a new password for your account.
+			<!-- Lost Account Key -->
+			<div class="mt-4">
+				{#if keyProvided}
+					<p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+						Lost your account key?
+						<button
+							class="cursor-pointer text-indigo-600 hover:underline"
+							on:click={() => (keyProvided = false)}
+						>
+							Click here
+						</button>
 					</p>
-
-					<!-- New Password Input -->
-					<input
-						type="password"
-						id="new-password"
-						bind:value={newPassword}
-						placeholder="Enter new password"
-						class="mt-4 w-full rounded-md bg-gray-100 p-2 dark:bg-gray-700"
-					/>
-
-					<!-- Submit New Password Button -->
-					<button
-						class="mt-4 w-full rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
-						on:click={submitNewPassword}
-					>
-						Reset Password
-					</button>
-				</div>
-			{/if}
+				{/if}
+			</div>
 		</div>
 	</Modal>
 </div>
