@@ -319,7 +319,7 @@ def password_reset_status():
             
             if result:
                 # If `status` is None, assume it is "active"
-                status = result['status'] if result['status'] is not None else "active"
+                status = result['status'] if result['status'] is not None else "Pending"
                 return jsonify({
                     "status": status,
                     "timestamp": result['timestamp']
