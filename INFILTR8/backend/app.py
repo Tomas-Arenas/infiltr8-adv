@@ -280,6 +280,31 @@ def create_user_route():
         "status": "User created successfully",
         "recovery_key": recovery_key
     })
+
+@app.route('/flask-api/verify_recovery_key', methods=['POST'])
+def verify_recovery_key():
+    data = request.get_json()
+    recovery_key = data.get('recovery_key')
+
+    if not recovery_key:
+        return jsonify({"error": "Recovery key is required"}), 400
+
+    with driver.session() as session:
+        result = session.run(
+            """
+            MATCH (a:Analyst {recovery_key: $recovery_key})
+            RETURN a.username AS username
+            """,
+            recovery_key=recovery_key
+        )
+
+        record = result.single()
+        
+        if record:
+            return jsonify({"status": "Recovery key valid", "username": record["username"]}), 200
+        else:
+            return jsonify({"error": "Invalid recovery key"}), 404
+
 @app.route('/flask-api/password-reset-status', methods=['POST'])
 def password_reset_status():
     data = request.get_json()
@@ -336,6 +361,7 @@ def get_password_reset_requests():
     except Exception as e:
         print(f"Error fetching password reset requests: {e}")  # Debug: Log errors
         return jsonify({"error": "Failed to fetch password reset requests"}), 500
+    
 @app.route('/flask-api/reset-password', methods=['POST'])
 def reset_password():
     data = request.get_json()
