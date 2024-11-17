@@ -97,7 +97,7 @@ export async function getIPsForProject(fileName) {
   function addIPstoStore(data) {
     const ipInstances = data.map(ipAddress => new IP(ipAddress)); // Create IP instances
     console.log(ipInstances)
-    ipsDisallowed.set(ipInstances); // Update the store with IP instances
+    ipsAllowed.set(ipInstances); // Update the store with IP instances
 }
 
 // DARK MODE LOGIC

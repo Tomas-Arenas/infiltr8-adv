@@ -16,12 +16,12 @@
 
     
     let exploitsAllowed = [
-        { id: 1, name: 'SQL Injection', selected: false },
-        { id: 2, name: 'DDOS Attack', selected: false },
-        { id: 3, name: 'Default Credentials', selected: false },
-        { id: 4, name: 'Missing Encryption', selected: false },
-        { id: 5, name: 'Unauthenticated Port Bypass', selected: false },
-        { id: 6, name: 'Weak Passwords', selected: false }
+        { id: 1, name: 'SQL Injection', selected: true },
+        { id: 2, name: 'DDOS Attack', selected: true },
+        { id: 3, name: 'Default Credentials', selected: true },
+        { id: 4, name: 'Missing Encryption', selected: true },
+        { id: 5, name: 'Unauthenticated Port Bypass', selected: true },
+        { id: 6, name: 'Weak Passwords', selected: true }
     ];
 
     async function fetchProjectInfo(){
@@ -146,6 +146,10 @@
             alert("Please select a project with a valid ID before starting testing.");
             return;
         }
+        if (get(ipsAllowed).map(item => item.ip).length == 0) {
+            ipsAllowed.set(selectedIps.map(ipAddress => new IP(ipAddress)));
+        }
+        console.log(get(ipsAllowed).map(item => item.ip))
         const selectedExploits = exploitsAllowed.filter(exp => exp.selected).map(exp => exp.name);
         try {
             const response = await fetch('/flask-api/process-nessus' ,{

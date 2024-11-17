@@ -8,9 +8,46 @@ def fileRead(filepath):
         for lines in csvFile:
             stringLine = ''
             for part in lines:
+                if " "  in part:
+                    part = part.replace(" ", "-")
                 stringLine = stringLine + ' ' + part
             wholeCsv.append(stringLine)
         return wholeCsv
+
+def turnIntoCsv(contents):
+    result = []
+    for line in contents:
+        result.append(line.split())
+    return result
+
+def getDataExploits(driver, username, projectId):
+    query = """
+    MATCH (f:Report {name: "dataExploits"})-[h:HAS_FILE]->(p:Project {projectId: $projectId})-[r:HAS_PROJECT]->(u:Analyst {username: $username}) 
+    RETURN f.contents as content
+    """
+    with driver.session() as session:
+        resultCount = session.run(query, username=username, projectId=projectId)
+        try:
+            return turnIntoCsv(resultCount.single()['content'])
+        except TypeError:
+            return []
+
+def countResults(driver, username, projectId):
+    query = """
+    MATCH (f:Report)-[h:HAS_FILE]->(p:Project {projectId: $projectId})-[r:HAS_PROJECT]->(u:Analyst {username: $username}) 
+    RETURN count(f) as reportCount
+    """
+    with driver.session() as session:
+        resultCount = session.run(query, username=username, projectId=projectId)
+        return resultCount.single()['reportCount']
+    
+def deleteResults(driver, username, projectId):
+    query = """
+    MATCH (f:Report)-[h:HAS_FILE]->(p:Project {projectId: $projectId})-[r:HAS_PROJECT]->(u:Analyst {username: $username}) 
+    DETACH DELETE f
+    """
+    with driver.session() as session:
+        session.run(query, username=username, projectId=projectId)
 
 def processAndUpload(driver, username, projectId):
     output_base_dir = os.getcwd()+'/output/'
@@ -19,6 +56,9 @@ def processAndUpload(driver, username, projectId):
     mostInfo = fileRead(output_base_dir+'entrypoint_most_info.csv')
     dataExploits = fileRead(output_base_dir+'data_with_exploits.csv')
     portZero = fileRead(output_base_dir+'port_0_entries.csv')
+    
+    if countResults(driver, username, projectId) != 0:
+        deleteResults(driver, username, projectId)
     
     query = """
     MATCH (p:Project {projectId: $projectId})-[r:HAS_PROJECT]->(u:Analyst {username: $username}) 

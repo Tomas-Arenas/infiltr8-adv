@@ -4,6 +4,7 @@ import pandas as pd
 import category_encoders as ce
 from sklearn.preprocessing import MinMaxScaler
 from classes import project
+from classes import nessus_upload
 
 base_dir = os.getcwd()
 # Path to the Nessus XML file, change line 10 to match path where your NESSUS file is
@@ -19,7 +20,17 @@ disallowed_ips = []
 
 def analyze_nessus_file(driver, projectId, username):
     try:
-        project.updateProjectStatus(driver, projectId, username, 0)  # Start at 0%
+        contents = nessus_upload.getDataExploits(driver, username, projectId)
+        if len(contents) == 0:
+            baseFrame = pd.read_csv(dataExploit)
+        else:
+            print('here')
+            print(contents[0])
+            data = contents[1:]
+            print(data[0])
+            baseFrame = pd.DataFrame(data, columns=contents[0])
+            
+        project.updateProjectStatus(driver, projectId, username, 0)  # Start at 0% 
         # reads the csv made_before
         baseFrame = pd.read_csv(dataExploit)
         df = baseFrame[baseFrame["ip"].isin(disallowed_ips)]
