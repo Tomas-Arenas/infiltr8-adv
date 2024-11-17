@@ -5,7 +5,9 @@
 
 ## Node and Svelte Setup
 
-  
+### Demo Video
+
+https://youtu.be/s43BS06Z_-I
 
 ### Windows Install
 
