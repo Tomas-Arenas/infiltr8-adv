@@ -52,7 +52,16 @@ const config: Config = {
             danger: '#6c5ce7',   // Purple
           }
         }
-      }
+      },
+      keyframes: {
+        movingLight: {
+          '0%': { transform: 'translateX(-100%)' },
+          '100%': { transform: 'translateX(100%)' },
+        },
+      },
+      animation: {
+        movingLight: 'movingLight 8s linear infinite',
+      },
     }
   },
   plugins: [flowbitePlugin],
