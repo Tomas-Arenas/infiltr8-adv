@@ -23,7 +23,6 @@
 		// Check session state when the component mounts
 		checkSession();
 	});
-	
 </script>
 
 <svelte:head>
@@ -38,7 +37,7 @@
 <div class="fixed right-0 z-50 flex items-center justify-items-center gap-3 pr-3 pt-2">
 	<!-- Notifications Bell -->
 	{#if $session.logged_in}
-	<Notifications />
+		<Notifications />
 	{/if}
 	<!-- Darkmode Toggle -->
 	<Darkmode showIcon={true} />
@@ -46,16 +45,23 @@
 	<Colorblind showIcon={true} />
 </div>
 
-<div class="app flex max-h-full bg-gradient-to-r bg-white dark:from-gray-600 dark:to-slate-800">
+<div
+	class="app relative flex max-h-full overflow-hidden bg-white bg-gradient-to-r dark:from-gray-700 dark:to-slate-800"
+>
+	<!-- Moving Light Effect -->
+	<div
+		class="animate-movingLight pointer-events-none absolute inset-0 z-0 bg-gradient-to-r from-transparent dark:via-blue-600 to-transparent opacity-5"
+	></div>
+
 	<Navbar />
-	<div class={`flex-1 p-4 transition-all duration-300 ${$session.logged_in && $menuOpen ? 'ml-64' : ''} ${$session.logged_in && $page.route.id != '/login' && $page.route.id != '/' ? 'mt-10' : ''}`}>
+	<div
+		class={`relative z-10 flex-1 p-4 transition-all duration-300 ${$session.logged_in && $menuOpen ? 'ml-64' : ''} ${$session.logged_in && $page.route.id != '/login' && $page.route.id != '/' ? 'mt-10' : ''}`}
+	>
 		<main>
 			<slot />
 		</main>
 	</div>
 </div>
-
-
 
 <style>
 	.app {
