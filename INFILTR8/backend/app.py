@@ -411,12 +411,19 @@ def login_route():
     username = data.get('username')
     password = data.get('password')
 
-    if user_service.login_user(driver, username, password):
-        session['username'] = username  # Store username in session
-        session_id = session.sid
-        return jsonify({"status": "Login successful", "session_id": session_id})
-    else:
-        return jsonify({"status": "Invalid username or password"}), 401
+    # Call the login_user function
+    login_result = user_service.login_user(driver, username, password)
+
+    # Check if there was an error in the login process
+    if "error" in login_result:
+        print(f"Login failed for {username}: {login_result['error']}")
+        return jsonify({"status": "Login failed", "error": login_result["error"]}), 401
+
+    # If login is successful, store session details
+    session['username'] = username
+    session_id = session.sid  # Generate a session ID
+    print(f"Login successful for {username}")
+    return jsonify({"status": login_result["status"], "session_id": session_id})
 
 # clears session and deletes all session files
 @app.route('/flask-api/logout', methods=['POST'])

@@ -32,10 +32,14 @@ def login_user(driver, username, password):
         if user_record:
             user = user_record["a"]
             user_labels = user.labels
+            user_properties = user._properties  # Access properties of the node
+            
+            # Debug: Print all user properties
+            print('User properties:', user_properties)
 
             # Check if the user is an Admin
             if "admin" in user_labels:
-                stored_password = user.get("password")
+                stored_password = user_properties.get("password")
                 print(f"Admin stored password: {stored_password}")
                 if stored_password is None:
                     return {"error": "Admin password not set"}
@@ -46,12 +50,18 @@ def login_user(driver, username, password):
 
             # Check if the user is an Analyst
             elif "Analyst" in user_labels:
-                hashed_password = user.get("password")
+                hashed_password = user_properties.get("password")
+                print(f"Stored hashed password for Analyst: {hashed_password}")
                 if hashed_password is None:
                     return {"error": "Analyst password not set"}
-                if bcrypt.checkpw(password.encode('utf-8'), hashed_password.encode('utf-8')):
+
+                # Debug: Check password comparison
+                password_matches = bcrypt.checkpw(password.encode('utf-8'), hashed_password.encode('utf-8'))
+                print(f"Password match result: {password_matches}")
+                
+                if password_matches:
                     return {"status": "User", "username": username}
                 else:
                     return {"error": "Invalid password for Analyst"}
 
-        return {"error": "User not found"}  # User does not exist
+        return {"error": "User not found"}  # If no matching user is found
