@@ -373,30 +373,36 @@ def get_password_reset_requests():
 @app.route('/flask-api/reset-password', methods=['POST'])
 def reset_password():
     data = request.get_json()
-    username = data.get('username')
-    new_password = data.get('newPassword')
-    
+    recovery_key = data.get('recovery_key')
+    new_password = data.get('new_password')
+
+    if not recovery_key or not new_password:
+        return jsonify({"error": "Recovery key and new password are required"}), 400
+
+    # Hash the new password
+    hashed_password = bcrypt.hashpw(new_password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+
     try:
         with driver.session() as session:
-            # Update user password directly in plain text
-            session.run(
-                "MATCH (u:User {username: $username}) SET u.password = $password",
-                username=username, password=new_password
+            # Match user with recovery key and update their password
+            result = session.run(
+                """
+                MATCH (a:Analyst {recovery_key: $recovery_key})
+                SET a.password = $hashed_password
+                RETURN a.username AS username
+                """,
+                recovery_key=recovery_key,
+                hashed_password=hashed_password
             )
-            
-            # Delete the PasswordResetRequest node for this user
-            session.run(
-                "MATCH (r:PasswordResetRequest {username: $username}) DELETE r",
-                username=username
-            )
-        
-        return jsonify({"message": "Password reset successfully"}), 200
-    
+
+            record = result.single()
+            if record:
+                return jsonify({"message": "Password reset successful", "username": record["username"]}), 200
+            else:
+                return jsonify({"error": "Invalid recovery key"}), 404
     except Exception as e:
         print(f"Error resetting password: {e}")
         return jsonify({"error": "Failed to reset password"}), 500
-
-
 
 # checks login information 
 @app.route('/flask-api/login', methods=['POST'])
