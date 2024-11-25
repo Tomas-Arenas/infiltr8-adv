@@ -299,9 +299,9 @@
 <div class="flex min-h-screen items-center justify-center">
 	<form on:submit|preventDefault={loginUser} class="w-full max-w-md">
 		<Card size="lg">
-			<h2 class="mb-3 text-xl font-bold">Login</h2>
+			<h2 class="mb-4 text-xl font-bold">Login</h2>
 			{#if errorMessage}
-				<div class="text-red-600 dark:text-red-400">{errorMessage}</div>
+				<div class="text-red-600 dark:text-red-400 mb-3 -mt-4">{errorMessage}</div>
 			{/if}
 
 			<div class="group relative z-0 mb-6 w-full">
@@ -316,7 +316,7 @@
 				/>
 				<label
 					for="username"
-					class="absolute top-3 -z-10 origin-[0] -translate-y-6 scale-75 transform text-sm text-gray-500 duration-300 peer-placeholder-shown:translate-y-0 peer-placeholder-shown:scale-100 peer-focus:-translate-y-6 peer-focus:scale-75 dark:text-gray-400"
+					class="absolute top-3 -z-10 origin-[0] -translate-y-7 scale-75 transform text-sm text-gray-500 duration-300 peer-placeholder-shown:translate-y-0 peer-placeholder-shown:scale-100 peer-focus:-translate-y-7 peer-focus:scale-75 dark:text-gray-400"
 					>Username</label
 				>
 			</div>
@@ -333,7 +333,7 @@
 				/>
 				<label
 					for="password"
-					class="absolute top-3 -z-10 origin-[0] -translate-y-6 scale-75 transform text-sm text-gray-500 duration-300 peer-placeholder-shown:translate-y-0 peer-placeholder-shown:scale-100 peer-focus:-translate-y-6 peer-focus:scale-75 dark:text-gray-400"
+					class="absolute top-3 -z-10 origin-[0] -translate-y-7 scale-75 transform text-sm text-gray-500 duration-300 peer-placeholder-shown:translate-y-0 peer-placeholder-shown:scale-100 peer-focus:-translate-y-7 peer-focus:scale-75 dark:text-gray-400"
 					>Password</label
 				>
 			</div>
@@ -370,7 +370,7 @@
 			</p>
 
 			{#if createErrorMessage}
-				<div class="mt-2 text-red-600 dark:text-red-400">{createErrorMessage}</div>
+				<div class="mt-2 text-red-600 dark:text-red-400 mb-2">{createErrorMessage}</div>
 			{/if}
 			{#if createSuccessMessage}
 				<div class="mt-2 text-green-600 dark:text-green-400">{createSuccessMessage}</div>
