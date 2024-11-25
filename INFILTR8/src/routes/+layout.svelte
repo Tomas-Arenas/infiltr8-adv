@@ -50,7 +50,7 @@
 >
 	<!-- Moving Light Effect -->
 	<div
-		class="animate-movingLight pointer-events-none absolute inset-0 z-0 bg-gradient-to-r from-transparent dark:via-blue-600 to-transparent opacity-5"
+		class="animate-movingLight pointer-events-none absolute inset-0 z-0 bg-gradient-to-r from-transparent dark:via-fuchsia-700 to-transparent opacity-10"
 	></div>
 
 	<Navbar />
