@@ -83,26 +83,26 @@
 	}
 
 	async function submitNewPassword() {
-		if (!newPassword) {
-			alert('Please enter a new password.');
+		if (!newPassword || !accountKey) {
+			alert('Please enter your recovery key and a new password.');
 			return;
 		}
 
 		try {
-			const response = await fetch('http://localhost:5173/flask-api/reset-password', {
+			const response = await fetch('/flask-api/reset-password', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ username: checkUsername, newPassword })
+				body: JSON.stringify({ recovery_key: accountKey, new_password: newPassword })
 			});
 
+			const data = await response.json();
+
 			if (response.ok) {
-				alert('Password reset successfully.');
-				showResetPasswordForm = false; // Hide the form after successful reset
-				requestStatusMessage =
-					'Your password has been reset. You may now log in with your new password.';
+				alert('Password reset successfully. You may now log in with your new password.');
+				passwordResetMessage = 'Password reset successful!';
+				handleModalClose();
 			} else {
-				const error = await response.json();
-				alert('Failed to reset password. Please try again.');
+				alert(data.error || 'Failed to reset password. Please try again.');
 			}
 		} catch (error) {
 			console.error('Error in submitNewPassword:', error);
@@ -301,7 +301,7 @@
 		<Card size="lg">
 			<h2 class="mb-4 text-xl font-bold">Login</h2>
 			{#if errorMessage}
-				<div class="text-red-600 dark:text-red-400 mb-3 -mt-4">{errorMessage}</div>
+				<div class="-mt-4 mb-3 text-red-600 dark:text-red-400">{errorMessage}</div>
 			{/if}
 
 			<div class="group relative z-0 mb-6 w-full">
@@ -370,7 +370,7 @@
 			</p>
 
 			{#if createErrorMessage}
-				<div class="mt-2 text-red-600 dark:text-red-400 mb-2">{createErrorMessage}</div>
+				<div class="mb-2 mt-2 text-red-600 dark:text-red-400">{createErrorMessage}</div>
 			{/if}
 			{#if createSuccessMessage}
 				<div class="mt-2 text-green-600 dark:text-green-400">{createSuccessMessage}</div>
@@ -500,7 +500,7 @@
 						on:click={() => {
 							showRequestAcceptedModal = true;
 							adminResetMessage = '';
-						}}						
+						}}
 					>
 						Check Status of Your Request
 					</button>
