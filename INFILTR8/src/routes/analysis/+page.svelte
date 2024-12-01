@@ -106,7 +106,6 @@
 
             if (cacheValid) {
                 const data = JSON.parse(cachedData);
-                console.log("Loaded table data from cache");
                 processTableData(data);
                 return;
             }
@@ -127,7 +126,6 @@
             localStorage.setItem("tableData", JSON.stringify(data));
             localStorage.setItem("tableDataTimestamp", Date.now().toString());
 
-            console.log("Fetched and cached table data");
             processTableData(data);
         } catch (error) {
             console.error("There was an error retrieving data from the backend:", error);
