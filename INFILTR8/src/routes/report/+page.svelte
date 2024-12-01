@@ -165,7 +165,7 @@
 <main class="container mx-auto p-6">
 	<!-- Title -->
 	<div class="mb-4">
-		<Heading tag="h1" class="font-bold text-xl dark:text-white text-left">
+		<Heading tag="h1" class="font-bold text-xl dark:text-white text-center">
 			REPORTS
 		</Heading>
 	</div>

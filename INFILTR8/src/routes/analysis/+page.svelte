@@ -172,6 +172,7 @@
 <main>
     
     <h1 class="font-bold text-xl dark:text-white mb-4 text-center">Analysis</h1>
+    
         <div class="flex flex-wrap w-full gap-6">
             
             <!-- start of the left column -->   

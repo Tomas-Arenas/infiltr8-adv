@@ -90,33 +90,7 @@
 				<h1 class="oswald ml-2 mr-auto flex-grow text-2xl font-bold text-gray-900 dark:text-white">
 					INFILTR8
 				</h1>
-				{#if loggedIn}
-					<button class="mr-1 rounded-lg bg-blue-100 p-2" aria-label="" in:fade={{ duration: 500 }}>
-						<h1 class="text-sm font-bold text-blue-600 dark:text-blue-400">
-							{userInitials}
-						</h1>
-					</button>
-					<Popover
-						class="min-w-36 text-center"
-						placement="bottom"
-						strategy="fixed"
-						trigger="hover"
-						title="Placeholder"
-						transition={slide}
-					>
-						<div class="flex flex-col">
-							{#each userLinks as link}
-								<a
-									href={link.href}
-									class="text-gray-90 inline-flex rounded-lg py-1 pl-2 hover:bg-gray-100 hover:text-black dark:hover:bg-gray-700 dark:hover:text-white"
-								>
-									<svelte:component this={link.icon} class="my-auto mr-2" size="lg" />
-									{link.text}
-								</a>
-							{/each}
-						</div>
-					</Popover>
-				{/if}
+
 				<button
 					class="rounded-lg p-2 hover:bg-gray-100 dark:hover:bg-gray-700"
 					aria-label="Close sidebar"
@@ -212,37 +186,6 @@
 						>
 							INFILTR8
 						</h1>
-						{#if loggedIn}
-							<button
-								class="ml-4 mr-1 rounded-lg bg-blue-100 p-2"
-								aria-label=""
-								in:fade={{ duration: 500 }}
-							>
-								<h1 class="text-sm font-bold text-blue-600 dark:text-blue-400">
-									{userInitials}
-								</h1>
-							</button>
-							<Popover
-								class="min-w-36 text-center"
-								placement="bottom"
-								strategy="fixed"
-								trigger="hover"
-								title="Placeholder"
-								transition={slide}
-							>
-								<div class="flex flex-col">
-									{#each userLinks as link}
-										<a
-											href={link.href}
-											class="text-gray-90 inline-flex rounded-lg py-1 pl-2 hover:bg-gray-100 hover:text-black dark:hover:bg-gray-700 dark:hover:text-white"
-										>
-											<svelte:component this={link.icon} class="my-auto mr-2" size="lg" />
-											{link.text}
-										</a>
-									{/each}
-								</div>
-							</Popover>
-						{/if}
 					</div>
 					<hr class="mb-2" />
 					<!-- List of navigation items -->
