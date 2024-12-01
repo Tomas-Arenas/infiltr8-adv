@@ -179,6 +179,31 @@
         goto('/analysis')
     }
 
+    async function deleteProject() {
+        if (!selectedProject || !selectedProject.projectId) {
+            alert("Please select a project with a valid ID before deleting project.");
+            return;
+        }
+        try {
+            const response = await fetch('/flask-api/delete-current-project');
+            
+            // Check if the response is OK (status 200)
+            if (!response.ok) {
+                throw new Error(`Error: ${response.statusText}`);
+            }
+            
+            // Parse the JSON response
+            const data = await response.json();
+            
+            // Handle the response data
+            console.log(data.message);  // or update the UI as needed
+            alert(data.message)
+        } catch (error) {
+            console.error('Error calling /flask-api/delete-current-project:', error);
+        }
+        goto('/dashboard')
+    }
+
     async function logButtonClick(detail) {
         console.log("Button clicked with detail:", detail);  // For debugging
         try {
@@ -292,8 +317,12 @@
     </Card>
 
 	<!-- Start Testing button placed below the layout -->
-	<button
-		class="mt-6 rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white hover:bg-blue-700"
-		on:click={startAnalysis}>Start Analysis</button
-	>
+    <div class="flex justify-between w-1/2">
+        <button
+            class="mt-6 rounded-lg bg-red-600 px-6 py-3 font-semibold text-white hover:bg-red-700"
+            on:click={deleteProject}>Delete Project</button>
+        <button
+        class="mt-6 rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white hover:bg-blue-700"
+        on:click={startAnalysis}>Start Analysis</button>
+    </div>
 </div>

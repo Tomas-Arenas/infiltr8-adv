@@ -89,3 +89,18 @@ def getAllProjectIds(driver, username):
             allIds.append(id["projectIds"])
         print(allIds)
         return allIds
+
+def deleteCurrentProject(driver, username, projectId):
+    deleteAnalysis = """
+    MATCH (n:Project{projectId: $projectId, user: $username})<-[r]-(node) 
+    DETACH DELETE node
+    """
+    deleteProject = """
+    MATCH (n:Project{projectId: $projectId, user: $username}) 
+    DETACH DELETE n
+    """
+    
+    with driver.session() as session:
+        session.run(deleteAnalysis, username=username, projectId=projectId)
+        session.run(deleteProject, username=username, projectId=projectId)
+    

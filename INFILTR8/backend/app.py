@@ -109,7 +109,16 @@ def setCurrentProject():
         return jsonify({"message": f"Current project set successfully id:{project_id}" })
     except Exception as e:
          return jsonify({"error": f"An error occurred: {str(e)}"}), 500
- ### Nessus Routes ###
+     
+@app.route("/flask-api/delete-current-project")
+def deleteCurrentProject():
+    try:
+        project.deleteCurrentProject(driver, session['username'], session['currentProject'])
+        return jsonify({"message": "Project deleted"})
+    except Exception as e:
+        return jsonify({"message": "error"})
+        
+### Nessus Routes ###
 
 # Handles the uploading of the file
 @app.route("/flask-api/nessus-upload", methods=['POST'])
