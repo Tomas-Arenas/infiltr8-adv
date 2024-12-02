@@ -9,9 +9,9 @@ def countProjects(driver, username):
         return numProject.single()['total']
     
 def countFiles(driver, username, projectId):
-    query = "MATCH (f:File)-[r:NESSUS_FILE]->(p:Project {user: $username, projectId: $projectId}) RETURN count(f) as total"
+    query = "MATCH (f:File)-[r:NESSUS_FILE]->(p:Project {user: $user, projectId: $projectId}) RETURN count(f) as total"
     with driver.session() as session:
-        numProject = session.run(query, username=username, projectId=projectId)
+        numProject = session.run(query, user=username, projectId=projectId)
         return numProject.single()['total']
 
 def projectParser(project):
@@ -99,14 +99,14 @@ def testCreateProjectMany(driver, username, projectName, fileName, status, ips, 
     with driver.session() as session:
         result = session.run(query, projectId=projectId, username=username, projectName=projectName, user=username)
         projectId = result.single()["projectId"]
-        fileId = countFiles(driver, username, projectId) + 1
         for i in range(len(fileName)):
             filePath = os.path.join(os.getcwd(), 'nessus-drop', fileName[i])
             fileSize = int(os.path.getsize(filePath) / 1000)
+            fileId = countFiles(driver, username, projectId) + 1
             result2 = session.run(query2, projectId=projectId, projectName=projectName, user=username, fileId=fileId, status=status, fileName=fileName, fileSize=fileSize, creation=creation, ips=ips[i], exploits=exploits)
             id = result2.single()["id"]
             
-        return projectId, id
+        return projectId
 
 def updateProjectStatus(driver, projectId, username, status):
     query = """
