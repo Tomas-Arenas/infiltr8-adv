@@ -1,5 +1,6 @@
 import csv
 import os
+from classes import project, parser
 
 def fileRead(filepath):
     wholeCsv = []
@@ -20,55 +21,61 @@ def turnIntoCsv(contents):
         result.append(line.split())
     return result
 
-def getDataExploits(driver, username, projectId):
+def getDataExploits(driver, username, projectId, fileId):
     query = """
-    MATCH (f:Report {name: "dataExploits"})-[h:HAS_FILE]->(p:Project {projectId: $projectId})-[r:HAS_PROJECT]->(u:Analyst {username: $username}) 
+    MATCH (f:Report {name: "dataExploits"})-[h:HAS_FILE]->(fi:File {fileId: $fileId})-[r1:NESSUS_FILE]->(p:Project {projectId: $projectId})-[r:HAS_PROJECT]->(u:Analyst {username: $username}) 
     RETURN f.contents as content
     """
     with driver.session() as session:
-        resultCount = session.run(query, username=username, projectId=projectId)
+        resultCount = session.run(query, fileId=fileId, username=username, projectId=projectId)
         try:
             return turnIntoCsv(resultCount.single()['content'])
         except TypeError:
             return []
 
-def countResults(driver, username, projectId):
+def countResults(driver, username, projectId, fileId):
     query = """
-    MATCH (f:Report)-[h:HAS_FILE]->(p:Project {projectId: $projectId})-[r:HAS_PROJECT]->(u:Analyst {username: $username}) 
-    RETURN count(f) as reportCount
+    MATCH (re:Report)-[h:HAS_FILE]->(f:File {fileId: $fileId})-[r1:NESSUS_FILE]->(p:Project {projectId: $projectId})-[r:HAS_PROJECT]->(u:Analyst {username: $username}) 
+    RETURN count(re) as reportCount
     """
     with driver.session() as session:
-        resultCount = session.run(query, username=username, projectId=projectId)
+        resultCount = session.run(query, fileId=fileId, username=username, projectId=projectId)
         return resultCount.single()['reportCount']
     
-def deleteResults(driver, username, projectId):
+def deleteResults(driver, username, projectId, fileId):
     query = """
-    MATCH (f:Report)-[h:HAS_FILE]->(p:Project {projectId: $projectId})-[r:HAS_PROJECT]->(u:Analyst {username: $username}) 
-    DETACH DELETE f
+    MATCH (re:Report)-[h:HAS_FILE]->(f:File {fileId: $fileId})-[r1:NESSUS_FILE]->(p:Project {projectId: $projectId})-[r:HAS_PROJECT]->(u:Analyst {username: $username}) 
+    DETACH DELETE re
     """
     with driver.session() as session:
-        session.run(query, username=username, projectId=projectId)
+        session.run(query, fileId=fileId, username=username, projectId=projectId)
 
-def processAndUpload(driver, username, projectId):
+def processAndUpload(driver, username, projectId, fileId):
     output_base_dir = os.getcwd()+'/output/'
+    file = project.getProjectInfomationManyTest(driver, username, projectId, fileId)
+    print(file)
+    ranked = fileRead(output_base_dir+'ranked_entry_points'+file["file"]+'.csv')
+    mostInfo = fileRead(output_base_dir+'entrypoint_most_info'+file["file"]+'.csv')
+    try:
+        dataExploits = fileRead(output_base_dir+'data_with_exploits'+file["file"]+'.csv')
+        portZero = fileRead(output_base_dir+'port_0_entries'+file["file"]+'.csv')
+    except Exception:
+        parser.parserFile(file["file"])
+        dataExploits = fileRead(output_base_dir+'data_with_exploits'+file["file"]+'.csv')
+        portZero = fileRead(output_base_dir+'port_0_entries'+file["file"]+'.csv')
     
-    ranked = fileRead(output_base_dir+'ranked_entry_points.csv')
-    mostInfo = fileRead(output_base_dir+'entrypoint_most_info.csv')
-    dataExploits = fileRead(output_base_dir+'data_with_exploits.csv')
-    portZero = fileRead(output_base_dir+'port_0_entries.csv')
-    
-    if countResults(driver, username, projectId) != 0:
-        deleteResults(driver, username, projectId)
+    if countResults(driver, username, projectId, fileId) != 0:
+        deleteResults(driver, username, projectId, fileId)
     
     query = """
-    MATCH (p:Project {projectId: $projectId})-[r:HAS_PROJECT]->(u:Analyst {username: $username}) 
-    WITH p
+    MATCH (f:File {fileId: $fileId})-[r1:NESSUS_FILE]->(p:Project {projectId: $projectId})-[r:HAS_PROJECT]->(u:Analyst {username: $username}) 
+    WITH f
     CREATE (r:Report {name: $reportName, contents: $upload})
-    CREATE (r)-[:HAS_FILE]->(p)
+    CREATE (r)-[:HAS_FILE]->(f)
     """
     
     with driver.session() as session:
-        session.run(query, username=username, projectId=projectId, reportName='rankedEntry',upload=ranked)
-        session.run(query, username=username, projectId=projectId, reportName='mostInfo',upload=mostInfo)
-        session.run(query, username=username, projectId=projectId, reportName='dataExploits',upload=dataExploits)
-        session.run(query, username=username, projectId=projectId, reportName='portZero',upload=portZero)
+        session.run(query, fileId=fileId, username=username, projectId=projectId, reportName='rankedEntry',upload=ranked)
+        session.run(query, fileId=fileId, username=username, projectId=projectId, reportName='mostInfo',upload=mostInfo)
+        session.run(query, fileId=fileId, username=username, projectId=projectId, reportName='dataExploits',upload=dataExploits)
+        session.run(query, fileId=fileId, username=username, projectId=projectId, reportName='portZero',upload=portZero)
