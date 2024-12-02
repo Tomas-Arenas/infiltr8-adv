@@ -65,12 +65,15 @@ def createProject():
     ips = data.get('ips')
     status = 'created'
     
+    print(fileName)
+    print('ips ', ips)
+    
     if 'username' not in session:
         print("User not authenticated - 'username' not in session")
         return jsonify({'error': 'User not authenticated'}), 401  # Return a 401 Unauthorized if no username in session
     
     print(f"Creating project for user: {session['username']}")
-    newProId = project.createProject(driver, session['username'], projectName, fileName, status, ips, ['All'])
+    newProId = project.testCreateProjectMany(driver, session['username'], projectName, fileName, status, ips, ['All'])
     session['currentProject'] = newProId
     return jsonify({'message': 'Poject has been created', 'projectId': newProId})
 
@@ -128,6 +131,7 @@ def nessusFileUpload():
         return jsonify({'info':'Need to be told it is file upload'})
     
     file = request.files['file']
+    print('the file uploaded ', file.filename)
     # Checks that a file was upload (could be removed becase frontend handles this)
     if file.filename == '':
         print('No selected file')
@@ -138,7 +142,7 @@ def nessusFileUpload():
         # Saves it based on the give file path and uses the upload file name
         file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
         print(os.path.exists(app.config['UPLOAD_FOLDER']+'/'+filename))
-        return jsonify({'message':'file was sent and has been saved on server'})
+        return jsonify({'message':'file was sent and has been saved on server', 'filename':file.filename})
 
 @app.route("/flask-api/process-nessus", methods=["POST"])
 def processNessus():
