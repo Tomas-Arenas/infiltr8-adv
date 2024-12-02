@@ -189,7 +189,9 @@
     }
 
     async function startAnalysis() {
-        if (!selectedProject || !selectedProject.projectId) {
+        console.log(selectedProject)
+        console.log(selectedProject.projectId)
+        if (!selectedProject || !selectedProject.file) {
             alert("Please select a project with a valid ID before starting testing.");
             return;
         }
@@ -289,24 +291,20 @@
     {#if selectedProjectName === null}
     <h1 class="text-2xl font-bold mb-6 text-red-700"> No Project Selected </h1>
     {:else}
-    <h1 class="text-2xl font-bold mb-6 text-white"> {selectedProjectName} </h1>
-    <div class="flex justify-between w-1/6">
-        <div class="mb-1 align-middle">
-            <p class="mb-1 text-center"><strong>Select a File</strong></p>
-            <select 
-            bind:value={selected}
-            class="w-half p-2 rounded-lg bg-gray-700 text-white border border-gray-500"
-            placeholder={"Selected a issue type"}>
-            {#each files as file}
-                <option value={file}>
-                File {file.file}
-                </option>
-            {/each}
-            </select>
-        </div>
-        <Button on:click={changeFile} class="m-4 rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white hover:bg-blue-700">
-            Change File
-        </Button>
+    <h1 class="text-2xl font-bold mb-6 text-white"> {selectedProjectName} - File {selectedProject.fileId}</h1>
+    <div class="mb-1 align-middle">
+        <p class="mb-1 text-center"><strong>Select a File</strong></p>
+        <select 
+        bind:value={selected}
+        on:click={changeFile}
+        class="w-half p-2 rounded-lg bg-gray-700 text-white border border-gray-500"
+        placeholder={"Selected a issue type"}>
+        {#each files as file}
+            <option value={file}>
+            File {file.file}
+            </option>
+        {/each}
+        </select>
     </div>
     {/if}
 	<!-- Main container with cards -->

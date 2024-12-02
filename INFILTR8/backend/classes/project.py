@@ -128,15 +128,15 @@ def testCreateProjectMany(driver, username, projectName, fileName, status, ips, 
             
         return projectId
 
-def updateProjectStatus(driver, projectId, username, status):
+def updateProjectStatus(driver, projectId, username, status, fileId):
     query = """
-    MATCH (p:Project {projectId: $projectId, user: $username})
-    SET p.status = $status
-    RETURN p.status AS updatedStatus
+    MATCH (f:File {fileId: $fileId})-[r1:NESSUS_FILE]->(p:Project {projectId: $projectId, user: $username})
+    SET f.status = $status
+    RETURN f.status AS updatedStatus
     """
     
     with driver.session() as session:
-        result = session.run(query, projectId=projectId, username=username, status=status)
+        result = session.run(query, fileId=fileId, projectId=projectId, username=username, status=status)
         return result.single()['updatedStatus']
 
 def getAllProjectIds(driver, username):
