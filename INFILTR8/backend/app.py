@@ -75,6 +75,7 @@ def createProject():
     print(f"Creating project for user: {session['username']}")
     newProId = project.testCreateProjectMany(driver, session['username'], projectName, fileName, status, ips, ['All'])
     session['currentProject'] = newProId
+    session['currentFile'] = 1
     return jsonify({'message': 'Poject has been created', 'projectId': newProId})
 
 @app.route("/flask-api/all-projects")
@@ -94,11 +95,34 @@ def getCurrentProjectInfo():
     result = project.getProjectInfomation(driver, session['username'], session['currentProject'])
     return jsonify({'data': result})
 
+@app.route("/flask-api/current-project-info-many-test")
+def getCurrentProjectInfoTest():
+    result = project.getProjectInfomationManyTest(driver, session['username'], session['currentProject'], session['currentFile'])
+    return jsonify({'data': result})
+
+@app.route("/flask-api/file-count")
+def getCountedFiles():
+    fileCount = project.countFiles(driver, session['username'], session['currentProject'])
+    return jsonify({'data': fileCount})
+
+@app.route("/flask-api/change-selected-file", methods=['POST'])
+def changeSelectedFile():
+    try:
+        newFileId = request.json.get("fileId")
+        print(newFileId)
+        if not newFileId:
+            return jsonify({"message": "Missing 'fileId' in request body"})
+        
+        session['currentFile'] = newFileId
+
+        return jsonify({"message": f"Current project set successfully id:{newFileId}" })
+    except Exception as e:
+         return jsonify({"error": f"An error occurred: {str(e)}"}), 500
+
 @app.route("/flask-api/get-all-project-info")
 def getAllProjectsInfo():
     result = project.allProjectInfo(driver, session['username'])
     return jsonify({'data': result})
-
 
 @app.route("/flask-api/set-currentProject", methods=['POST'])
 def setCurrentProject():

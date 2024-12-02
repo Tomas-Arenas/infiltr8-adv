@@ -26,6 +26,18 @@ def projectParser(project):
         'creation': project['creation'],
         'status': project['status']
     }
+    
+def fileParser(file):
+    return {
+        'projectName': file['projectName'],
+        'fileId': file['fileId'],
+        'ips': file['ips'],
+        'exploits': file['exploits'],
+        'file': file['file'],
+        'fileSize': file['fileSize'],
+        'creation': file['creation'],
+        'status': file['status']
+    }
 
 def allProjectInfo(driver, username):
     query = """
@@ -54,6 +66,14 @@ def getProjectInfomation(driver, username, projectId):
         result = session.run(query, projectId=projectId, username=username)
         project = result.single()["project"]
         return projectParser(project)
+    
+def getProjectInfomationManyTest(driver, username, projectId, fileId):
+    query = "MATCH (f:File {fileId: $fileId})-[r1:NESSUS_FILE]->(p:Project {projectId: $projectId})-[r:HAS_PROJECT]->(u:Analyst {username: $username}) RETURN f as file"
+
+    with driver.session() as session:
+        result = session.run(query, fileId=fileId, projectId=projectId, username=username)
+        file = result.single()["file"]
+        return fileParser(file)
 
 def createProject(driver, username, projectName, fileName, status, ips, exploits):
 
@@ -90,7 +110,7 @@ def testCreateProjectMany(driver, username, projectName, fileName, status, ips, 
     
     query2 = """
     MATCH (p:Project{projectId: $projectId, projectName: $projectName, user: $user}) 
-    CREATE (f:File{fileId: $fileId, status: $status, file: $fileName, fileSize: $fileSize, creation: $creation, ips: $ips, exploits: $exploits})-[:NESSUS_FILE]->(p) 
+    CREATE (f:File{fileId: $fileId, status: $status, file: $fileName, fileSize: $fileSize, creation: $creation, ips: $ips, exploits: $exploits, projectName: $projectName})-[:NESSUS_FILE]->(p) 
     return f.id AS id
     """
     

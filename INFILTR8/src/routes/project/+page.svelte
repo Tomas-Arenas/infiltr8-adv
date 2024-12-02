@@ -1,6 +1,6 @@
 <script>
     import IP from '$lib/IP.js';
-    import { Card, Button, ButtonGroup, Listgroup, ListgroupItem } from 'flowbite-svelte';
+    import { Card, Button, ButtonGroup, Listgroup, ListgroupItem, P } from 'flowbite-svelte';
     import { onMount } from 'svelte';
     import { goto } from '$app/navigation';
     import { get } from 'svelte/store';
@@ -12,7 +12,9 @@
     let allIps = [];
     let selectedIps = [];
     let showModal = false; 
-    let newIP = ""; 
+    let newIP = "";
+    let files = []
+    $: selected = 'file'
 
     
     let exploitsAllowed = [
@@ -24,9 +26,54 @@
         { id: 6, name: 'Weak Passwords', selected: true }
     ];
 
+    async function fetchFiles() {
+        try {
+            const response = await fetch('/flask-api/file-count');
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`)
+            }
+            let totalFiles
+            const data = await response.json()
+            totalFiles = data.data
+            console.log(totalFiles)
+            for(let i=1;i<=totalFiles;i++) {
+                files.push({id:i, file: i})
+                files = [...files]
+            }
+            console.log(files)
+            selected = files[0];
+        } catch (error) {
+            console.error("Failed to get file amount", error);
+        }
+    }
+
+    async function changeFile() {
+        let message
+        try {
+            const response = await fetch("/flask-api/change-selected-file", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({fileId: selected.file}),
+                credentials: "include"
+            });
+
+        if (response.ok) {
+            message = `File selected with`;
+            console.log(message);
+            fetchProjectInfo(); 
+        } else {
+            message = "Couldn't change file";
+            console.error("Couldn't change file", response.status);
+        }
+      } catch (error) {
+          message = "Error: " + error.message;
+          console.error("Error during file change:", error);
+      }
+    }
+
     async function fetchProjectInfo(){
         try {
-            const response = await fetch('/flask-api/current-project-info');
+            const response = await fetch('/flask-api/current-project-info-many-test');
         
             if (!response.ok) {
                 throw new Error(`HTTP error! Status: ${response.status}`);
@@ -231,6 +278,7 @@
 
     onMount(() => {
         fetchProjectInfo()
+        fetchFiles()
         //getIPsFromBackend();
 
     });
@@ -242,6 +290,24 @@
     <h1 class="text-2xl font-bold mb-6 text-red-700"> No Project Selected </h1>
     {:else}
     <h1 class="text-2xl font-bold mb-6 text-white"> {selectedProjectName} </h1>
+    <div class="flex justify-between w-1/6">
+        <div class="mb-1 align-middle">
+            <p class="mb-1 text-center"><strong>Select a File</strong></p>
+            <select 
+            bind:value={selected}
+            class="w-half p-2 rounded-lg bg-gray-700 text-white border border-gray-500"
+            placeholder={"Selected a issue type"}>
+            {#each files as file}
+                <option value={file}>
+                File {file.file}
+                </option>
+            {/each}
+            </select>
+        </div>
+        <Button on:click={changeFile} class="m-4 rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white hover:bg-blue-700">
+            Change File
+        </Button>
+    </div>
     {/if}
 	<!-- Main container with cards -->
 	<Card class="flex min-w-fit flex-row gap-5 rounded-lg bg-gray-100 p-5 shadow-md dark:bg-gray-800"> 
