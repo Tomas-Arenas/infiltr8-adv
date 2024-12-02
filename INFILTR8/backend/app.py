@@ -109,7 +109,7 @@ def getCountedFiles():
 def changeSelectedFile():
     try:
         newFileId = request.json.get("fileId")
-        print(newFileId)
+        print('file in back', newFileId)
         if not newFileId:
             return jsonify({"message": "Missing 'fileId' in request body"})
         
@@ -137,7 +137,7 @@ def setCurrentProject():
             return jsonify({"message": "Missing 'projectID' in request body"})
         
         session['currentProject'] = project_id
-
+        session['currentFile'] = 1
         return jsonify({"message": f"Current project set successfully id:{project_id}" })
     except Exception as e:
          return jsonify({"error": f"An error occurred: {str(e)}"}), 500

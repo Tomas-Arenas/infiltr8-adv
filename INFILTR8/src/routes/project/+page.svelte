@@ -14,7 +14,7 @@
     let showModal = false; 
     let newIP = "";
     let files = []
-    $: selected = 'file'
+    $: selected = 1;
 
     
     let exploitsAllowed = [
@@ -49,6 +49,7 @@
 
     async function changeFile() {
         let message
+        console.log('in the change ',selected.file)
         try {
             const response = await fetch("/flask-api/change-selected-file", {
                 method: "POST",
