@@ -248,7 +248,7 @@
         <!-- Show current IP list -->
         <Card class="flex-1 rounded-lg bg-white p-5 shadow-md">
             <h2 class="mb-4 text-lg font-semibold text-center">Current Project IPS</h2>
-            <Listgroup class="border-none">
+            <Listgroup class="max-h-fit border-none">
                 {#each allIps as ip, index}
                     <ListgroupItem class="flex items-center gap-3 justify-between rounded-lg bg-gray-100 p-4 shadow dark:bg-gray-800 mb-4">
                         <input type="checkbox" checked on:change={() => toggleIpSelection(ip)} />
@@ -259,10 +259,10 @@
             
             <div class="mt-4 flex flex-col items-start">
                 <div class="flex justify-between w-full">
-                    <button on:click={() => showModal = true} class="bg-blue-500 text-white rounded-lg px-4 py-2 hover:bg-blue-600">
+                    <button on:click={() => {logButtonClick("user is manually adding ips"); showModal = true}} class="bg-blue-500 text-white rounded-lg px-4 py-2 hover:bg-blue-600">
                         Add IP
                     </button>
-                    <button on:click={handleImportIPs} class="bg-green-500 text-white rounded-lg px-4 py-2 hover:bg-green-600">
+                    <button on:click={() => {logButtonClick("user is importing ips"); handleImportIPs}} class="bg-green-500 text-white rounded-lg px-4 py-2 hover:bg-green-600">
                         Import IPs
                     </button>
                 </div>
@@ -286,10 +286,10 @@
                         class="border p-2 rounded w-full mb-4"
                     />
                     <div class="flex justify-end">
-                        <button on:click={handleAddIP} class="bg-blue-500 text-white rounded-lg px-4 py-2 hover:bg-blue-600">
+                        <button on:click={() => {logButtonClick("IPs added"); handleAddIP}} class="bg-blue-500 text-white rounded-lg px-4 py-2 hover:bg-blue-600">
                             Add
                         </button>
-                        <button on:click={() => showModal = false} class="ml-2 bg-gray-300 text-black rounded-lg px-4 py-2 hover:bg-gray-400">
+                        <button on:click={() => {logButtonClick("Canceled adding IPs"); showModal = false}} class="ml-2 bg-gray-300 text-black rounded-lg px-4 py-2 hover:bg-gray-400">
                             Cancel
                         </button>
                     </div>
@@ -320,9 +320,9 @@
     <div class="flex justify-between w-1/2">
         <button
             class="mt-6 rounded-lg bg-red-600 px-6 py-3 font-semibold text-white hover:bg-red-700"
-            on:click={deleteProject}>Delete Project</button>
+            on:click={() => {logButtonClick("deleted project"); deleteProject()}}>Delete Project</button>
         <button
         class="mt-6 rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white hover:bg-blue-700"
-        on:click={startAnalysis}>Start Analysis</button>
+        on:click={() => {logButtonClick("started analysis"); startAnalysis()}}>Start Analysis</button>
     </div>
 </div>

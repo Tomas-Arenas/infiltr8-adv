@@ -196,6 +196,31 @@
 		selectedApis = [...apis];
 	}
 	onMount(fetchCSVData);
+
+	async function logButtonClick(detail) {
+        console.log("Button clicked with detail:", detail);  // For debugging
+        try {
+            const response = await fetch('/flask-api/log-action', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    username: 'DummyUser',
+                    action: 'Project click',
+                    details: detail
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to log action');
+            }
+            const result = await response.json();
+            console.log('Action logged:', result);
+        } catch (error) {
+            console.error('Failed to log button click:', error);
+        }
+    }
 </script>
 
 <main class="container mx-auto p-6">
@@ -305,7 +330,7 @@
 
 		<!-- Export Button -->
 		<div class="flex justify-end mt-4">
-			<Button on:click={() => (isExportModalOpen = true)} color="primary" class="text-lg">
+			<Button on:click={() => {logButtonClick("export button clicked"); isExportModalOpen = true}} color="primary" class="text-lg">
 				Export
 			</Button>
 		</div>
@@ -343,8 +368,8 @@
 					</select>
 				</div>
 				<div class="mt-4 flex justify-end gap-2">
-					<Button on:click={() => (isExportModalOpen = false)} color="info" class="dark:text-gray-300">Cancel</Button>
-					<Button on:click={() => { isExportModalOpen = false; exportData(); }} color="primary">Export</Button>
+					<Button on:click={() => {logButtonClick("cancel button clicked"); (isExportModalOpen = false)}} color="info" class="dark:text-gray-300">Cancel</Button>
+					<Button on:click={() => { logButtonClick("export started"); isExportModalOpen = false; exportData(); }} color="primary">Export</Button>
 				</div>
 			</div>
 		</div>
