@@ -3,7 +3,7 @@ import xml.etree.ElementTree as ET
 import pandas as pd
 import category_encoders as ce
 from sklearn.preprocessing import MinMaxScaler
-from classes import project
+from classes import project, parser
 from classes import nessus_upload
 
 base_dir = os.getcwd()
@@ -19,7 +19,7 @@ output_base_dir = os.path.join(base_dir, "output")
 disallowed_ips = []
 
 def analyze_nessus_file(driver, projectId, username, fileId):
-    # try:
+    try:
         file = project.getProjectInfomationManyTest(driver, username, projectId, fileId)
         print(file['file'])
         dataExploit = os.path.join(base_dir, "output", 'data_with_exploits'+file['file']+'.csv')
@@ -28,7 +28,11 @@ def analyze_nessus_file(driver, projectId, username, fileId):
         contents = nessus_upload.getDataExploits(driver, username, projectId, fileId)
         print(len(contents))
         if len(contents) == 0:
-            baseFrame = pd.read_csv(dataExploit)
+            try:
+                baseFrame = pd.read_csv(dataExploit)
+            except Exception:
+                parser.parserFile(file['file'])
+                baseFrame = pd.read_csv(dataExploit)
         else:
             print('here')
             print(contents[0])
@@ -110,10 +114,13 @@ def analyze_nessus_file(driver, projectId, username, fileId):
         
         print('at end of analysis')
         
-    # except Exception as e:
-    # # Handle the exception and take necessary actions
-    #     project.updateProjectStatus(driver, projectId, username, 'created', fileId)  # Set project back to 'created' status since it failed to analyze
-    #     print(f"An error occurred: {e}")
+        return True
+        
+    except Exception as e:
+    # Handle the exception and take necessary actions
+        project.updateProjectStatus(driver, projectId, username, 'created', fileId)  # Set project back to 'created' status since it failed to analyze
+        print(f"An error occurred: {e}")
+        return False
    
 ## used for testing
 if __name__ == "__main__":

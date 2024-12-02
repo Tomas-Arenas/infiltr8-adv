@@ -57,6 +57,24 @@ def allProjectInfo(driver, username):
         result = session.run(query, username=username)
         all_projects = [projectParser(record) for record in result]
         return all_projects
+    
+def allProjectInfoMany(driver, username):
+    query = """
+        MATCH (f:File)-[r1:NESSUS_FILE]->(p:Project)-[:HAS_PROJECT]->(a:Analyst {username: $username}) 
+        RETURN 
+            f.fileId AS fileId, 
+            f.projectName AS projectName, 
+            f.ips AS ips, 
+            f.exploits AS exploits, 
+            f.file AS file, 
+            f.fileSize AS fileSize, 
+            f.creation AS creation, 
+            f.status AS status
+    """
+    with driver.session() as session:
+        result = session.run(query, username=username)
+        all_projects = [fileParser(record) for record in result]
+        return all_projects
 
 
 def getProjectInfomation(driver, username, projectId):
@@ -150,6 +168,10 @@ def getAllProjectIds(driver, username):
         return allIds
 
 def deleteCurrentProject(driver, username, projectId):
+    deleteReport = """
+    MATCH (n:Project{projectId: $projectId, user: $username})<-[HAS_FILE]-(f:File)<-[r]-(node) 
+    DETACH DELETE node
+    """
     deleteAnalysis = """
     MATCH (n:Project{projectId: $projectId, user: $username})<-[r]-(node) 
     DETACH DELETE node
@@ -160,6 +182,7 @@ def deleteCurrentProject(driver, username, projectId):
     """
     
     with driver.session() as session:
+        session.run(deleteReport, username=username, projectId=projectId)
         session.run(deleteAnalysis, username=username, projectId=projectId)
         session.run(deleteProject, username=username, projectId=projectId)
     

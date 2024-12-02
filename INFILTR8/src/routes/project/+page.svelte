@@ -229,7 +229,7 @@
     }
 
     async function deleteProject() {
-        if (!selectedProject || !selectedProject.projectId) {
+        if (!selectedProject || !selectedProject.fileId) {
             alert("Please select a project with a valid ID before deleting project.");
             return;
         }

@@ -50,10 +50,28 @@ def deleteResults(driver, username, projectId, fileId):
     with driver.session() as session:
         session.run(query, fileId=fileId, username=username, projectId=projectId)
 
-def processAndUpload(driver, username, projectId, fileId):
+def processAndUpload(driver, username, projectId, fileId, success):
     output_base_dir = os.getcwd()+'/output/'
     file = project.getProjectInfomationManyTest(driver, username, projectId, fileId)
-    print(file)
+    query = """
+    MATCH (f:File {fileId: $fileId})-[r1:NESSUS_FILE]->(p:Project {projectId: $projectId})-[r:HAS_PROJECT]->(u:Analyst {username: $username}) 
+    WITH f
+    CREATE (r:Report {name: $reportName, contents: $upload})
+    CREATE (r)-[:HAS_FILE]->(f)
+    """
+    if not success:
+        try:
+            dataExploits = fileRead(output_base_dir+'data_with_exploits'+file["file"]+'.csv')
+            portZero = fileRead(output_base_dir+'port_0_entries'+file["file"]+'.csv')
+        except Exception:
+            parser.parserFile(file["file"])
+            dataExploits = fileRead(output_base_dir+'data_with_exploits'+file["file"]+'.csv')
+            portZero = fileRead(output_base_dir+'port_0_entries'+file["file"]+'.csv')
+        with driver.session() as session:
+            session.run(query, fileId=fileId, username=username, projectId=projectId, reportName='dataExploits',upload=dataExploits)
+            session.run(query, fileId=fileId, username=username, projectId=projectId, reportName='portZero',upload=portZero)
+        return 
+            
     ranked = fileRead(output_base_dir+'ranked_entry_points'+file["file"]+'.csv')
     mostInfo = fileRead(output_base_dir+'entrypoint_most_info'+file["file"]+'.csv')
     try:
@@ -66,13 +84,6 @@ def processAndUpload(driver, username, projectId, fileId):
     
     if countResults(driver, username, projectId, fileId) != 0:
         deleteResults(driver, username, projectId, fileId)
-    
-    query = """
-    MATCH (f:File {fileId: $fileId})-[r1:NESSUS_FILE]->(p:Project {projectId: $projectId})-[r:HAS_PROJECT]->(u:Analyst {username: $username}) 
-    WITH f
-    CREATE (r:Report {name: $reportName, contents: $upload})
-    CREATE (r)-[:HAS_FILE]->(f)
-    """
     
     with driver.session() as session:
         session.run(query, fileId=fileId, username=username, projectId=projectId, reportName='rankedEntry',upload=ranked)

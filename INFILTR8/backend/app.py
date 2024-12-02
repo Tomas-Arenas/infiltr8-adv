@@ -121,7 +121,12 @@ def changeSelectedFile():
 
 @app.route("/flask-api/get-all-project-info")
 def getAllProjectsInfo():
-    result = project.allProjectInfo(driver, session['username'])
+    result = project.allProjectInfoM(driver, session['username'])
+    return jsonify({'data': result})
+
+@app.route("/flask-api/get-all-project-info-many")
+def getAllProjectsInfoMany():
+    result = project.allProjectInfoMany(driver, session['username'])
     return jsonify({'data': result})
 
 @app.route("/flask-api/set-currentProject", methods=['POST'])
@@ -178,8 +183,8 @@ def processNessus():
     archetypesAllowed = data.get("archetypes")
     print(disallowedIps)
     analysis.disallowed_ips = disallowedIps
-    analysis.analyze_nessus_file(driver, session['currentProject'], session['username'], session['currentFile'])
-    nessus_upload.processAndUpload(driver, session['username'], session['currentProject'], session['currentFile'])
+    success = analysis.analyze_nessus_file(driver, session['currentProject'], session['username'], session['currentFile'])
+    nessus_upload.processAndUpload(driver, session['username'], session['currentProject'], session['currentFile'], success)
     return jsonify({'message': 'Result files have been uploaded'})
 
 # Test route for analysis
