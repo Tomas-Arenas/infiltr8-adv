@@ -12,6 +12,39 @@
 	let isExportModalOpen = false;
 	let selectedApis = [];
 	let exportFormat = 'csv';
+	let severityMin = 0.0;
+	let severityMax = 1.0;
+	let ipFilter = '';
+	let portFilter = '';
+	let pluginFilter = '';
+	let minVulCount = 0;
+	let maxVulCount = 100;
+
+	$: severityMin = Math.max(0, Math.min(severityMin, 1));
+	$: severityMax = Math.max(0, Math.min(severityMax, 1));
+
+	const filterMapping = {
+		'/flask-api/ranked-entry-points': ['ip', 'port', 'severity_score'],
+		'/flask-api/data-with-exploits': ['ip', 'port', 'pluginName'],
+		'/flask-api/entry-most-info': ['ip', 'port', 'vulnerability_count'],
+		'/flask-api/port-0-entries': ['ip', 'port', 'pluginName'],
+	};
+
+	$: availableFilters = filterMapping[currentAPI] || [];
+
+	$: filteredRows = rows.filter((row) => {
+		const severity = parseFloat(row.severity_score || 0);
+		const vulCount = parseInt(row.vulnerability_count || 0);
+		return (
+			severity >= severityMin &&
+			severity <= severityMax &&
+			(!ipFilter || row.ip.includes(ipFilter)) &&
+			(!portFilter || row.port === portFilter) &&
+			(!pluginFilter || row.pluginName.toLowerCase().includes(pluginFilter.toLowerCase())) &&
+			vulCount >= minVulCount &&
+			vulCount <= maxVulCount
+		);
+	});
 
 	const apis = [
 		{ name: 'Ranked Entry Points', endpoint: '/flask-api/ranked-entry-points' },
@@ -159,6 +192,9 @@
 		fetchCSVData();
 	}
 
+	$: if (isExportModalOpen && selectedApis.length === 0) {
+		selectedApis = [...apis];
+	}
 	onMount(fetchCSVData);
 </script>
 
@@ -181,40 +217,84 @@
 		</select>
 	</div>
 
-		<!-- Table -->
-	<div class="report-container dark:bg-gray-800 bg-white rounded-lg shadow-md mt-2 mb-2">
+	<!-- Filters -->
+	<div class="filters mb-6 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+		{#if availableFilters.includes('severity_score')}
+			<div>
+				<label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Severity Score (0.0 - 1.0)</label>
+				<div class="flex gap-2">
+					<input type="number" step="0.01" min="0" max="1" bind:value={severityMin} class="block w-full rounded-md border px-3 py-2 dark:bg-gray-800 dark:text-white" placeholder="Min" />
+					<input type="number" step="0.01" min="0" max="1" bind:value={severityMax} class="block w-full rounded-md border px-3 py-2 dark:bg-gray-800 dark:text-white" placeholder="Max" />
+				</div>
+			</div>
+		{/if}
+
+		{#if availableFilters.includes('ip')}
+			<div>
+				<label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">IP Address</label>
+				<input type="text" bind:value={ipFilter} class="block w-full rounded-md border px-3 py-2 dark:bg-gray-800 dark:text-white" placeholder="e.g., 192.168.1.1" />
+			</div>
+		{/if}
+
+		{#if availableFilters.includes('port')}
+			<div>
+				<label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Port</label>
+				<input type="number" bind:value={portFilter} class="block w-full rounded-md border px-3 py-2 dark:bg-gray-800 dark:text-white" placeholder="e.g., 443" />
+			</div>
+		{/if}
+
+		{#if availableFilters.includes('pluginName')}
+			<div>
+				<label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Plugin Name</label>
+				<input type="text" bind:value={pluginFilter} class="block w-full rounded-md border px-3 py-2 dark:bg-gray-800 dark:text-white" placeholder="Search plugin name" />
+			</div>
+		{/if}
+
+		{#if availableFilters.includes('vulnerability_count')}
+			<div>
+				<label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Vulnerability Count</label>
+				<div class="flex gap-2">
+					<input type="number" bind:value={minVulCount} class="block w-full rounded-md border px-3 py-2 dark:bg-gray-800 dark:text-white" placeholder="Min" />
+					<input type="number" bind:value={maxVulCount} class="block w-full rounded-md border px-3 py-2 dark:bg-gray-800 dark:text-white" placeholder="Max" />
+				</div>
+			</div>
+		{/if}
+	</div>
+
+	<!-- Filtered Data Table -->
+	<div class="report-container mb-2 mt-2 rounded-lg bg-white shadow-md dark:bg-gray-800">
 		<div class="table-container">
 			<Table noborder={false} style="text-align: center">
 				<TableHead style="bg-gray-100 dark:bg-gray-850 text-gray-700 text-align: center">
 					{#if headers.length > 0}
 						{#each headers as header}
-							{#if header === 'ip' || header === 'port' || header === 'severity' || header === 'archetype' || header === 'pluginName' || header === 'severity_score' || header === 'vulnerability_count'}
+							{#if header === 'ip' || header === 'port' || header === 'severity_score' || header === 'pluginName' || header === 'vulnerability_count'}
 								<TableHeadCell style="text-align: center">{header.toUpperCase()}</TableHeadCell>
 							{/if}
 						{/each}
 					{:else}
-						<TableHeadCell style="text-align: center">No Headers Available</TableHeadCell>
+						<TableHeadCell>No Headers Available</TableHeadCell>
 					{/if}
 				</TableHead>
-			</Table>			
+			</Table>
 			<div class="table-body-scroll">
-				<Table noborder={true}>
-					<TableBody>
-						{#if rows.length > 0}
-							{#each rows as row (row.id)}
-								<TableBodyRow class="border-b dark:border-gray-700 text-align: center">
+				<Table noborder={false} style="text-align: center">
+					<TableBody style="text-align: center">
+						{#if filteredRows.length > 0}
+							{#each filteredRows as row (row.id)}
+								<TableBodyRow style="text-align: center">
 									{#each Object.entries(row) as [key, value]}
-										{#if key === 'ip' || key === 'port'|| key === 'severity' || key === 'archetype' || key === 'pluginName' || key === 'severity_score' || key === 'vulnerability_count'}
-											<TableBodyCell class ="text-align: center">{value}</TableBodyCell>
+										{#if key === 'ip' || key === 'port' || key === 'severity_score' || key === 'pluginName' || key === 'vulnerability_count'}
+											<TableBodyCell style="text-align: center">{value}</TableBodyCell>
 										{/if}
 									{/each}
 								</TableBodyRow>
 							{/each}
 						{:else}
 							<TableBodyRow>
-								<TableBodyCell colspan={headers.length} class="text-center">
-									No Data Available
-								</TableBodyCell>
+								<TableBodyCell colspan={headers.length} class="text-center"
+									>No Data Available</TableBodyCell
+								>
 							</TableBodyRow>
 						{/if}
 					</TableBody>
@@ -232,37 +312,42 @@
 	
 		<!-- Export Modal -->
 		{#if isExportModalOpen}
-			<div class="modal-backdrop">
-				<div class="modal-container dark:bg-gray-800 bg-white">
-					<Heading tag="h4" class="mb-4">Select Datasets and Format</Heading>
-					<div class="flex flex-col gap-2 dark:text-gray-300">
-						{#each apis as api}
-							<label class="inline-flex items-center">
-								<input type="checkbox" value={api.endpoint} on:change={(e) => {
+		<div class="modal-backdrop">
+			<div class="modal-container dark:bg-gray-800 bg-white">
+				<Heading tag="h4" class="mb-4">Select Datasets and Format</Heading>
+				<div class="flex flex-col gap-2 dark:text-gray-300">
+					{#each apis as api}
+						<label class="inline-flex items-center">
+							<input
+								type="checkbox"
+								value={api.endpoint}
+								checked={selectedApis.includes(api)}
+								on:change={(e) => {
 									if (e.target.checked) {
 										selectedApis = [...selectedApis, api];
 									} else {
-										selectedApis = selectedApis.filter(a => a.endpoint !== api.endpoint);
+										selectedApis = selectedApis.filter((a) => a.endpoint !== api.endpoint);
 									}
-								}} />
-								<span class="ml-2">{api.name}</span>
-							</label>
-						{/each}
-					</div>
-					<div class="mt-4">
-						<label class="block mb-2 dark:text-gray-300">Select Export Format:</label>
-						<select class="block w-full p-2 border dark:bg-gray-700 dark:text-white" bind:value={exportFormat}>
-							<option value="csv">CSV</option>
-							<option value="xml">XML</option>
-							<option value="pdf">PDF</option>
-						</select>
-					</div>
-					<div class="mt-4 flex justify-end gap-2">
-						<Button on:click={() => (isExportModalOpen = false)} color="info" class="dark:text-gray-300">Cancel</Button>
-						<Button on:click={() => { isExportModalOpen = false; exportData(); }} color="primary">Export</Button>
-					</div>
+								}}
+							/>
+							<span class="ml-2">{api.name}</span>
+						</label>
+					{/each}
+				</div>
+				<div class="mt-4">
+					<label class="block mb-2 dark:text-gray-300">Select Export Format:</label>
+					<select class="block w-full p-2 border dark:bg-gray-700 dark:text-white" bind:value={exportFormat}>
+						<option value="csv">CSV</option>
+						<option value="xml">XML</option>
+						<option value="pdf">PDF</option>
+					</select>
+				</div>
+				<div class="mt-4 flex justify-end gap-2">
+					<Button on:click={() => (isExportModalOpen = false)} color="info" class="dark:text-gray-300">Cancel</Button>
+					<Button on:click={() => { isExportModalOpen = false; exportData(); }} color="primary">Export</Button>
 				</div>
 			</div>
+		</div>
 		{/if}
 </main>
 
