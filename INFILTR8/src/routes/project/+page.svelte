@@ -5,6 +5,7 @@
     import { goto } from '$app/navigation';
     import { get } from 'svelte/store';
     import { ipsAllowed, ipsDisallowed } from "$lib/stores.js"; // Import stores
+    import { projectName, fileId } from '$lib/CurrentProject';
 
 
     let selectedProject = null;
@@ -62,6 +63,7 @@
 
         if (response.ok) {
             message = `File selected with`;
+            fileId.set(selected.file)
             console.log(message);
             fetchProjectInfo(); 
         } else {
@@ -89,7 +91,8 @@
             console.log(selectedProject);
             const allowedIPInstances = selectedIps.map(ipAddress => new IP(ipAddress));
             ipsAllowed.set(allowedIPInstances);
-
+            projectName.set(selectedProjectName)
+            fileId.set(data.fileId)
         } catch (error) {
             console.error("Failed to fetch current project info", error);
         }
