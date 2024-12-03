@@ -196,6 +196,7 @@ def processNessus():
     archetypesAllowed = data.get("archetypes")
     print(disallowedIps)
     analysis.disallowed_ips = disallowedIps
+    analysis.allowed_archetypes =archetypesAllowed
     success = analysis.analyze_nessus_file(driver, session['currentProject'], session['username'], session['currentFile'])
     nessus_upload.processAndUpload(driver, session['username'], session['currentProject'], session['currentFile'], success)
     return jsonify({'message': 'Result files have been uploaded'})
