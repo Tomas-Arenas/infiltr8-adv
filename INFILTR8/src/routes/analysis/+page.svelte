@@ -4,6 +4,8 @@
     import { Chart, Card, A, Button, Dropdown, DropdownItem, Popover, Tooltip, Progressbar } from 'flowbite-svelte';
     import { InfoCircleSolid, ArrowDownToBracketOutline, ChevronDownOutline, ChevronRightOutline, PenSolid, DownloadSolid, ShareNodesSolid, ShareNodesOutline } from 'flowbite-svelte-icons';
     import { onMount, onDestroy } from 'svelte';
+    import { projectName, fileId } from '$lib/CurrentProject.js';
+	import { goto } from '$app/navigation';
 
     let tableData = [];
     let series = [0, 0, 0]; 
@@ -94,6 +96,34 @@
         }
     }
 
+    async function reportHandler(projectNameIn, fileIdIn) {
+        console.log(projectNameIn + ' ' + fileIdIn)
+        projectName.set(projectNameIn)
+        fileId.set(fileIdIn)
+        try {
+            const response = await fetch('/flask-api/set-current-project-and-file', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    projectNameJ: projectNameIn,
+                    fileIdJ: fileIdIn
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to move on to report page');
+            }
+
+            const result = await response.json();
+            console.log('session vars changed', result);
+            goto("http://localhost:5173/report")
+        } catch (error) {
+            console.error('Failed to change info and goto report button click:', error);
+        }
+    }
+
     async function getTableData() {
         try {
             // Check for cached data
@@ -110,7 +140,7 @@
                 return;
             }
 
-            const response = await fetch("/flask-api/get-all-project-info", {
+            const response = await fetch("/flask-api/get-all-project-info-many", {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",
@@ -184,6 +214,7 @@
                         <TableHead class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-gray-700 dark:text-gray-400">
                         <TableHeadCell>Date</TableHeadCell>
                         <TableHeadCell>Project Name</TableHeadCell>
+                        <TableHeadCell>File</TableHeadCell>
                         <TableHeadCell>File Size</TableHeadCell>
                         <TableHeadCell>Status</TableHeadCell>
                     </TableHead>
@@ -193,12 +224,13 @@
                             <TableBodyRow>
                             <TableBodyCell>{row.creation}</TableBodyCell>
                             <TableBodyCell>{row.projectName}</TableBodyCell>
+                            <TableBodyCell>{row.fileId}</TableBodyCell>
                             <TableBodyCell>{row.fileSize}</TableBodyCell>
                             <TableBodyCell>
                                 {#if typeof row.status === 'number'}
                                 <Progressbar progress={row.status} labelInside />
                                 {:else if typeof row.status === 'completed' || row.status === 'reports' }
-                                <button on:click={() =>  window.location.href = "http://localhost:5173/report"}  class="border-2 py-2 px-2 shadow-md rounded-lg">{row.status} </button>
+                                <button on:click={reportHandler(row.projectName, row.fileId)} class="border-2 py-2 px-2 shadow-md rounded-lg">{row.status} </button>
                                 {:else }
                                 <button on:click={() => window.location.href = "http://localhost:5173/dashboard"}  class="border-2 py-2 px-2 shadow-md rounded-lg">{row.status} </button>
                                 {/if}

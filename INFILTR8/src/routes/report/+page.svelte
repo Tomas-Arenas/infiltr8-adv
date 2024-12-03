@@ -5,6 +5,7 @@
 	import 'jspdf-autotable';
 	import { Table, TableBody, TableBodyCell, TableBodyRow, TableHead, TableHeadCell } from 'flowbite-svelte';
 	import { Heading, Button } from 'flowbite-svelte';
+	import { projectName, fileId } from '$lib/CurrentProject';
 
 	let rows = [];
 	let headers = [];
@@ -227,7 +228,7 @@
 	<!-- Title -->
 	<div class="mb-4">
 		<Heading tag="h1" class="font-bold text-xl dark:text-white text-center">
-			REPORTS
+			REPORTS for {$projectName} File {$fileId}
 		</Heading>
 	</div>
 
