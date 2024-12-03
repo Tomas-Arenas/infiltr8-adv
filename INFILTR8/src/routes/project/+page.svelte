@@ -84,7 +84,9 @@
             selectedIps = data.data.ips 
             allIps = data.data.ips
             selectedProject = data.data;
-            console.log(selectedProject);    
+            console.log(selectedProject);
+            const allowedIPInstances = selectedIps.map(ipAddress => new IP(ipAddress));
+            ipsAllowed.set(allowedIPInstances);
 
         } catch (error) {
             console.error("Failed to fetch current project info", error);

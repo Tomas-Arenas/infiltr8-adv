@@ -25,7 +25,8 @@
     let validEntryPoints = [];
     let projects = [];
     let resetRequests = [];
-    let errorMessage = '';  
+    let errorMessage = '';
+    let upLoadDone = false;
     
     // Initialize the array to hold file names
     let value = [];
@@ -266,6 +267,7 @@
       }
       let fileInfo
       fileInfo = await Promise.all(allIpList)
+      console.log('see length of list ', fileInfo.length)
       console.log(fileInfo[0]['ips'])
       let toSendIps = []
       let fileNames = []
