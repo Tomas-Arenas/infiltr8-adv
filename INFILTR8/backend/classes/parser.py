@@ -2,8 +2,8 @@
 import os
 import xml.etree.ElementTree as ET
 import pandas as pd
-#import category_encoders as ce
-#from sklearn.preprocessing import MinMaxScaler
+import category_encoders as ce
+from sklearn.preprocessing import MinMaxScaler
 
 
 def map_to_archetype(plugin_name, plugin_family):
@@ -23,8 +23,7 @@ def map_to_archetype(plugin_name, plugin_family):
 
 def parserFile(fileName):
     currentPath = os.getcwd()
-    nessus_file ='C:/Users/tomas/CS4311_INFILTR8_Team1_DecafCats_Fall2024/INFILTR8/backend/nessus-drop/Nessus_scan_file1.nessus' 
-    #currentPath+'/nessus-drop/'+fileName
+    nessus_file = currentPath+'/nessus-drop/'+fileName
     output_base_dir = currentPath+'/output/'
     
     data_with_exploits_path = os.path.join(output_base_dir, 'data_with_exploits'+fileName+'.csv')
@@ -97,5 +96,5 @@ def parserFile(fileName):
 
 
 
-_, u  = parserFile('Nessus_scan_file1.nessus')
-print(u)
+#_, u  = parserFile('Nessus_scan_file1.nessus')
+#print(u)

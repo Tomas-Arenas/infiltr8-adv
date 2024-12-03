@@ -93,7 +93,7 @@ export async function getIPsForProject(fileName) {
   }
 };
 
-export async function getArchetypesForProject(filename){
+export async function getArchetypesForProject(fileName){
     try {
       const response = await fetch("/flask-api/get-archetypes-from-nessus", {
           method: "POST",

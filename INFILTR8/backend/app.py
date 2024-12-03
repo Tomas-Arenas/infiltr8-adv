@@ -14,8 +14,6 @@ import json
 from datetime import datetime, timezone
 import secrets
 
-import logging
-logging.basicConfig(filename="app.log", level=logging.DEBUG)
 
 # Gets all the env variables
 config = dotenv_values(".env")
@@ -277,11 +275,9 @@ def get_all_archetypes():
     data = request.get_json()
     fileName = data.get('name')
     try:
-        _, unique_archetypes = parser.parserFile(fileName)
-        logging.debug(f"All Archetypes: {unique_archetypes}")
+        _ ,unique_archetypes = parser.parserFile(fileName)
         return jsonify(unique_archetypes.tolist())
     except Exception as e:
-        logging.error(f"Error: {e}")
         return jsonify({"error": str(e)}), 500
     
     
