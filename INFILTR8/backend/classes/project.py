@@ -148,7 +148,7 @@ def testCreateProjectMany(driver, username, projectName, fileName, status, ips, 
             filePath = os.path.join(os.getcwd(), 'nessus-drop', fileName[i])
             fileSize = int(os.path.getsize(filePath) / 1000)
             fileId = countFiles(driver, username, projectId) + 1
-            result2 = session.run(query2, projectId=projectId, projectName=projectName, user=username, fileId=fileId, status=status, fileName=fileName[i], fileSize=fileSize, creation=creation, ips=ips[i], exploits=exploits)
+            result2 = session.run(query2, projectId=projectId, projectName=projectName, user=username, fileId=fileId, status=status, fileName=fileName[i], fileSize=fileSize, creation=creation, ips=ips[i], exploits=exploits[i])
             id = result2.single()["id"]
             
         return projectId

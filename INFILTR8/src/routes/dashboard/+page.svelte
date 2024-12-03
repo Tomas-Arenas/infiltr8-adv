@@ -8,7 +8,7 @@
     import { InfoCircleSolid } from 'flowbite-svelte-icons';
     import { Heading, P, Span, GradientButton } from 'flowbite-svelte';
     import { Table, TableBody, TableBodyCell, TableBodyRow, TableHead, TableHeadCell } from 'flowbite-svelte';
-    import { getIPsForProject } from '$lib/stores.js'
+    import { getArchetypesForProject, getIPsForProject } from '$lib/stores.js'
 	import { goto } from '$app/navigation';
     import { onMount } from 'svelte';
     
@@ -20,6 +20,7 @@
     let isLoading = true
     let ipList = []
     let allIpList = []
+    let allArchetypesList = []
     let projectInfo = null;
     let possibleEntryPoints = [];
     let validEntryPoints = [];
@@ -250,7 +251,8 @@
 
             if (uploadResponse.ok) {
                 const result = await uploadResponse.json();
-                allIpList.push({"name": result.filename, "ips": getIPsForProject(result.filename)})
+                allIpList.push({"name": result.filename, "ips": getIPsForProject(result.filename)});
+                allArchetypesList.push({"name": result.filename, "archetypes": getArchetypesForProject(result.filename)}); 
             } else {
                 return message = "File upload failed. Please try again.";
             }
@@ -267,9 +269,14 @@
       }
       let fileInfo
       fileInfo = await Promise.all(allIpList)
+      let fileInfoArchetypes;
+      fileInfoArchetypes = await Promise.all(allArchetypesList.map(item => item.archetypes));
+      console.log("Resolved archetypes:", fileInfoArchetypes);
+
       console.log('see length of list ', fileInfo.length)
       console.log(fileInfo[0]['ips'])
       let toSendIps = []
+      let toSendArchetypes = fileInfoArchetypes
       let fileNames = []
       for (let i=0;i<fileInfo.length;i++){
         let ip
@@ -283,8 +290,8 @@
       const projectData = {
           fileName: fileNames,
           name: document.getElementById("first_name").value,
-          ips: toSendIps
-          // entryPoints: possibleEntryPoints  // Pass parsed entry points
+          ips: toSendIps,
+          archetypes: toSendArchetypes
       };
 
         try {
@@ -299,7 +306,7 @@
             const data = await response.json();
             projectInfo = { id: data.projectId, name: nessusFile.name };
 
-            message = `Project created successfully with ID: ${data.projectId}`;
+            message = `Project created successfully with ID: ${data.projectId} and archetypes = ${toSendArchetypes}`;
             console.log(message);
             fetchProjects(); 
         } else {
