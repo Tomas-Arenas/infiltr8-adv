@@ -1,10 +1,11 @@
 <script>
     import IP from '$lib/IP.js';
-    import { Card, Button, ButtonGroup, Listgroup, ListgroupItem } from 'flowbite-svelte';
+    import { Card, Button, ButtonGroup, Listgroup, ListgroupItem, P } from 'flowbite-svelte';
     import { onMount } from 'svelte';
     import { goto } from '$app/navigation';
     import { get } from 'svelte/store';
     import { ipsAllowed, ipsDisallowed } from "$lib/stores.js"; // Import stores
+    import { projectName, fileId } from '$lib/CurrentProject';
 
 
     let selectedProject = null;
@@ -12,21 +13,65 @@
     let allIps = [];
     let selectedIps = [];
     let showModal = false; 
-    let newIP = ""; 
+    let newIP = "";
+    let files = []
+    $: selected = 1;
+    let allArchetypes = []
+    let selectedArchetypes = []
 
-    
-    let exploitsAllowed = [
-        { id: 1, name: 'SQL Injection', selected: true },
-        { id: 2, name: 'DDOS Attack', selected: true },
-        { id: 3, name: 'Default Credentials', selected: true },
-        { id: 4, name: 'Missing Encryption', selected: true },
-        { id: 5, name: 'Unauthenticated Port Bypass', selected: true },
-        { id: 6, name: 'Weak Passwords', selected: true }
-    ];
+    let all
+    let exploitsAllowed = [];
+
+    async function fetchFiles() {
+        try {
+            const response = await fetch('/flask-api/file-count');
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`)
+            }
+            let totalFiles
+            const data = await response.json()
+            totalFiles = data.data
+            console.log(totalFiles)
+            for(let i=1;i<=totalFiles;i++) {
+                files.push({id:i, file: i})
+                files = [...files]
+            }
+            console.log(files)
+            selected = files[0];
+        } catch (error) {
+            console.error("Failed to get file amount", error);
+        }
+    }
+
+    async function changeFile() {
+        let message
+        console.log('in the change ',selected.file)
+        try {
+            const response = await fetch("/flask-api/change-selected-file", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({fileId: selected.file}),
+                credentials: "include"
+            });
+
+        if (response.ok) {
+            message = `File selected with`;
+            fileId.set(selected.file)
+            console.log(message);
+            fetchProjectInfo(); 
+        } else {
+            message = "Couldn't change file";
+            console.error("Couldn't change file", response.status);
+        }
+      } catch (error) {
+          message = "Error: " + error.message;
+          console.error("Error during file change:", error);
+      }
+    }
 
     async function fetchProjectInfo(){
         try {
-            const response = await fetch('/flask-api/current-project-info');
+            const response = await fetch('/flask-api/current-project-info-many-test');
         
             if (!response.ok) {
                 throw new Error(`HTTP error! Status: ${response.status}`);
@@ -36,8 +81,15 @@
             selectedIps = data.data.ips 
             allIps = data.data.ips
             selectedProject = data.data;
-            console.log(selectedProject);    
+            
+            allArchetypes = data.data.exploits;
+            selectedArchetypes = data.data.exploits;
 
+            console.log(selectedProject);
+            const allowedIPInstances = selectedIps.map(ipAddress => new IP(ipAddress));
+            ipsAllowed.set(allowedIPInstances);
+            projectName.set(selectedProjectName)
+            fileId.set(data.fileId)
         } catch (error) {
             console.error("Failed to fetch current project info", error);
         }
@@ -61,6 +113,17 @@
 
         console.log("Selected IPs for scope:", selectedIps);
         console.log("Disallowed IPs:", disallowedIPInstances.map(ip => ip.ip));
+    }
+
+
+    function toggleArchetypeSelection(archetype){
+        if (selectedArchetypes.includes(archetype)){
+            selectedArchetypes = selectedArchetypes.filter(selectedArchetype => selectedArchetype !== archetype)
+        }
+        else{
+            selectedArchetypes = [...selectedArchetypes, archetype]
+        }
+        console.log("New Selected Archetypes list: ", selectedArchetypes)
     }
 
     function addIP(data) {
@@ -142,7 +205,9 @@
     }
 
     async function startAnalysis() {
-        if (!selectedProject || !selectedProject.projectId) {
+        console.log(selectedProject)
+        console.log(selectedProject.projectId)
+        if (!selectedProject || !selectedProject.file) {
             alert("Please select a project with a valid ID before starting testing.");
             return;
         }
@@ -158,7 +223,7 @@
                body: JSON.stringify({
                 projectId: selectedProject.projectId,
                 disallowedIps: get(ipsAllowed).map(item => item.ip),
-                archetypes: exploitsAllowed
+                archetypes: selectedArchetypes
                }) 
             });
             
@@ -180,7 +245,7 @@
     }
 
     async function deleteProject() {
-        if (!selectedProject || !selectedProject.projectId) {
+        if (!selectedProject || !selectedProject.fileId) {
             alert("Please select a project with a valid ID before deleting project.");
             return;
         }
@@ -231,6 +296,7 @@
 
     onMount(() => {
         fetchProjectInfo()
+        fetchFiles()
         //getIPsFromBackend();
 
     });
@@ -241,7 +307,21 @@
     {#if selectedProjectName === null}
     <h1 class="text-2xl font-bold mb-6 text-red-700"> No Project Selected </h1>
     {:else}
-    <h1 class="text-2xl font-bold mb-6 text-white"> {selectedProjectName} </h1>
+    <h1 class="text-2xl font-bold mb-6 text-white"> {selectedProjectName} - File {selectedProject.fileId}</h1>
+    <div class="mb-1 align-middle">
+        <p class="mb-1 text-center"><strong>Select a File</strong></p>
+        <select 
+        bind:value={selected}
+        on:click={changeFile}
+        class="w-half p-2 rounded-lg bg-gray-700 text-white border border-gray-500"
+        placeholder={"Selected a issue type"}>
+        {#each files as file}
+            <option value={file}>
+            File {file.file}
+            </option>
+        {/each}
+        </select>
+    </div>
     {/if}
 	<!-- Main container with cards -->
 	<Card class="flex min-w-fit flex-row gap-5 rounded-lg bg-gray-100 p-5 shadow-md dark:bg-gray-800"> 
@@ -301,14 +381,10 @@
         <Card class="flex-1 rounded-lg bg-white p-5 shadow-md">
             <h2 class="mb-4 text-lg font-semibold text-center">Archetypes Allowed</h2>           
                 <Listgroup class="border-none">
-                    {#each exploitsAllowed as exploit, index}
+                    {#each allArchetypes as archetype, index}
                         <ListgroupItem class="flex items-center gap-3 justify-between rounded-lg bg-gray-100 p-4 shadow dark:bg-gray-800 mb-4">                  
-                            <input type="checkbox" bind:checked={exploit.selected} />
-                            <span>{exploit.name}</span>
-                            <ButtonGroup class="*:!ring-primary-700">
-                                <Button size="sm mr-2" on:click={() => moveUp(exploitsAllowed, index)}>⬆</Button>
-                                <Button size="sm mr-2" on:click={() => moveDown(exploitsAllowed, index)}>⬇</Button>             
-                            </ButtonGroup >						
+                            <input type="checkbox" checked on:change={() => toggleArchetypeSelection(archetype)} />
+                            <span>{archetype}</span>					
                         </ListgroupItem>
                     {/each}
                 </Listgroup>

@@ -8,7 +8,7 @@
     import { InfoCircleSolid } from 'flowbite-svelte-icons';
     import { Heading, P, Span, GradientButton } from 'flowbite-svelte';
     import { Table, TableBody, TableBodyCell, TableBodyRow, TableHead, TableHeadCell } from 'flowbite-svelte';
-    import { getIPsForProject } from '$lib/stores.js'
+    import { getArchetypesForProject, getIPsForProject } from '$lib/stores.js'
 	import { goto } from '$app/navigation';
     import { onMount } from 'svelte';
     
@@ -19,12 +19,15 @@
     let message = "";
     let isLoading = true
     let ipList = []
+    let allIpList = []
+    let allArchetypesList = []
     let projectInfo = null;
     let possibleEntryPoints = [];
     let validEntryPoints = [];
     let projects = [];
     let resetRequests = [];
-    let errorMessage = '';  
+    let errorMessage = '';
+    let upLoadDone = false;
     
     // Initialize the array to hold file names
     let value = [];
@@ -185,27 +188,35 @@
     const handleChange = (event) => {
         const target = event.target;
         const files = target?.files;
+        let nessusContent
     
         if (files && files.length > 0) {
-            const file = files[0];
-            const fileExtension = file.name.split('.').pop()?.toLowerCase();
-    
-            if (fileExtension === 'nessus') {
-                nessusFile = file;
-                console.log("File selected:", nessusFile);
-                let fetchP = uploadNessusFile()
-                fetchP.then((response) => {
-                  // put error handle stuff here
-                  ipList = getIPsForProject(nessusFile.name)
-                })
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    nessusContent = e.target.result;
-                    parseNessusFile(nessusContent);
-                };
-                reader.readAsText(file);
-            } else {
-                console.error('Invalid file type. Please upload a .nessus file.');
+            let temp
+            console.log(files.length)
+            for (let i=0;i<files.length;i++) {
+                temp = files[i];
+                console.log("File selected in for loop:", temp);
+                const file = files[i];
+                const fileExtension = file.name.split('.').pop()?.toLowerCase();
+        
+                if (fileExtension === 'nessus') {
+                    nessusFile = file;
+                    // console.log("File selected:", nessusFile);
+                    let fetchP = uploadNessusFile()
+                    // fetchP.then((response) => {
+                    //     // put error handle stuff here
+                    //     console.log("in the fetch ",nessusFile.name)
+                    //     ipList = getIPsForProject(nessusFile.name)
+                    // })
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        nessusContent = e.target.result;
+                        parseNessusFile(nessusContent);
+                    };
+                    reader.readAsText(file);
+                } else {
+                    console.error('Invalid file type. Please upload a .nessus file.');
+                }
             }
         }
     };
@@ -223,12 +234,6 @@
       return concat;
     };
 
-  async function uploadParse() {
-    let fetchP = uploadNessusFile()
-    await fetchP.then(ipList = getIPsForProject(nessusFile.name))
-  }
-
-
     async function uploadNessusFile() {
         if (!nessusFile) {
             message = "Please select a file to upload.";
@@ -237,7 +242,7 @@
 
         const formData = new FormData();
         formData.append("file", nessusFile);
-
+        console.log(nessusFile.name)
         try {
             const uploadResponse = await fetch("/flask-api/nessus-upload", {
                 method: "POST",
@@ -246,12 +251,13 @@
 
             if (uploadResponse.ok) {
                 const result = await uploadResponse.json();
-                message = "File uploaded successfully: " + result.status;
+                allIpList.push({"name": result.filename, "ips": getIPsForProject(result.filename)});
+                allArchetypesList.push({"name": result.filename, "archetypes": getArchetypesForProject(result.filename)}); 
             } else {
-                message = "File upload failed. Please try again.";
+                return message = "File upload failed. Please try again.";
             }
         } catch (error) {
-            message = "Upload error: " + error.message;
+            return message = "Upload error: " + error.message;
         }
     }
 
@@ -261,14 +267,31 @@
           console.warn(message);
           return;
       }
+      let fileInfo
+      fileInfo = await Promise.all(allIpList)
+      let fileInfoArchetypes;
+      fileInfoArchetypes = await Promise.all(allArchetypesList.map(item => item.archetypes));
+      console.log("Resolved archetypes:", fileInfoArchetypes);
 
-      let ips
-      await ipList.then(function(result){ips = result})
+      console.log('see length of list ', fileInfo.length)
+      console.log(fileInfo[0]['ips'])
+      let toSendIps = []
+      let toSendArchetypes = fileInfoArchetypes
+      let fileNames = []
+      for (let i=0;i<fileInfo.length;i++){
+        let ip
+        await fileInfo[i]['ips'].then(function(result){ip = result})
+        fileNames.push(fileInfo[i]['name'])
+        toSendIps.push(ip)
+      }
+      console.log(toSendIps)
+    //   let ips
+    //   await fileInfo[0]['ips'].then(function(result){ips = result})
       const projectData = {
-          fileName: nessusFile.name,
+          fileName: fileNames,
           name: document.getElementById("first_name").value,
-          ips: ips
-          // entryPoints: possibleEntryPoints  // Pass parsed entry points
+          ips: toSendIps,
+          archetypes: toSendArchetypes
       };
 
         try {
@@ -283,7 +306,7 @@
             const data = await response.json();
             projectInfo = { id: data.projectId, name: nessusFile.name };
 
-            message = `Project created successfully with ID: ${data.projectId}`;
+            message = `Project created successfully with ID: ${data.projectId} and archetypes = ${toSendArchetypes}`;
             console.log(message);
             fetchProjects(); 
         } else {
@@ -387,7 +410,7 @@
         <div class="columns-2 gap-x-10">
             <!-- Dropzone component for file uploads -->
             <div class="self-center float-left justify-between w-full mt-4">
-                <input type="file" accept=".nessus" on:change="{handleChange}" />
+                <input type="file" accept=".nessus" on:change="{handleChange}" multiple/>
                 <form>
                     <Input class="text-center" type="text" id="first_name" placeholder="Enter Project Name" required />
                 </form>
