@@ -412,7 +412,6 @@ def password_reset_status():
 @app.route('/flask-api/get-password-reset-requests', methods=['GET'])
 def get_password_reset_requests():
     # Ensure the session contains the username
-    # username = session.get('username')  # Check if the username is in session
     print("Session username: ", session['username'])  # Debug: Log the session username
 
     # Allow access only to the admin user
@@ -423,8 +422,12 @@ def get_password_reset_requests():
     try:
         # Use a session to interact with the database
         with driver.session() as neo4j_session:
-            # Run the query and process the result immediately within the transaction
-            result = neo4j_session.run("MATCH (r:PasswordResetRequest) RETURN r")
+            # Run the query and filter for status = "pending"
+            result = neo4j_session.run("""
+                MATCH (r:PasswordResetRequest)
+                WHERE r.status = "pending"
+                RETURN r
+            """)
             requests = [
                 {
                     "id": record["r"]["id"],
@@ -544,6 +547,7 @@ def check_user_exists(tx, username):
     exists = result.single() is not None
     print("User existence result:", exists)
     return exists
+
 @app.route('/flask-api/request-password-reset', methods=['POST'])
 def request_password_reset():
     data = request.get_json()
@@ -566,9 +570,10 @@ def request_password_reset():
         with driver.session() as session:
             session.write_transaction(
                 lambda tx: tx.run(
-                    "CREATE (r:PasswordResetRequest {id: $id, username: $username, timestamp: timestamp()})",
+                    "CREATE (r:PasswordResetRequest {id: $id, username: $username, timestamp: timestamp(), status: $status})",
                     id=request_id,
-                    username=username
+                    username=username,
+                    status="pending"
                 )
             )
         return jsonify({"status": "Password reset request created"}), 200
@@ -608,6 +613,7 @@ def approve_password_reset():
         )
 
         record = result.single()
+        #delete record
         if record:
             return jsonify({"message": f"Request {status} successfully for {username}."}), 200
         else:

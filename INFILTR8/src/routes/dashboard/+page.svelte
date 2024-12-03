@@ -98,6 +98,8 @@
         if (response.ok) {
             const data = await response.json();
             console.log(data.message); // Log success message
+            fetchResetRequests()
+            console.log(resetRequests)
         } else {
             const error = await response.json();
             console.error("Error:", error);
@@ -121,6 +123,7 @@
             } else if (response.ok) {
                 const data = await response.json();
                 resetRequests = data.requests;
+    
             } else {
                 errorMessage = 'Failed to fetch reset requests';
             }
