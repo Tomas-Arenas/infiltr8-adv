@@ -98,7 +98,7 @@ def getCurrentProjectInfo():
 @app.route("/flask-api/current-project-info-many-test")
 def getCurrentProjectInfoTest():
     result = project.getProjectInfomationManyTest(driver, session['username'], session['currentProject'], session['currentFile'])
-    return jsonify({'data': result})
+    return jsonify({'data': result, 'fileId': session['currentFile']})
 
 @app.route("/flask-api/file-count")
 def getCountedFiles():
