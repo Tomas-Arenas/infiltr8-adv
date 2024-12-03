@@ -110,7 +110,7 @@
                 return;
             }
 
-            const response = await fetch("/flask-api/get-all-project-info", {
+            const response = await fetch("/flask-api/get-all-project-info-many", {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",
@@ -184,6 +184,7 @@
                         <TableHead class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-gray-700 dark:text-gray-400">
                         <TableHeadCell>Date</TableHeadCell>
                         <TableHeadCell>Project Name</TableHeadCell>
+                        <TableHeadCell>File</TableHeadCell>
                         <TableHeadCell>File Size</TableHeadCell>
                         <TableHeadCell>Status</TableHeadCell>
                     </TableHead>
@@ -193,6 +194,7 @@
                             <TableBodyRow>
                             <TableBodyCell>{row.creation}</TableBodyCell>
                             <TableBodyCell>{row.projectName}</TableBodyCell>
+                            <TableBodyCell>{row.file}</TableBodyCell>
                             <TableBodyCell>{row.fileSize}</TableBodyCell>
                             <TableBodyCell>
                                 {#if typeof row.status === 'number'}

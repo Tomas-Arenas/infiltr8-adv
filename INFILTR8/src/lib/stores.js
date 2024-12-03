@@ -86,7 +86,6 @@ export async function getIPsForProject(fileName) {
 
       const data = await response.json(); // Parse JSON response
       console.log("IPs received from backend:", data);
-      console.log(typeof(data))
       addIPstoStore(data); // Update the store with received IPs
       return data
   } catch (error) {

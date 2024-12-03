@@ -65,13 +65,17 @@ def createProject():
     ips = data.get('ips')
     status = 'created'
     
+    print(fileName)
+    print('ips ', ips)
+    
     if 'username' not in session:
         print("User not authenticated - 'username' not in session")
         return jsonify({'error': 'User not authenticated'}), 401  # Return a 401 Unauthorized if no username in session
     
     print(f"Creating project for user: {session['username']}")
-    newProId = project.createProject(driver, session['username'], projectName, fileName, status, ips, ['All'])
+    newProId = project.testCreateProjectMany(driver, session['username'], projectName, fileName, status, ips, ['All'])
     session['currentProject'] = newProId
+    session['currentFile'] = 1
     return jsonify({'message': 'Poject has been created', 'projectId': newProId})
 
 @app.route("/flask-api/all-projects")
@@ -91,11 +95,39 @@ def getCurrentProjectInfo():
     result = project.getProjectInfomation(driver, session['username'], session['currentProject'])
     return jsonify({'data': result})
 
-@app.route("/flask-api/get-all-project-info")
-def getAllProjectsInfo():
-    result = project.allProjectInfo(driver, session['username'])
+@app.route("/flask-api/current-project-info-many-test")
+def getCurrentProjectInfoTest():
+    result = project.getProjectInfomationManyTest(driver, session['username'], session['currentProject'], session['currentFile'])
     return jsonify({'data': result})
 
+@app.route("/flask-api/file-count")
+def getCountedFiles():
+    fileCount = project.countFiles(driver, session['username'], session['currentProject'])
+    return jsonify({'data': fileCount, 'currentFile': session['currentFile']})
+
+@app.route("/flask-api/change-selected-file", methods=['POST'])
+def changeSelectedFile():
+    try:
+        newFileId = request.json.get("fileId")
+        print('file in back', newFileId)
+        if not newFileId:
+            return jsonify({"message": "Missing 'fileId' in request body"})
+        
+        session['currentFile'] = newFileId
+
+        return jsonify({"message": f"Current project set successfully id:{newFileId}" })
+    except Exception as e:
+         return jsonify({"error": f"An error occurred: {str(e)}"}), 500
+
+@app.route("/flask-api/get-all-project-info")
+def getAllProjectsInfo():
+    result = project.allProjectInfoM(driver, session['username'])
+    return jsonify({'data': result})
+
+@app.route("/flask-api/get-all-project-info-many")
+def getAllProjectsInfoMany():
+    result = project.allProjectInfoMany(driver, session['username'])
+    return jsonify({'data': result})
 
 @app.route("/flask-api/set-currentProject", methods=['POST'])
 def setCurrentProject():
@@ -105,7 +137,7 @@ def setCurrentProject():
             return jsonify({"message": "Missing 'projectID' in request body"})
         
         session['currentProject'] = project_id
-
+        session['currentFile'] = 1
         return jsonify({"message": f"Current project set successfully id:{project_id}" })
     except Exception as e:
          return jsonify({"error": f"An error occurred: {str(e)}"}), 500
@@ -128,6 +160,7 @@ def nessusFileUpload():
         return jsonify({'info':'Need to be told it is file upload'})
     
     file = request.files['file']
+    print('the file uploaded ', file.filename)
     # Checks that a file was upload (could be removed becase frontend handles this)
     if file.filename == '':
         print('No selected file')
@@ -138,7 +171,7 @@ def nessusFileUpload():
         # Saves it based on the give file path and uses the upload file name
         file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
         print(os.path.exists(app.config['UPLOAD_FOLDER']+'/'+filename))
-        return jsonify({'message':'file was sent and has been saved on server'})
+        return jsonify({'message':'file was sent and has been saved on server', 'filename':file.filename})
 
 @app.route("/flask-api/process-nessus", methods=["POST"])
 def processNessus():
@@ -150,36 +183,36 @@ def processNessus():
     archetypesAllowed = data.get("archetypes")
     print(disallowedIps)
     analysis.disallowed_ips = disallowedIps
-    analysis.analyze_nessus_file(driver, session['currentProject'], session['username'])
-    nessus_upload.processAndUpload(driver, session['username'], session['currentProject'])
+    success = analysis.analyze_nessus_file(driver, session['currentProject'], session['username'], session['currentFile'])
+    nessus_upload.processAndUpload(driver, session['username'], session['currentProject'], session['currentFile'], success)
     return jsonify({'message': 'Result files have been uploaded'})
 
 # Test route for analysis
 @app.route("/flask-api/analysis-test")
 def testAnalysis():
     analysis.analyze_nessus_file(driver, session['currentProject'], session['username'])
-    nessus_upload.processAndUpload(driver, session['username'], session['currentProject'])
+    nessus_upload.processAndUpload(driver, session['username'], session['currentProject'], session['currentFile'])
     return jsonify({'name': session['username'], 'proid': session['currentProject'], })
     
 # Sends the entry points
 @app.route("/flask-api/data-with-exploits")
 def dataExploits():
-    dataEx = result.getResult(driver, 'dataExploits', session['currentProject'], session['username'])
+    dataEx = result.getResult(driver, 'dataExploits', session['currentProject'], session['username'], session['currentFile'])
     return jsonify({'message': 'success', 'data': dataEx})
 
 @app.route("/flask-api/ranked-entry-points")
 def rankedEntryPoints():
-    rankedEntry = result.getResult(driver, 'rankedEntry', session['currentProject'], session['username'])
+    rankedEntry = result.getResult(driver, 'rankedEntry', session['currentProject'], session['username'], session['currentFile'])
     return jsonify({'message': 'success', 'data': rankedEntry})
 
 @app.route("/flask-api/entry-most-info")
 def entryMostInfo():
-    mostInfo = result.getResult(driver, 'mostInfo', session['currentProject'], session['username'])
+    mostInfo = result.getResult(driver, 'mostInfo', session['currentProject'], session['username'], session['currentFile'])
     return jsonify({'message': 'success', 'data': mostInfo})
 
 @app.route("/flask-api/port-0-entries")
 def portZeroEntries():
-    zeroEntries = result.getResult(driver, 'portZero', session['currentProject'], session['username'])
+    zeroEntries = result.getResult(driver, 'portZero', session['currentProject'], session['username'], session['currentFile'])
     return jsonify({'message': 'success', 'data': zeroEntries})
 
 #gets ips from the analysis

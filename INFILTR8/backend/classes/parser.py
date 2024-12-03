@@ -25,8 +25,8 @@ def parserFile(fileName):
     nessus_file = currentPath+'/nessus-drop/'+fileName
     output_base_dir = currentPath+'/output/'
     
-    data_with_exploits_path = os.path.join(output_base_dir, 'data_with_exploits.csv')
-    port_0_entries_path = os.path.join(output_base_dir, 'port_0_entries.csv')
+    data_with_exploits_path = os.path.join(output_base_dir, 'data_with_exploits'+fileName+'.csv')
+    port_0_entries_path = os.path.join(output_base_dir, 'port_0_entries'+fileName+'.csv')
     
     # Initialize an empty DataFrame
     df = pd.DataFrame(columns=[])
