@@ -17,6 +17,7 @@
     let files = []
     $: selected = 1;
     let allArchetypes = []
+    let selectedArchetypes = []
 
     let all
     let exploitsAllowed = [];
@@ -81,7 +82,8 @@
             allIps = data.data.ips
             selectedProject = data.data;
             
-            allArchetypes = data.data.exploits
+            allArchetypes = data.data.exploits;
+            selectedArchetypes = data.data.exploits;
 
             console.log(selectedProject);
             const allowedIPInstances = selectedIps.map(ipAddress => new IP(ipAddress));
@@ -111,6 +113,17 @@
 
         console.log("Selected IPs for scope:", selectedIps);
         console.log("Disallowed IPs:", disallowedIPInstances.map(ip => ip.ip));
+    }
+
+
+    function toggleArchetypeSelection(archetype){
+        if (selectedArchetypes.includes(archetype)){
+            selectedArchetypes = selectedArchetypes.filter(selectedArchetype => selectedArchetype !== archetype)
+        }
+        else{
+            selectedArchetypes = [...selectedArchetypes, archetype]
+        }
+        console.log("New Selected Archetypes list: ", selectedArchetypes)
     }
 
     function addIP(data) {
@@ -210,7 +223,7 @@
                body: JSON.stringify({
                 projectId: selectedProject.projectId,
                 disallowedIps: get(ipsAllowed).map(item => item.ip),
-                archetypes: exploitsAllowed
+                archetypes: selectedArchetypes
                }) 
             });
             
@@ -370,7 +383,7 @@
                 <Listgroup class="border-none">
                     {#each allArchetypes as archetype, index}
                         <ListgroupItem class="flex items-center gap-3 justify-between rounded-lg bg-gray-100 p-4 shadow dark:bg-gray-800 mb-4">                  
-                            <input type="checkbox" checked />
+                            <input type="checkbox" checked on:change={() => toggleArchetypeSelection(archetype)} />
                             <span>{archetype}</span>					
                         </ListgroupItem>
                     {/each}

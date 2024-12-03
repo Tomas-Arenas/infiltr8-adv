@@ -17,6 +17,8 @@ output_base_dir = os.path.join(base_dir, "output")
 
 # Disallowed IPS
 disallowed_ips = []
+allowed_archetypes = []
+
 
 def analyze_nessus_file(driver, projectId, username, fileId):
     try:
@@ -43,6 +45,8 @@ def analyze_nessus_file(driver, projectId, username, fileId):
         project.updateProjectStatus(driver, projectId, username, 0, fileId)  # Start at 0% 
         # reads the csv made_before
         df = baseFrame[baseFrame["ip"].isin(disallowed_ips)]
+        df = baseFrame[baseFrame["archetype"].isin(allowed_archetypes)]
+
         project.updateProjectStatus(driver, projectId, username, 10, fileId)  # Update to 10%
 
         # Encode categorical variables
