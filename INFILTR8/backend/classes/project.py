@@ -1,6 +1,13 @@
 import os
 import datetime
 
+def getIdFromName(driver, username, projectName):
+    query = "MATCH (p:Project {projectName: $projectName})-[r:HAS_PROJECT]->(a:Analyst {username: $username}) RETURN p.projectId as id"
+    
+    with driver.session() as session:
+        id = session.run(query, projectName=projectName, username=username)
+        return id.single()['id']
+
 def countProjects(driver, username):
     query = "MATCH (p:Project)-[r:HAS_PROJECT]->(u:Analyst {username: $username}) RETURN count(p) as total"
 

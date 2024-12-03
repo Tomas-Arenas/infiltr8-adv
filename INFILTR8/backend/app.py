@@ -56,6 +56,15 @@ def test2():
         names.append(record[0]['name'])
     return jsonify({'test':names})
 
+@app.route("/flask-api/set-current-project-and-file", methods=['POST'])
+def setCurrentProjectAndFile():
+    data = request.get_json()
+    projectName = data.get('projectNameJ')
+    fileId = data.get('fileIdJ')
+    session['currentProject'] = project.getIdFromName(driver, session['username'], projectName)
+    session['currentFile'] = fileId
+    return jsonify({'message': 'session variables have been updated'})
+
 ### Project Routes ###
 
 @app.route("/flask-api/create-project", methods=['POST'])
@@ -102,7 +111,7 @@ def getCurrentProjectInfo():
 @app.route("/flask-api/current-project-info-many-test")
 def getCurrentProjectInfoTest():
     result = project.getProjectInfomationManyTest(driver, session['username'], session['currentProject'], session['currentFile'])
-    return jsonify({'data': result})
+    return jsonify({'data': result, 'fileId': session['currentFile']})
 
 @app.route("/flask-api/file-count")
 def getCountedFiles():
@@ -206,6 +215,8 @@ def dataExploits():
 
 @app.route("/flask-api/ranked-entry-points")
 def rankedEntryPoints():
+    print(session['currentProject'])
+    print(session['currentFile'])
     rankedEntry = result.getResult(driver, 'rankedEntry', session['currentProject'], session['username'], session['currentFile'])
     return jsonify({'message': 'success', 'data': rankedEntry})
 
