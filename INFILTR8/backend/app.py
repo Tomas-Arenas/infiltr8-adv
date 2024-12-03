@@ -14,6 +14,9 @@ import json
 from datetime import datetime, timezone
 import secrets
 
+import logging
+logging.basicConfig(filename="app.log", level=logging.DEBUG)
+
 # Gets all the env variables
 config = dotenv_values(".env")
 URI = config['URI']
@@ -64,6 +67,9 @@ def createProject():
     fileName = data.get('fileName')
     ips = data.get('ips')
     status = 'created'
+    archetypes = data.get('archetypes')
+    archetypes = [arch for arch in archetypes if arch is not None]
+
     
     print(fileName)
     print('ips ', ips)
@@ -73,7 +79,7 @@ def createProject():
         return jsonify({'error': 'User not authenticated'}), 401  # Return a 401 Unauthorized if no username in session
     
     print(f"Creating project for user: {session['username']}")
-    newProId = project.testCreateProjectMany(driver, session['username'], projectName, fileName, status, ips, ['All'])
+    newProId = project.testCreateProjectMany(driver, session['username'], projectName, fileName, status, ips, archetypes)
     session['currentProject'] = newProId
     session['currentFile'] = 1
     return jsonify({'message': 'Poject has been created', 'projectId': newProId})
@@ -257,13 +263,28 @@ def get_all_ips():
     data = request.get_json()
     fileName = data.get('name')
     try:
-        all_ips = parser.parserFile(fileName)
+        all_ips, _ = parser.parserFile(fileName)
         print("All IPs:", all_ips)  # Debugging print
         return jsonify(all_ips.tolist())
     except Exception as e:
         print("Error:", e)  # Log the error for debugging
         return jsonify({"error": str(e)}), 500
-
+    
+    
+    
+@app.route("/flask-api/get-archetypes-from-nessus", methods=["POST"])
+def get_all_archetypes():
+    data = request.get_json()
+    fileName = data.get('name')
+    try:
+        _, unique_archetypes = parser.parserFile(fileName)
+        logging.debug(f"All Archetypes: {unique_archetypes}")
+        return jsonify(unique_archetypes.tolist())
+    except Exception as e:
+        logging.error(f"Error: {e}")
+        return jsonify({"error": str(e)}), 500
+    
+    
 ### Logging fuctions ###
 
 # Log user action from frontend

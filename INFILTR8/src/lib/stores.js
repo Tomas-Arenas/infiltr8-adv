@@ -93,6 +93,27 @@ export async function getIPsForProject(fileName) {
   }
 };
 
+export async function getArchetypesForProject(filename){
+    try {
+      const response = await fetch("/flask-api/get-archetypes-from-nessus", {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({name: fileName})
+      });
+
+      if (!response.ok) {
+          throw new Error("Network response was not ok");
+      }
+
+      const data = await response.json(); // Parse JSON response
+      console.log("Archetypes received from backend:", data);
+
+      return data
+  } catch (error) {
+      console.error("There was an error retrieving Archetypes from the backend:", error);
+  }
+};
+
   function addIPstoStore(data) {
     const ipInstances = data.map(ipAddress => new IP(ipAddress)); // Create IP instances
     console.log(ipInstances)
