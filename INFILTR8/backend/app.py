@@ -103,7 +103,7 @@ def getCurrentProjectInfoTest():
 @app.route("/flask-api/file-count")
 def getCountedFiles():
     fileCount = project.countFiles(driver, session['username'], session['currentProject'])
-    return jsonify({'data': fileCount})
+    return jsonify({'data': fileCount, 'currentFile': session['currentFile']})
 
 @app.route("/flask-api/change-selected-file", methods=['POST'])
 def changeSelectedFile():

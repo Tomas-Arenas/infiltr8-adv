@@ -14,7 +14,7 @@
     let showModal = false; 
     let newIP = "";
     let files = []
-    $: selected = 1;
+    $: selected = 1
 
     
     let exploitsAllowed = [
@@ -32,16 +32,18 @@
             if (!response.ok) {
                 throw new Error(`HTTP error! Status: ${response.status}`)
             }
-            let totalFiles
+            let totalFiles, currentFileId
             const data = await response.json()
             totalFiles = data.data
+            console.log(data.currentFile)
+            currentFileId = data.currentFile
             console.log(totalFiles)
             for(let i=1;i<=totalFiles;i++) {
                 files.push({id:i, file: i})
                 files = [...files]
             }
             console.log(files)
-            selected = files[0];
+            selected = files[currentFileId - 1];
         } catch (error) {
             console.error("Failed to get file amount", error);
         }
