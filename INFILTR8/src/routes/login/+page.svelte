@@ -14,6 +14,7 @@
 	// Create Account Form Variables
 	let createUsername = '';
 	let createPassword = '';
+	let confirmPassword = '';
 	let createErrorMessage = '';
 	let createSuccessMessage = '';
 	let recoveryKey = ''; // Store the recovery key to display
@@ -81,6 +82,7 @@
 		// Reset autocomplete to default
 		autocomplete = 'on';
 	}
+	$: passwordMismatch = createPassword !== confirmPassword;
 
 	async function submitNewPassword() {
 		if (!newPassword || !accountKey) {
@@ -157,38 +159,46 @@
 	}
 
 	async function createUser() {
-		createErrorMessage = '';
-		createSuccessMessage = '';
-		recoveryKey = ''; // Reset recovery key each time the form is submitted
+	createErrorMessage = '';
+	createSuccessMessage = '';
+	recoveryKey = ''; // Reset recovery key each time the form is submitted
 
-		const payload = {
-			username: createUsername,
-			password: createPassword
-		};
-
-		try {
-			const response = await fetch('/flask-api/create_user', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify(payload)
-			});
-
-			const data = await response.json();
-
-			if (response.status === 201) {
-				createSuccessMessage = 'User created successfully!';
-				recoveryKey = data.recovery_key; // Capture the recovery key
-				createUsername = '';
-				createPassword = '';
-			} else if (response.status === 409) {
-				createErrorMessage = data.error || 'Error: Username already exists';
-			} else {
-				createErrorMessage = data.error || 'Failed to create user';
-			}
-		} catch (error) {
-			createErrorMessage = 'An error occurred: ' + error.message;
-		}
+	// Check if passwords match before proceeding
+	if (passwordMismatch) {
+		createErrorMessage = 'Passwords do not match.';
+		return; // Stop execution if passwords don't match
 	}
+
+	const payload = {
+		username: createUsername,
+		password: createPassword
+	};
+
+	try {
+		const response = await fetch('/flask-api/create_user', {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify(payload)
+		});
+
+		const data = await response.json();
+
+		if (response.status === 201) {
+		createSuccessMessage = 'User created successfully!';
+		recoveryKey = data.recovery_key; // Capture the recovery key
+		createUsername = '';
+		createPassword = '';
+		confirmPassword = ''; // Clear the confirmation password field
+		} else if (response.status === 409) {
+		createErrorMessage = data.error || 'Error: Username already exists';
+		} else {
+		createErrorMessage = data.error || 'Failed to create user';
+		}
+	} catch (error) {
+		createErrorMessage = 'An error occurred: ' + error.message;
+	}
+	}
+
 
 	async function submitForgotPassword() {
 		if (!forgotUsername) {
@@ -393,9 +403,21 @@
 					required
 					class="w-full rounded-md bg-gray-100 p-2 dark:bg-gray-700"
 				/>
+				<input
+					type="password"
+					id="confirm-password"
+					bind:value={confirmPassword}
+					placeholder="Confirm Password"
+					required
+					class="w-full rounded-md bg-gray-100 p-2 dark:bg-gray-700"
+				/>
+				{#if passwordMismatch}
+					<p class="text-red-500 text-sm">Passwords do not match</p>
+				{/if}
 				<button
 					type="submit"
 					class="w-full rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-300 dark:bg-blue-500 dark:hover:bg-blue-600 dark:focus:ring-blue-700"
+					disabled={passwordMismatch}
 					>Create Account</button
 				>
 			</form>
