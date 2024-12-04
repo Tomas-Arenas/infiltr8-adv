@@ -1,5 +1,6 @@
 import os
 import datetime
+from classes import nessus_upload 
 
 def getIdFromName(driver, username, projectName):
     query = "MATCH (p:Project {projectName: $projectName})-[r:HAS_PROJECT]->(a:Analyst {username: $username}) RETURN p.projectId as id"
@@ -150,6 +151,7 @@ def testCreateProjectMany(driver, username, projectName, fileName, status, ips, 
             fileId = countFiles(driver, username, projectId) + 1
             result2 = session.run(query2, projectId=projectId, projectName=projectName, user=username, fileId=fileId, status=status, fileName=fileName[i], fileSize=fileSize, creation=creation, ips=ips[i], exploits=exploits[i])
             id = result2.single()["id"]
+            nessus_upload.uploadDataExAndPortZero(driver, username, projectId, fileId, fileName[i])
             
         return projectId
 
