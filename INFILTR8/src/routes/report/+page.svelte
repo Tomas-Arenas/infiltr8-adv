@@ -39,7 +39,7 @@
 			severity >= severityMin &&
 			severity <= severityMax &&
 			(!ipFilter || row.ip.includes(ipFilter)) &&
-			(!portFilter || row.port.includes(portFilter)) &&
+			(portFilter === '' || row.port.includes(portFilter)) &&
 			(!pluginFilter || row.pluginName.toLowerCase().includes(pluginFilter.toLowerCase())) &&
 			vulCount >= minVulCount &&
 			vulCount <= maxVulCount
@@ -195,6 +195,32 @@
 	$: if (isExportModalOpen && selectedApis.length === 0) {
 		selectedApis = [...apis];
 	}
+	let sortColumn = '';
+	let sortDirection = 'asc'; // 'asc' for ascending, 'desc' for descending
+
+	function sortBy(column) {
+		if (sortColumn === column) {
+			// Toggle sort direction
+			sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+		} else {
+			// Set new sort column and default to ascending order
+			sortColumn = column;
+			sortDirection = 'asc';
+		}
+
+		// Sort filteredRows
+		filteredRows = [...filteredRows].sort((a, b) => {
+			const valA = parseFloat(a[column] || 0);
+			const valB = parseFloat(b[column] || 0);
+
+			if (sortDirection === 'asc') {
+				return valA > valB ? 1 : valA < valB ? -1 : 0;
+			} else {
+				return valA < valB ? 1 : valA > valB ? -1 : 0;
+			}
+		});
+	}
+
 	onMount(fetchCSVData);
 </script>
 
@@ -268,14 +294,34 @@
 				<TableHead style="bg-gray-100 dark:bg-gray-850 text-gray-700 text-align: center">
 					{#if headers.length > 0}
 						{#each headers as header}
-							{#if header === 'ip' || header === 'port' || header === 'severity_score' || header === 'pluginName' || header === 'vulnerability_count'}
+							{#if header === 'severity_score'}
+								<TableHeadCell
+									style="cursor: pointer; text-align: center;"
+									on:click={() => sortBy('severity_score')}
+								>
+									SEVERITY SCORE 
+									{#if sortColumn === 'severity_score'}
+										{sortDirection === 'asc' ? '↑' : '↓'}
+									{/if}
+								</TableHeadCell>
+							{:else if header === 'vulnerability_count'}
+								<TableHeadCell
+									style="cursor: pointer; text-align: center;"
+									on:click={() => sortBy('vulnerability_count')}
+								>
+									VULNERABILITY COUNT 
+									{#if sortColumn === 'vulnerability_count'}
+										{sortDirection === 'asc' ? '↑' : '↓'}
+									{/if}
+								</TableHeadCell>
+							{:else if header === 'ip' || header === 'port' || header === 'pluginName'}
 								<TableHeadCell style="text-align: center">{header.toUpperCase()}</TableHeadCell>
 							{/if}
 						{/each}
 					{:else}
 						<TableHeadCell>No Headers Available</TableHeadCell>
 					{/if}
-				</TableHead>
+				</TableHead>				
 			</Table>
 			<div class="table-body-scroll">
 				<Table noborder={false} style="text-align: center">
