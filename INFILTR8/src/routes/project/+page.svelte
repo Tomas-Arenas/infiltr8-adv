@@ -312,7 +312,7 @@
         <p class="mb-1 text-center"><strong>Select a File</strong></p>
         <select 
         bind:value={selected}
-        on:click={changeFile}
+        on:click={() => {logButtonClick("added new ip file"); changeFile}}
         class="w-half p-2 rounded-lg bg-gray-700 text-white border border-gray-500"
         placeholder={"Selected a issue type"}>
         {#each files as file}
@@ -331,7 +331,7 @@
             <Listgroup class="max-h-fit border-none">
                 {#each allIps as ip, index}
                     <ListgroupItem class="flex items-center gap-3 justify-between rounded-lg bg-gray-100 p-4 shadow dark:bg-gray-800 mb-4">
-                        <input type="checkbox" checked on:change={() => toggleIpSelection(ip)} />
+                        <input type="checkbox" checked on:change={() => {logButtonClick("ip selection toggled for ", ip); toggleIpSelection(ip)}} />
                         <span>{ip}</span>
                     </ListgroupItem>
                 {/each}
@@ -383,7 +383,7 @@
                 <Listgroup class="border-none">
                     {#each allArchetypes as archetype, index}
                         <ListgroupItem class="flex items-center gap-3 justify-between rounded-lg bg-gray-100 p-4 shadow dark:bg-gray-800 mb-4">                  
-                            <input type="checkbox" checked on:change={() => toggleArchetypeSelection(archetype)} />
+                            <input type="checkbox" checked on:change={() => {logButtonClick("archetypes changed"); toggleArchetypeSelection(archetype)}} />
                             <span>{archetype}</span>					
                         </ListgroupItem>
                     {/each}

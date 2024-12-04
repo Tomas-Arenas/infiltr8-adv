@@ -230,7 +230,7 @@
                                 {#if typeof row.status === 'number'}
                                 <Progressbar progress={row.status} labelInside />
                                 {:else if typeof row.status === 'completed' || row.status === 'reports' }
-                                <button on:click={reportHandler(row.projectName, row.fileId)} class="border-2 py-2 px-2 shadow-md rounded-lg">{row.status} </button>
+                                <button on:click={() => {logButtonClick("clicked report button"); reportHandler(row.projectName, row.fileId)}} class="border-2 py-2 px-2 shadow-md rounded-lg">{row.status} </button>
                                 {:else }
                                 <button on:click={() => window.location.href = "http://localhost:5173/dashboard"}  class="border-2 py-2 px-2 shadow-md rounded-lg">{row.status} </button>
                                 {/if}
@@ -281,7 +281,7 @@
                     <p>Status: {latestProject.status}</p>
                     <p>Time Started: {latestProject.creation}</p>
                     <button 
-                        on:click={downloadLogs} 
+                        on:click={() => {logButtonClick("user downloaded logs"); downloadLogs}} 
                         class="w-full mt-4 bg-blue-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
                         Download Logs
                     </button>
