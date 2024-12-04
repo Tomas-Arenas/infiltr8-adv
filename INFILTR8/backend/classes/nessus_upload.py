@@ -42,6 +42,16 @@ def countResults(driver, username, projectId, fileId):
         resultCount = session.run(query, fileId=fileId, username=username, projectId=projectId)
         return resultCount.single()['reportCount']
     
+def countRankAndEntry(driver, username, projectId, fileId):
+    query = """
+    MATCH (re:Report)-[h:HAS_FILE]->(f:File {fileId: $fileId})-[r1:NESSUS_FILE]->(p:Project {projectId: $projectId})-[r:HAS_PROJECT]->(u:Analyst {username: $username}) 
+    WHERE re.name = 'mostInfo' OR re.name = 'rankedEntry'
+    RETURN count(re) as reportCount
+    """
+    with driver.session() as session:
+        resultCount = session.run(query, fileId=fileId, username=username, projectId=projectId)
+        return resultCount.single()['reportCount']
+    
 def deleteResults(driver, username, projectId, fileId):
     query = """
     MATCH (re:Report)-[h:HAS_FILE]->(f:File {fileId: $fileId})-[r1:NESSUS_FILE]->(p:Project {projectId: $projectId})-[r:HAS_PROJECT]->(u:Analyst {username: $username}) 
@@ -49,7 +59,33 @@ def deleteResults(driver, username, projectId, fileId):
     """
     with driver.session() as session:
         session.run(query, fileId=fileId, username=username, projectId=projectId)
+        
+def deleteRankAndEntry(driver, username, projectId, fileId):
+    query = """
+    MATCH (re:Report)-[h:HAS_FILE]->(f:File {fileId: $fileId})-[r1:NESSUS_FILE]->(p:Project {projectId: $projectId})-[r:HAS_PROJECT]->(u:Analyst {username: $username})
+    WHERE re.name = 'mostInfo' OR re.name = 'rankedEntry'
+    DETACH DELETE re
+    """
+    with driver.session() as session:
+        session.run(query, fileId=fileId, username=username, projectId=projectId)
 
+def uploadDataExAndPortZero(driver, username, projectId, fileId, fileName):
+    output_base_dir = os.getcwd()+'/output/'
+    file = project.getProjectInfomationManyTest(driver, username, projectId, fileId)
+    query = """
+    MATCH (f:File {fileId: $fileId})-[r1:NESSUS_FILE]->(p:Project {projectId: $projectId})-[r:HAS_PROJECT]->(u:Analyst {username: $username}) 
+    WITH f
+    CREATE (r:Report {name: $reportName, contents: $upload})
+    CREATE (r)-[:HAS_FILE]->(f)
+    """
+    
+    dataExploits = fileRead(output_base_dir+'data_with_exploits'+fileName+'.csv')
+    portZero = fileRead(output_base_dir+'port_0_entries'+fileName+'.csv')
+    
+    with driver.session() as session:
+        session.run(query, fileId=fileId, username=username, projectId=projectId, reportName='dataExploits',upload=dataExploits)
+        session.run(query, fileId=fileId, username=username, projectId=projectId, reportName='portZero',upload=portZero)
+        
 def processAndUpload(driver, username, projectId, fileId, success):
     output_base_dir = os.getcwd()+'/output/'
     file = project.getProjectInfomationManyTest(driver, username, projectId, fileId)
@@ -60,33 +96,15 @@ def processAndUpload(driver, username, projectId, fileId, success):
     CREATE (r)-[:HAS_FILE]->(f)
     """
     if not success:
-        try:
-            dataExploits = fileRead(output_base_dir+'data_with_exploits'+file["file"]+'.csv')
-            portZero = fileRead(output_base_dir+'port_0_entries'+file["file"]+'.csv')
-        except Exception:
-            parser.parserFile(file["file"])
-            dataExploits = fileRead(output_base_dir+'data_with_exploits'+file["file"]+'.csv')
-            portZero = fileRead(output_base_dir+'port_0_entries'+file["file"]+'.csv')
-        with driver.session() as session:
-            session.run(query, fileId=fileId, username=username, projectId=projectId, reportName='dataExploits',upload=dataExploits)
-            session.run(query, fileId=fileId, username=username, projectId=projectId, reportName='portZero',upload=portZero)
+        print('failed to do the analysis')
         return 
             
     ranked = fileRead(output_base_dir+'ranked_entry_points'+file["file"]+'.csv')
     mostInfo = fileRead(output_base_dir+'entrypoint_most_info'+file["file"]+'.csv')
-    try:
-        dataExploits = fileRead(output_base_dir+'data_with_exploits'+file["file"]+'.csv')
-        portZero = fileRead(output_base_dir+'port_0_entries'+file["file"]+'.csv')
-    except Exception:
-        parser.parserFile(file["file"])
-        dataExploits = fileRead(output_base_dir+'data_with_exploits'+file["file"]+'.csv')
-        portZero = fileRead(output_base_dir+'port_0_entries'+file["file"]+'.csv')
     
-    if countResults(driver, username, projectId, fileId) != 0:
-        deleteResults(driver, username, projectId, fileId)
+    if countRankAndEntry(driver, username, projectId, fileId) != 0:
+        deleteRankAndEntry(driver, username, projectId, fileId)    
     
     with driver.session() as session:
         session.run(query, fileId=fileId, username=username, projectId=projectId, reportName='rankedEntry',upload=ranked)
         session.run(query, fileId=fileId, username=username, projectId=projectId, reportName='mostInfo',upload=mostInfo)
-        session.run(query, fileId=fileId, username=username, projectId=projectId, reportName='dataExploits',upload=dataExploits)
-        session.run(query, fileId=fileId, username=username, projectId=projectId, reportName='portZero',upload=portZero)
