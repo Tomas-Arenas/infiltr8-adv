@@ -85,6 +85,9 @@ def uploadDataExAndPortZero(driver, username, projectId, fileId, fileName):
     with driver.session() as session:
         session.run(query, fileId=fileId, username=username, projectId=projectId, reportName='dataExploits',upload=dataExploits)
         session.run(query, fileId=fileId, username=username, projectId=projectId, reportName='portZero',upload=portZero)
+    
+    os.remove(output_base_dir+'data_with_exploits'+fileName+'.csv')
+    os.remove(output_base_dir+'port_0_entries'+fileName+'.csv')
         
 def processAndUpload(driver, username, projectId, fileId, success):
     output_base_dir = os.getcwd()+'/output/'
@@ -108,3 +111,6 @@ def processAndUpload(driver, username, projectId, fileId, success):
     with driver.session() as session:
         session.run(query, fileId=fileId, username=username, projectId=projectId, reportName='rankedEntry',upload=ranked)
         session.run(query, fileId=fileId, username=username, projectId=projectId, reportName='mostInfo',upload=mostInfo)
+        
+    os.remove(output_base_dir+'ranked_entry_points'+file["file"]+'.csv')
+    os.remove(output_base_dir+'entrypoint_most_info'+file["file"]+'.csv')
