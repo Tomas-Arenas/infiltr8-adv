@@ -9,6 +9,30 @@
   let selectedFontSize = "Regular"; // Default font size
   let selectedTheme = "light"; // Default theme selection
 
+  let currentUser = ''
+    // gets username
+    async function checkSession(){
+        try{
+            const response = await fetch('/flask-api/check_session',{
+                method: 'GET',
+                credentials: 'include'
+            });
+            if (response.ok){
+                const sessionData = await response.json();
+                if (sessionData.logged_in){
+                    currentUser = sessionData.username;
+                }else{
+                    console.error("User is not logged in");
+                }
+            } else{
+                console.error("Failed to fetch session data");
+            }
+
+        }catch (error){
+            console.error("Error checking session:", error);
+        }
+    }
+
   const colorModes = [
     { value: 'Normal', name: "Normal" },
     { value: 'Protanopia', name: "Protanopia" },
@@ -49,7 +73,7 @@
       localStorage.setItem("colorblind-mode", value);
       }
     });
-
+    checkSession();
   });
 
   function applyFontSize(size) {
@@ -76,7 +100,7 @@
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    username: 'DummyUser',  // Dummy username for now
+                    username: currentUser,  // Dummy username for now
                     action: 'Settings click',
                     details: detail
                 })

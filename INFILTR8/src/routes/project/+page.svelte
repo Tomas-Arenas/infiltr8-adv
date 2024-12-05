@@ -22,6 +22,30 @@
     let all
     let exploitsAllowed = [];
 
+    let currentUser = ''
+    // gets username
+    async function checkSession(){
+        try{
+            const response = await fetch('/flask-api/check_session',{
+                method: 'GET',
+                credentials: 'include'
+            });
+            if (response.ok){
+                const sessionData = await response.json();
+                if (sessionData.logged_in){
+                    currentUser = sessionData.username;
+                }else{
+                    console.error("User is not logged in");
+                }
+            } else{
+                console.error("Failed to fetch session data");
+            }
+
+        }catch (error){
+            console.error("Error checking session:", error);
+        }
+    }
+
     async function fetchFiles() {
         try {
             const response = await fetch('/flask-api/file-count');
@@ -278,7 +302,7 @@
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    username: 'DummyUser',
+                    username: currentUser,
                     action: 'Project click',
                     details: detail
                 })
@@ -298,6 +322,7 @@
         fetchProjectInfo()
         fetchFiles()
         //getIPsFromBackend();
+        checkSession()
 
     });
 </script>

@@ -21,6 +21,30 @@
 	let minVulCount = 0;
 	let maxVulCount = 100;
 
+	let currentUser = ''
+    // gets username
+    async function checkSession(){
+        try{
+            const response = await fetch('/flask-api/check_session',{
+                method: 'GET',
+                credentials: 'include'
+            });
+            if (response.ok){
+                const sessionData = await response.json();
+                if (sessionData.logged_in){
+                    currentUser = sessionData.username;
+                }else{
+                    console.error("User is not logged in");
+                }
+            } else{
+                console.error("Failed to fetch session data");
+            }
+
+        }catch (error){
+            console.error("Error checking session:", error);
+        }
+    }
+
 	$: severityMin = Math.max(0, Math.min(severityMin, 1));
 	$: severityMax = Math.max(0, Math.min(severityMax, 1));
 
@@ -196,7 +220,10 @@
 	$: if (isExportModalOpen && selectedApis.length === 0) {
 		selectedApis = [...apis];
 	}
-	onMount(fetchCSVData);
+	onMount(() => {
+		fetchCSVData();
+		checkSession();
+	});
 
 	async function logButtonClick(detail) {
         console.log("Button clicked with detail:", detail);  // For debugging
@@ -207,7 +234,7 @@
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    username: 'DummyUser',
+                    username: currentUser,
                     action: 'Project click',
                     details: detail
                 })
