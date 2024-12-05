@@ -20,6 +20,30 @@
 	let minVulCount = 0;
 	let maxVulCount = 100;
 
+	let currentUser = ''
+    // gets username
+    async function checkSession(){
+        try{
+            const response = await fetch('/flask-api/check_session',{
+                method: 'GET',
+                credentials: 'include'
+            });
+            if (response.ok){
+                const sessionData = await response.json();
+                if (sessionData.logged_in){
+                    currentUser = sessionData.username;
+                }else{
+                    console.error("User is not logged in");
+                }
+            } else{
+                console.error("Failed to fetch session data");
+            }
+
+        }catch (error){
+            console.error("Error checking session:", error);
+        }
+    }
+
 	$: severityMin = Math.max(0, Math.min(severityMin, 1));
 	$: severityMax = Math.max(0, Math.min(severityMax, 1));
 
@@ -222,6 +246,35 @@
 	}
 
 	onMount(fetchCSVData);
+	onMount(() => {
+		fetchCSVData();
+		checkSession();
+	});
+
+	async function logButtonClick(detail) {
+        console.log("Button clicked with detail:", detail);  // For debugging
+        try {
+            const response = await fetch('/flask-api/log-action', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    username: currentUser,
+                    action: 'Project click',
+                    details: detail
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to log action');
+            }
+            const result = await response.json();
+            console.log('Action logged:', result);
+        } catch (error) {
+            console.error('Failed to log button click:', error);
+        }
+    }
 </script>
 
 <main class="container mx-auto p-6">
@@ -351,7 +404,7 @@
 
 		<!-- Export Button -->
 		<div class="flex justify-end mt-4">
-			<Button on:click={() => (isExportModalOpen = true)} color="primary" class="text-lg">
+			<Button on:click={() => {logButtonClick("export button clicked"); isExportModalOpen = true}} color="primary" class="text-lg">
 				Export
 			</Button>
 		</div>
@@ -389,8 +442,8 @@
 					</select>
 				</div>
 				<div class="mt-4 flex justify-end gap-2">
-					<Button on:click={() => (isExportModalOpen = false)} color="info" class="dark:text-gray-300">Cancel</Button>
-					<Button on:click={() => { isExportModalOpen = false; exportData(); }} color="primary">Export</Button>
+					<Button on:click={() => {logButtonClick("cancel button clicked"); (isExportModalOpen = false)}} color="info" class="dark:text-gray-300">Cancel</Button>
+					<Button on:click={() => { logButtonClick("export started"); isExportModalOpen = false; exportData(); }} color="primary">Export</Button>
 				</div>
 			</div>
 		</div>

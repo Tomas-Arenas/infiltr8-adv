@@ -24,6 +24,30 @@
     let resetRequests = [];
     let errorMessage = '';
 
+    let currentUser = ''
+    // gets username
+    async function checkSession(){
+        try{
+            const response = await fetch('/flask-api/check_session',{
+                method: 'GET',
+                credentials: 'include'
+            });
+            if (response.ok){
+                const sessionData = await response.json();
+                if (sessionData.logged_in){
+                    currentUser = sessionData.username;
+                }else{
+                    console.error("User is not logged in");
+                }
+            } else{
+                console.error("Failed to fetch session data");
+            }
+
+        }catch (error){
+            console.error("Error checking session:", error);
+        }
+    }
+
     // Automatically handle file uploads after selection
     const handleDropzoneChange = async () => {
         if (selectedFiles.length > 0) {
@@ -180,6 +204,7 @@
     onMount(() => {
         fetchProjects();
         fetchResetRequests();
+        checkSession();
     });
 
     async function setCurrentProject(projectID) {
@@ -213,7 +238,7 @@
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    username: 'DummyUser',
+                    username: currentUser,
                     action: 'Dashboard click',
                     details: detail
                 })
