@@ -1,9 +1,13 @@
 
 # CS4311_INFILTR8_Team1_DecafCats_Fall2024
 
-### Demo Video
+### Before Running the Install Watch This Video to Set up a GitHub Token on the Kali VM
 
-https://youtu.be/s43BS06Z_-I
+https://youtu.be/1cThaKnRceA?si=wGAqOOvIZZgXCuCn
+
+### Demo Video and How to Run the Install Script and the App
+
+https://youtu.be/9ETvc3jSZ84
 
 ## Node and Svelte Setup
 
