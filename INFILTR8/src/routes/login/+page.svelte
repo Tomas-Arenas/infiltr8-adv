@@ -304,6 +304,29 @@
 				'An error occurred while processing your request. Please try again later.';
 		}
 	}
+
+	async function submitAdminApprovedNewPassword() {
+        try {
+            const response = await fetch('/flask-api/admin-approved-reset-password', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ user_name: checkUsername, new_password: newPassword })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                alert('Password reset successfully. You may now log in with your new password.');
+                passwordResetMessage = 'Password reset successful!';
+                handleModalClose();
+            } else {
+                alert(data.error,  'Failed to reset password. Please try again.');
+            }
+        } catch (error) {
+            console.error('Error in submitNewPassword:', error);
+            alert('An error occurred while resetting the password.');
+        }
+    }
 </script>
 
 <div class="flex min-h-screen items-center justify-center">
@@ -412,13 +435,12 @@
 					class="w-full rounded-md bg-gray-100 p-2 dark:bg-gray-700"
 				/>
 				{#if passwordMismatch}
-					<p class="text-red-500 text-sm">Passwords do not match</p>
+					<p class="text-sm text-red-500">Passwords do not match</p>
 				{/if}
 				<button
 					type="submit"
 					class="w-full rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-300 dark:bg-blue-500 dark:hover:bg-blue-600 dark:focus:ring-blue-700"
-					disabled={passwordMismatch}
-					>Create Account</button
+					disabled={passwordMismatch}>Create Account</button
 				>
 			</form>
 
@@ -556,7 +578,7 @@
 						class="mt-4 w-full rounded-md bg-gray-100 p-2 dark:bg-gray-700"
 					/>
 					<button
-						on:click={resetPassword}
+						on:click={submitAdminApprovedNewPassword}
 						class="mt-4 w-full rounded-lg bg-blue-600 px-4 py-2 text-white"
 					>
 						Reset Password

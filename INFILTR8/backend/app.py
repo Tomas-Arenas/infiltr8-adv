@@ -618,3 +618,37 @@ def approve_password_reset():
             return jsonify({"message": f"Request {status} successfully for {username}."}), 200
         else:
             return jsonify({"error": "Request not found."}), 404
+
+@app.route('/flask-api/admin-approved-reset-password', methods=['POST'])
+def admin_approved_reset_password():
+    data = request.get_json()
+    username = data.get('user_name')
+    new_password = data.get('new_password')
+
+    if not username or not new_password:
+        return jsonify({"error": "new password required"}), 400
+
+    # Hash the new password
+    hashed_password = bcrypt.hashpw(new_password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+
+    try:
+        with driver.session() as session:
+            # Match user with recovery key and update their password
+            result = session.run(
+                """
+                MATCH (a:Analyst {username: $username})
+                SET a.password = $hashed_password
+                RETURN a.username AS username
+                """,
+                username=username,
+                hashed_password=hashed_password
+            )
+
+            record = result.single()
+            if record:
+                return jsonify({"message": "Password reset successful", "username": record["username"]}), 200
+            else:
+                return jsonify({"error": "Invalid recovery key"}), 404
+    except Exception as e:
+        print(f"Error resetting password: {e}")
+        return jsonify({"error": "Failed to reset password"}), 500
