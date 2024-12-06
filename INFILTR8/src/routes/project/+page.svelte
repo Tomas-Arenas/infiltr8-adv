@@ -337,9 +337,9 @@
         <p class="mb-1 text-center"><strong>Select a File</strong></p>
         <select 
         bind:value={selected}
-        on:click={() => {logButtonClick("added new ip file"); changeFile}}
+        on:click={logButtonClick("changed project file"), changeFile}
         class="w-half p-2 rounded-lg bg-gray-700 text-white border border-gray-500"
-        placeholder={"Selected a issue type"}>
+        placeholder={"Selected File"}>
         {#each files as file}
             <option value={file}>
             File {file.file}
