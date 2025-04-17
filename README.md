@@ -1,6 +1,12 @@
 
 # CS4311_INFILTR8_Team1_DecafCats_Fall2024
 
+
+# THIS REPOSITORY IS A FORK OF MY SENIOR PROJECT WHERE I TRY TO DEPLOY THIS PROJECT USING DOCKER
+
+### 1. after cloning do "docker-compose up --build" cool
+
+
 ### Before Running the Install Watch This Video to Set up a GitHub Token on the Kali VM
 
 https://youtu.be/1cThaKnRceA?si=wGAqOOvIZZgXCuCn

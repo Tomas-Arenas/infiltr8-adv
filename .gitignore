@@ -1,2 +1,21 @@
 .DS_Store
 node_modules
+# Frontend
+.svelte-kit/
+node_modules/
+frontend/node_modules/
+build/
+
+# Backend
+__pycache__/
+*.pyc
+backend/__pycache__/
+backend/*.pyc
+
+# Env and config
+.env
+*.env
+*.log
+
+# OS junk
+.DS_Store
