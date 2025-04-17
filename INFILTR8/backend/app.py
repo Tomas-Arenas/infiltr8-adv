@@ -32,7 +32,7 @@ app.secret_key = os.urandom(12).hex() # Needed to sign session cookies and what 
 # Flask-Session configuration
 app.config['SECRET_KEY'] = 'your_secret_key'
 app.config['SESSION_TYPE'] = 'filesystem'
-app.config['SESSION_FILE_DIR'] = './flask_session'  
+app.config['SESSION_FILE_DIR'] = '/tmp/flask_session'
 app.config['SESSION_PERMANENT'] = False  # Disable permanent sessions
 app.config['SESSION_USE_SIGNER'] = True  # To add an extra layer of security
 Session(app)

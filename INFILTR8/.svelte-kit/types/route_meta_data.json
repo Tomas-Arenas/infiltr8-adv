@@ -1,0 +1,20 @@
+{
+	"/": [],
+	"/analysis": [
+		"src/routes/analysis/+page.js"
+	],
+	"/dashboard": [
+		"src/routes/dashboard/+page.js"
+	],
+	"/login": [],
+	"/logout": [],
+	"/project": [
+		"src/routes/project/+page.js"
+	],
+	"/report": [
+		"src/routes/report/+page.js"
+	],
+	"/settings": [
+		"src/routes/settings/+page.js"
+	]
+}
